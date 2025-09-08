@@ -21,7 +21,7 @@ export const useSimpleGoogleAuth = () => {
       const userInfo = await GoogleSignin.signIn();
 
       // ID Token 가져오기 - 구조 수정
-      const idToken = userInfo.idToken || userInfo.data?.idToken;
+      const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
         throw new Error('ID Token을 가져올 수 없습니다');
