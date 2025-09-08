@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, SafeAreaView, StyleSheet, View } from 'react-native';
@@ -39,7 +40,8 @@ export const OAuthWebView = ({ visible, onClose, provider }: OAuthWebViewProps) 
     }
 
     // 다른 provider는 기존 방식
-    const baseUrl = 'http://14.43.219.252:8080';
+    const baseUrl =
+      Constants.expoConfig?.extra?.apiUrl?.replace('/api', '') || 'http://localhost:8080';
     const url = `${baseUrl}/oauth2/authorization/${provider}`;
     return url;
   }, [visible, provider]);
@@ -85,7 +87,9 @@ export const OAuthWebView = ({ visible, onClose, provider }: OAuthWebViewProps) 
 
       if (code) {
         // 백엔드 IP로 콜백 URL 재구성
-        const backendCallback = `http://14.43.219.252:8080/login/oauth2/code/google?code=${code}&state=${state}`;
+        const baseUrl =
+          Constants.expoConfig?.extra?.apiUrl?.replace('/api', '') || 'http://localhost:8080';
+        const backendCallback = `${baseUrl}/login/oauth2/code/google?code=${code}&state=${state}`;
 
         // 백엔드로 리다이렉트
         webViewRef.current?.injectJavaScript(`window.location.href = '${backendCallback}';`);
