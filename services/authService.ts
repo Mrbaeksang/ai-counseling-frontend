@@ -60,6 +60,11 @@ class AuthService {
     }
   }
 
+  // 토큰 저장
+  async saveTokens(accessToken: string, refreshToken: string): Promise<void> {
+    await useAuthStore.getState().setTokens(accessToken, refreshToken);
+  }
+
   // 로그아웃
   async logout(): Promise<void> {
     try {
