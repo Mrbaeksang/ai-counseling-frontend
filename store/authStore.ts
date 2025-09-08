@@ -5,6 +5,7 @@ interface User {
   userId: number;
   email: string;
   nickname: string;
+  name?: string; // nickname 별칭
 }
 
 interface AuthState {
@@ -19,6 +20,7 @@ interface AuthState {
   logout: () => Promise<void>;
   loadStoredAuth: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
+  setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
 }
 
 interface AuthResponse {
@@ -115,6 +117,22 @@ const useAuthStore = create<AuthState>((set) => ({
       });
 
       return { user: newUser };
+    });
+  },
+
+  setTokens: async (accessToken: string, refreshToken: string) => {
+    // AsyncStorage에 토큰 저장
+    await AsyncStorage.multiSet([
+      ['accessToken', accessToken],
+      ['refreshToken', refreshToken],
+    ]);
+
+    // 스토어 업데이트
+    set({
+      accessToken,
+      refreshToken,
+      isAuthenticated: true,
+      isLoading: false,
     });
   },
 }));

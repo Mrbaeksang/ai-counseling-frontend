@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "마음친구",
-    "slug": "ai-counseling",
+    "name": "Dr. Mind",
+    "slug": "dr-mind",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "aicounseling",
+    "scheme": "drmind",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aicounseling.app"
+      "bundleIdentifier": "com.drmind.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,10 +23,17 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.aicounseling.app"
+      "package": "com.drmind.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router"],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5eaf2255-a092-4c80-ab46-ec234ad943b8"
+      }
     }
   }
 }

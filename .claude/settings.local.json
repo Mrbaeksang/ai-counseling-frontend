@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": ["mcp__exa__web_search_exa", "mcp__exa__crawling_exa"],
+    "deny": [],
+    "ask": []
+  }
+}
