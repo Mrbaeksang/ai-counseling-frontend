@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import * as WebBrowser from 'expo-web-browser';
 import useAuthStore from '@/store/authStore';
 import api from './api';
@@ -24,7 +25,7 @@ class AuthService {
       // Zustand store에 저장 (AsyncStorage 저장 포함)
       await useAuthStore.getState().login(response.data);
     } catch (error) {
-      if ((error as any).response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         throw new Error('Google 인증에 실패했습니다.');
       }
       throw new Error('로그인 중 오류가 발생했습니다.');
@@ -40,7 +41,7 @@ class AuthService {
 
       await useAuthStore.getState().login(response.data);
     } catch (error) {
-      if ((error as any).response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         throw new Error('카카오 인증에 실패했습니다.');
       }
       throw new Error('로그인 중 오류가 발생했습니다.');
@@ -56,7 +57,7 @@ class AuthService {
 
       await useAuthStore.getState().login(response.data);
     } catch (error) {
-      if ((error as any).response?.status === 401) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
         throw new Error('네이버 인증에 실패했습니다.');
       }
       throw new Error('로그인 중 오류가 발생했습니다.');

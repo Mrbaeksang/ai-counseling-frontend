@@ -1,20 +1,23 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Card, Avatar, useTheme } from 'react-native-paper';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Avatar, Card, Text } from 'react-native-paper';
+
+interface Counselor {
+  id: number;
+  name: string;
+  desc: string;
+}
 
 export default function CounselorsScreen() {
-  const theme = useTheme();
-
-  const counselors = [
-    { id: 1, name: 'Œl|L¤', desc: ' àD L|' },
-    { id: 2, name: 'õ', desc: 'xXÀ' },
-    { id: 3, name: '€˜Ø', desc: 'àµĞX tÈ' },
+  const counselors: Counselor[] = [
+    { id: 1, name: 'ì†Œí¬ë¼í…ŒìŠ¤', desc: 'ë„ˆ ìì‹ ì„ ì•Œë¼' },
+    { id: 2, name: 'ê³µì', desc: 'ì¸ì˜ì˜ˆì§€' },
+    { id: 3, name: 'ë¶€ì²˜ë‹˜', desc: 'ê³ í†µì—ì„œì˜ í•´íƒˆ' },
   ];
 
   return (
     <View style={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>
-         Y Áô¬
+        ìƒë‹´ì‚¬ ì„ íƒ
       </Text>
       <ScrollView>
         {counselors.map((counselor) => (
