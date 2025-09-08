@@ -1,30 +1,35 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import useAuthStore from '@/store/authStore';
 
-export default function App() {
+export default function Index() {
+  const { isAuthenticated, isLoading, loadStoredAuth } = useAuthStore();
+
+  useEffect(() => {
+    // 저장된 토큰 확인
+    loadStoredAuth();
+  }, [
+    // 저장된 토큰 확인
+    loadStoredAuth,
+  ]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated) {
+        // 로그인되어 있으면 메인 화면으로
+        router.replace('/(tabs)');
+      } else {
+        // 로그인 안되어 있으면 로그인 화면으로
+        router.replace('/(auth)/login');
+      }
+    }
+  }, [isAuthenticated, isLoading]);
+
+  // 로딩 중 표시
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🧠 AI 철학 상담</Text>
-      <Text style={styles.subtitle}>당신의 마음을 들어드립니다</Text>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#6B46C1" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-  },
-});
