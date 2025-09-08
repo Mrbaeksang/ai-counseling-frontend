@@ -153,3 +153,10 @@ Pre-commit hook automatically:
 1. Runs Biome linter with auto-fix
 2. Stages formatted files
 3. Ensures code quality before commit
+
+## Commit Messages
+
+- Write commit messages in Korean
+- DO NOT include AI-generated mentions or credits (no "🤖 Generated with Claude Code" etc.)
+- Follow conventional commit format: `type: 설명`
+- Example: `feat: 로그인 화면 UI 개선`

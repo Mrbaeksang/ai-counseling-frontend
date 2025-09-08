@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { borderRadius, shadows, spacing, typography } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 
 interface PremiumButtonProps {
   onPress: () => void;
@@ -89,17 +89,18 @@ export const PremiumButton = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   animatedView: {
-    borderRadius: borderRadius.xl,
+    borderRadius: 12,
     overflow: 'hidden',
-    ...shadows.lg,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   gradient: {
-    paddingVertical: spacing.md + 4,
+    paddingVertical: 14,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.xl,
+    borderRadius: 12,
   },
   content: {
     flexDirection: 'row',
@@ -107,9 +108,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    ...typography.titleMedium,
-    marginLeft: spacing.md,
+    fontSize: 15,
+    marginLeft: spacing.sm,
     fontWeight: '600',
+    fontFamily: 'Pretendard-SemiBold',
+    letterSpacing: -0.3,
   },
   pressed: {
     opacity: 0.8,
