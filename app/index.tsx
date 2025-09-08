@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import useAuthStore from '@/store/authStore';
@@ -9,29 +9,23 @@ export default function Index() {
   useEffect(() => {
     // 저장된 토큰 확인
     loadStoredAuth();
-  }, [
-    // 저장된 토큰 확인
-    loadStoredAuth,
-  ]);
+  }, [loadStoredAuth]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        // 로그인되어 있으면 메인 화면으로
-        router.replace('/(tabs)');
-      } else {
-        // 로그인 안되어 있으면 로그인 화면으로
-        router.replace('/(auth)/login');
-      }
-    }
-  }, [isAuthenticated, isLoading]);
+  // 로딩 중이면 스피너 표시
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#6B46C1" />
+      </View>
+    );
+  }
 
-  // 로딩 중 표시
-  return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#6B46C1" />
-    </View>
-  );
+  // 로딩 완료 후 리다이렉트
+  if (isAuthenticated) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
 }
 
 const styles = StyleSheet.create({

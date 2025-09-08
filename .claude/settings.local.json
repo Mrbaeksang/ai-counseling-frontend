@@ -1,6 +1,13 @@
 {
   "permissions": {
-    "allow": ["mcp__exa__web_search_exa", "mcp__exa__crawling_exa"],
+    "allow": [
+      "mcp__exa__web_search_exa",
+      "mcp__exa__crawling_exa",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__read_file",
+      "mcp__filesystem__search_files"
+    ],
     "deny": [],
     "ask": []
   }

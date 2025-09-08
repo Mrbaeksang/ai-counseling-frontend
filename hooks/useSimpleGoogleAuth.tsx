@@ -20,7 +20,7 @@ export const useSimpleGoogleAuth = () => {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
 
-      // ID Token 가져오기
+      // ID Token 가져오기 - 구조 수정
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
