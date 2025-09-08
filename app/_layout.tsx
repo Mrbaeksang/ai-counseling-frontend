@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { MD3LightTheme, PaperProvider } from 'react-native-paper';
 
@@ -26,14 +26,17 @@ const theme = {
 };
 
 export default function RootLayout() {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60 * 1000,
-        retry: 1,
-      },
-    },
-  }));
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            retry: 1,
+          },
+        },
+      }),
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -43,7 +46,7 @@ export default function RootLayout() {
             headerStyle: {
               backgroundColor: theme.colors.primary,
             },
-            headerTintColor: '#fff',
+            headerTintColor: theme.colors.onPrimary,
             headerTitleStyle: {
               fontWeight: 'bold',
             },

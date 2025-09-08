@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Biome check and format
+npm run lint -- --write
+
+# Add formatted files to staging
+git add -A
