@@ -1,0 +1,3 @@
+*.tsx text eol=lf encoding=UTF-8
+*.ts text eol=lf encoding=UTF-8
+*.json text eol=lf encoding=UTF-8
