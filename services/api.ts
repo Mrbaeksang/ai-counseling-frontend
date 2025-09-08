@@ -96,7 +96,7 @@ api.interceptors.response.use(
           refreshToken,
         });
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+        const { accessToken, refreshToken: newRefreshToken } = response.data;
 
         // Save new tokens
         await AsyncStorage.setItem('accessToken', accessToken);
