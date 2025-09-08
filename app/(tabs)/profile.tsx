@@ -1,8 +1,7 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Button, Avatar } from 'react-native-paper';
-import useAuthStore from '@/store/authStore';
 import { router } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import { Avatar, Button, Text } from 'react-native-paper';
+import useAuthStore from '@/store/authStore';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
@@ -17,19 +16,15 @@ export default function ProfileScreen() {
       <View style={styles.header}>
         <Avatar.Icon size={80} icon="account" />
         <Text variant="headlineMedium" style={styles.name}>
-          {user?.nickname || '¨©ê'}
+          {user?.nickname || 'ÏÇ¨Ïö©Ïûê'}
         </Text>
         <Text variant="bodyLarge" style={styles.email}>
           {user?.email || ''}
         </Text>
       </View>
 
-      <Button
-        mode="outlined"
-        onPress={handleLogout}
-        style={styles.logoutButton}
-      >
-        \¯D√
+      <Button mode="outlined" onPress={handleLogout} style={styles.logoutButton}>
+        Î°úÍ∑∏ÏïÑÏõÉ
       </Button>
     </View>
   );

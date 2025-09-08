@@ -32,14 +32,6 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated]);
 
-  // Google 로그인 응답 처리
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleGoogleLogin(id_token);
-    }
-  }, [response]);
-
   // Google 로그인 처리
   const handleGoogleLogin = async (idToken: string) => {
     setLoading(true);
@@ -52,6 +44,14 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+  // Google 로그인 응답 처리
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      handleGoogleLogin(id_token);
+    }
+  }, [response]);
 
   // Kakao 로그인 처리
   const handleKakaoLogin = async () => {

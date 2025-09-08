@@ -1,18 +1,15 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
 import { useLocalSearchParams } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-paper';
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
     <View style={styles.container}>
-      <Text variant="headlineMedium">
-        D Tt (Session ID: {id})
-      </Text>
+      <Text variant="headlineMedium">채팅 화면 (Session ID: {id})</Text>
       <Text variant="bodyLarge" style={styles.placeholder}>
-        D 0� l 
+        채팅 기능 구현 예정
       </Text>
     </View>
   );
