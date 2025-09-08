@@ -51,7 +51,10 @@ export default function RootLayout() {
               fontWeight: 'bold',
             },
           }}
-        />
+        >
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
       </PaperProvider>
     </QueryClientProvider>
   );

@@ -1,5 +1,4 @@
 import { AxiosError } from 'axios';
-import * as WebBrowser from 'expo-web-browser';
 import useAuthStore from '@/store/authStore';
 import api from './api';
 
@@ -10,9 +9,6 @@ interface AuthResponse {
   email: string;
   nickname: string;
 }
-
-// 웹 브라우저 세션 완료 설정
-WebBrowser.maybeCompleteAuthSession();
 
 class AuthService {
   // Google OAuth 로그인
