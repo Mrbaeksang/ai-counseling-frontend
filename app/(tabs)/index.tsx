@@ -1,6 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   FlatList,
@@ -17,6 +16,7 @@ import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkele
 import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import { useCounselors, useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
+import { useThrottle } from '@/hooks/useDebounce';
 import type { Counselor } from '@/services/counselors/types';
 import useAuthStore from '@/store/authStore';
 
@@ -156,6 +156,7 @@ export default function HomeScreen() {
   const { user } = useAuthStore();
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'rating'>('latest');
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // 정렬 옵션 매핑 (백엔드 정렬 옵션: popular, rating, recent)
   const sortMap = {
@@ -173,8 +174,11 @@ export default function HomeScreen() {
   const { data: favoritesData, refetch: refetchFavorites } = useFavoriteCounselors(1, 10);
   const { toggle: toggleFavorite } = useToggleFavorite();
 
-  // 상담사 목록
-  const counselors = counselorsData?.content || [];
+  // 상담사 목록 (카테고리 필터링 적용)
+  const allCounselors = counselorsData?.content || [];
+  const counselors = selectedCategory
+    ? allCounselors.filter((c) => c.categories?.includes(selectedCategory))
+    : allCounselors;
 
   // 즐겨찾기 목록 및 ID 세트
   const favoriteCounselors = favoritesData?.content || [];
@@ -193,6 +197,21 @@ export default function HomeScreen() {
 
     toggleFavorite(counselor.id, favoriteIds.has(counselor.id));
   };
+
+  // 카테고리 선택 핸들러
+  const handleCategoryPressRaw = (categoryId: string) => {
+    // 같은 카테고리 클릭 시 선택 해제
+    if (selectedCategory === categoryId) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(categoryId);
+    }
+  };
+
+  const [handleCategoryPress] = useThrottle(
+    handleCategoryPressRaw as (...args: unknown[]) => unknown,
+    1000,
+  );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -226,17 +245,23 @@ export default function HomeScreen() {
                   {MAIN_CATEGORIES.map((category) => (
                     <TouchableOpacity
                       key={category.id}
-                      style={styles.categoryCard}
-                      onPress={() => {
-                        router.push(`/counselors/category?category=${category.id}`);
-                      }}
+                      style={[
+                        styles.categoryCard,
+                        selectedCategory === category.id && styles.categoryCardSelected,
+                      ]}
+                      onPress={() => handleCategoryPress(category.id)}
                       activeOpacity={0.7}
                     >
                       <LinearGradient
-                        colors={category.gradient}
+                        colors={
+                          selectedCategory === category.id ? category.gradient : category.gradient
+                        }
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={styles.categoryGradient}
+                        style={[
+                          styles.categoryGradient,
+                          selectedCategory === category.id && styles.categoryGradientSelected,
+                        ]}
                       >
                         <MaterialCommunityIcons
                           name={category.icon as keyof typeof MaterialCommunityIcons.glyphMap}
@@ -244,7 +269,14 @@ export default function HomeScreen() {
                           color="white"
                         />
                       </LinearGradient>
-                      <Text style={styles.categoryLabel}>{category.label}</Text>
+                      <Text
+                        style={[
+                          styles.categoryLabel,
+                          selectedCategory === category.id && styles.categoryLabelSelected,
+                        ]}
+                      >
+                        {category.label}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -267,10 +299,13 @@ export default function HomeScreen() {
                       {ALL_CATEGORIES.slice(6).map((category) => (
                         <TouchableOpacity
                           key={category.id}
-                          style={styles.categoryCard}
+                          style={[
+                            styles.categoryCard,
+                            selectedCategory === category.id && styles.categoryCardSelected,
+                          ]}
                           onPress={() => {
                             setShowAllCategories(false);
-                            router.push(`/counselors/category?category=${category.id}`);
+                            handleCategoryPress(category.id);
                           }}
                           activeOpacity={0.7}
                         >
@@ -278,7 +313,10 @@ export default function HomeScreen() {
                             colors={category.gradient}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
-                            style={styles.categoryGradient}
+                            style={[
+                              styles.categoryGradient,
+                              selectedCategory === category.id && styles.categoryGradientSelected,
+                            ]}
                           >
                             <MaterialCommunityIcons
                               name={category.icon as keyof typeof MaterialCommunityIcons.glyphMap}
@@ -286,7 +324,14 @@ export default function HomeScreen() {
                               color="white"
                             />
                           </LinearGradient>
-                          <Text style={styles.categoryLabel}>{category.label}</Text>
+                          <Text
+                            style={[
+                              styles.categoryLabel,
+                              selectedCategory === category.id && styles.categoryLabelSelected,
+                            ]}
+                          >
+                            {category.label}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -327,8 +372,23 @@ export default function HomeScreen() {
 
             {/* 전체 상담사 섹션 헤더 */}
             <View style={styles.allCounselorsHeader}>
-              <Text style={styles.sectionTitle}>모든 상담사</Text>
+              <Text style={styles.sectionTitle}>
+                {selectedCategory
+                  ? `${CATEGORIES.find((c) => c.id === selectedCategory)?.label || ''} 상담사`
+                  : '모든 상담사'}
+              </Text>
               <View style={styles.sortChips}>
+                {selectedCategory && (
+                  <Chip
+                    mode="outlined"
+                    onPress={() => setSelectedCategory(null)}
+                    style={[styles.sortChip, { backgroundColor: '#F3E8FF' }]}
+                    closeIcon="close"
+                    onClose={() => setSelectedCategory(null)}
+                  >
+                    필터 초기화
+                  </Chip>
+                )}
                 <Chip
                   mode={sortBy === 'latest' ? 'flat' : 'outlined'}
                   onPress={() => setSortBy('latest')}
@@ -576,5 +636,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Pretendard-Medium',
     color: '#6B7280',
+  },
+  categoryCardSelected: {
+    borderWidth: 2,
+    borderColor: '#6B46C1',
+  },
+  categoryGradientSelected: {
+    transform: [{ scale: 1.05 }],
+  },
+  categoryLabelSelected: {
+    color: '#6B46C1',
+    fontFamily: 'Pretendard-SemiBold',
   },
 });

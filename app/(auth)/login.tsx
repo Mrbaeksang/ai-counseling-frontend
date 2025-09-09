@@ -1,8 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
-  Alert,
   Animated,
   Image,
   ImageBackground,
@@ -16,14 +15,15 @@ import { ActivityIndicator, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumButton } from '@/components/common/PremiumButton';
 import { borderRadius, shadows, spacing } from '@/constants/theme';
+import { useKakaoAuth } from '@/hooks/useKakaoAuth';
 import { useSimpleGoogleAuth } from '@/hooks/useSimpleGoogleAuth';
 import useAuthStore from '@/store/authStore';
 
 export default function PremiumLoginScreen() {
   const insets = useSafeAreaInsets();
-  const [loading] = useState(false);
   const { isAuthenticated } = useAuthStore();
   const { signIn: googleSignIn, isLoading: isGoogleLoading } = useSimpleGoogleAuth();
+  const { signIn: kakaoSignIn, isLoading: isKakaoLoading } = useKakaoAuth();
 
   // 애니메이션 값들
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -74,9 +74,8 @@ export default function PremiumLoginScreen() {
   const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
     if (provider === 'google') {
       await googleSignIn();
-    } else {
-      // 카카오는 추후 구현
-      Alert.alert('준비 중', '카카오 로그인은 준비 중입니다.');
+    } else if (provider === 'kakao') {
+      await kakaoSignIn();
     }
   };
 
@@ -164,7 +163,7 @@ export default function PremiumLoginScreen() {
 
                   <PremiumButton
                     onPress={() => handleOAuthLogin('kakao')}
-                    disabled={loading}
+                    disabled={isKakaoLoading}
                     icon={<MaterialCommunityIcons name="chat" size={20} color="#3C1E1E" />}
                     text="카카오로 계속하기"
                     gradientColors={['#FEE500', '#FEE500']}
@@ -186,10 +185,10 @@ export default function PremiumLoginScreen() {
       </ImageBackground>
 
       {/* 로딩 오버레이 */}
-      {isGoogleLoading && (
+      {(isGoogleLoading || isKakaoLoading) && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingCard}>
-            <ActivityIndicator size="large" color="#4285F4" />
+            <ActivityIndicator size="large" color={isGoogleLoading ? '#4285F4' : '#FEE500'} />
             <Text style={styles.loadingText}>로그인 중...</Text>
           </View>
         </View>
