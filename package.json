@@ -10,6 +10,8 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "precommit": "npm run lint -- --write && npm run typecheck",
     "prepare": "husky"
   },
   "dependencies": {

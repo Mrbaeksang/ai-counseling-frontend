@@ -1,7 +1,24 @@
 #!/bin/sh
 
-# Biome check and format
-npm run lint -- --write
+echo "🔍 Running pre-commit checks..."
 
-# Add formatted files to staging
+# 1. Biome check and format
+echo "📝 Running Biome linter..."
+npm run lint -- --write
+if [ $? -ne 0 ]; then
+  echo "❌ Biome linting failed. Please fix the errors and try again."
+  exit 1
+fi
+
+# 2. TypeScript type checking
+echo "🔎 Running TypeScript type check..."
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript type checking failed. Please fix the type errors and try again."
+  exit 1
+fi
+
+# 3. Add formatted files to staging
 git add -A
+
+echo "✅ All pre-commit checks passed!"

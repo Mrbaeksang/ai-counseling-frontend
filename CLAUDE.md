@@ -26,6 +26,7 @@ npm run web        # Web browser
 npm run lint       # Run Biome linter
 npm run format     # Format code with Biome
 npm run check      # Run Biome check and fix issues
+npx tsc --noEmit   # Run TypeScript type checking
 ```
 
 ## High-Level Architecture
@@ -160,3 +161,25 @@ Pre-commit hook automatically:
 - DO NOT include AI-generated mentions or credits (no "🤖 Generated with Claude Code" etc.)
 - Follow conventional commit format: `type: 설명`
 - Example: `feat: 로그인 화면 UI 개선`
+
+## Important Development Guidelines
+
+### Before Committing
+ALWAYS run these commands before committing:
+```bash
+npm run lint       # Fix linting issues
+npx tsc --noEmit   # Check TypeScript types
+```
+
+### Code Quality Checklist
+- ✅ All imports are used and properly imported
+- ✅ No `any` types (use proper TypeScript types)
+- ✅ No console.log statements in production code
+- ✅ All useEffect hooks have proper dependencies
+- ✅ React keys are unique and stable (not array indices)
+
+### Common Issues to Avoid
+1. **Missing imports**: Always verify all React hooks are imported (useCallback, useEffect, useState, etc.)
+2. **Type errors**: Run `npx tsc --noEmit` to catch type errors before commit
+3. **Unused variables**: Remove or prefix with underscore if intentionally unused
+4. **Encoding issues**: Ensure all files are UTF-8 encoded
