@@ -1,9 +1,7 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   Animated,
-  Image,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -11,10 +9,13 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { ActivityIndicator, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PremiumButton } from '@/components/common/PremiumButton';
-import { borderRadius, shadows, spacing } from '@/constants/theme';
+import { FeatureSection } from '@/components/auth/FeatureSection';
+import { FooterSection } from '@/components/auth/FooterSection';
+import { LoadingOverlay } from '@/components/auth/LoadingOverlay';
+import { LogoSection } from '@/components/auth/LogoSection';
+import { OAuthButtons } from '@/components/auth/OAuthButtons';
+import { spacing } from '@/constants/theme';
 import { useKakaoAuth } from '@/hooks/useKakaoAuth';
 import { useSimpleGoogleAuth } from '@/hooks/useSimpleGoogleAuth';
 import useAuthStore from '@/store/authStore';
@@ -70,14 +71,14 @@ export default function PremiumLoginScreen() {
     }
   }, [isAuthenticated]);
 
-  // OAuth 로그인 처리
-  const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
-    if (provider === 'google') {
-      await googleSignIn();
-    } else if (provider === 'kakao') {
-      await kakaoSignIn();
-    }
-  };
+  // OAuth 로그인 핸들러
+  const handleGoogleSignIn = useCallback(async () => {
+    await googleSignIn();
+  }, [googleSignIn]);
+
+  const handleKakaoSignIn = useCallback(async () => {
+    await kakaoSignIn();
+  }, [kakaoSignIn]);
 
   return (
     <View style={styles.container}>
@@ -106,93 +107,24 @@ export default function PremiumLoginScreen() {
                 },
               ]}
             >
-              {/* 로고 섹션 */}
-              <View style={styles.logoSection}>
-                <Animated.View
-                  style={[
-                    styles.logoContainer,
-                    {
-                      transform: [{ scale: pulseAnim }],
-                    },
-                  ]}
-                >
-                  <Image
-                    source={require('@/assets/icon.png')}
-                    style={styles.logoImage}
-                    resizeMode="contain"
-                  />
-                </Animated.View>
-
-                <Text style={styles.appTitle}>Dr. Mind</Text>
-                <Text style={styles.appSubtitle}>
-                  역사상 가장 위대한 상담가들과 함께{'\n'}
-                  지친 마음을 위한 특별한 치유의{'\n'}
-                  여정을 시작하세요
-                </Text>
-              </View>
-
-              {/* 특징 카드 섹션 - 미니멀하게 */}
-              <View style={styles.featuresSection}>
-                <View style={styles.featureItem}>
-                  <MaterialCommunityIcons name="shield-check-outline" size={20} color="#374151" />
-                  <Text style={styles.featureText}>안전한 공간</Text>
-                </View>
-                <View style={styles.featureDivider} />
-                <View style={styles.featureItem}>
-                  <MaterialCommunityIcons name="heart-outline" size={20} color="#374151" />
-                  <Text style={styles.featureText}>깊은 공감</Text>
-                </View>
-                <View style={styles.featureDivider} />
-                <View style={styles.featureItem}>
-                  <MaterialCommunityIcons name="brain" size={20} color="#374151" />
-                  <Text style={styles.featureText}>전문적 통찰</Text>
-                </View>
-              </View>
-
-              {/* 소셜 로그인 섹션 */}
-              <View style={styles.loginSection}>
-                <View style={styles.buttonContainer}>
-                  <PremiumButton
-                    onPress={() => handleOAuthLogin('google')}
-                    disabled={isGoogleLoading}
-                    icon={<MaterialCommunityIcons name="google" size={20} color="#EA4335" />}
-                    text="Google로 계속하기"
-                    gradientColors={['#FFFFFF', '#FFFFFF']}
-                    textColor="#374151"
-                  />
-
-                  <PremiumButton
-                    onPress={() => handleOAuthLogin('kakao')}
-                    disabled={isKakaoLoading}
-                    icon={<MaterialCommunityIcons name="chat" size={20} color="#3C1E1E" />}
-                    text="카카오로 계속하기"
-                    gradientColors={['#FEE500', '#FEE500']}
-                    textColor="#3C1E1E"
-                  />
-                </View>
-              </View>
-
-              {/* 하단 문구 */}
-              <View style={styles.footer}>
-                <Text style={styles.footerText}>
-                  계속 진행 시<Text style={styles.footerLink}>서비스 이용약관</Text> 및{'\n'}
-                  <Text style={styles.footerLink}>개인정보처리방침</Text>에 동의하게 됩니다
-                </Text>
-              </View>
+              <LogoSection pulseAnim={pulseAnim} />
+              <FeatureSection />
+              <OAuthButtons
+                onGoogleSignIn={handleGoogleSignIn}
+                onKakaoSignIn={handleKakaoSignIn}
+                isGoogleLoading={isGoogleLoading}
+                isKakaoLoading={isKakaoLoading}
+              />
+              <FooterSection />
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </ImageBackground>
 
-      {/* 로딩 오버레이 */}
-      {(isGoogleLoading || isKakaoLoading) && (
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="large" color={isGoogleLoading ? '#4285F4' : '#FEE500'} />
-            <Text style={styles.loadingText}>로그인 중...</Text>
-          </View>
-        </View>
-      )}
+      <LoadingOverlay
+        isVisible={isGoogleLoading || isKakaoLoading}
+        isGoogleLoading={isGoogleLoading}
+      />
     </View>
   );
 }
@@ -216,114 +148,5 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-  },
-  logoSection: {
-    alignItems: 'center',
-    marginBottom: spacing.xxl,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    padding: spacing.lg,
-    borderRadius: borderRadius.xl,
-    marginHorizontal: spacing.md,
-  },
-  logoContainer: {
-    marginBottom: spacing.lg,
-  },
-  logoImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 24,
-  },
-  appTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    fontFamily: 'Pretendard-Bold',
-    color: '#111827',
-    marginBottom: spacing.xs,
-  },
-  appSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Medium',
-    color: '#374151',
-    textAlign: 'center',
-    paddingHorizontal: spacing.lg,
-    lineHeight: 24,
-    marginTop: spacing.xs,
-  },
-  featuresSection: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xxl,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xxl * 1.5,
-    borderRadius: borderRadius.xl,
-    marginHorizontal: -spacing.md,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: spacing.xs,
-  },
-  featureDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: '#E5E7EB',
-    marginHorizontal: spacing.md,
-  },
-  featureText: {
-    fontSize: 15,
-    color: '#374151',
-    fontWeight: '600',
-    fontFamily: 'Pretendard-SemiBold',
-  },
-  loginSection: {
-    marginBottom: spacing.xl,
-  },
-  buttonContainer: {
-    gap: spacing.sm,
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: spacing.xl,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    marginHorizontal: spacing.xl,
-  },
-  footerText: {
-    fontSize: 12,
-    fontFamily: 'Pretendard-Regular',
-    color: '#4B5563',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  footerLink: {
-    color: '#1F2937',
-    fontFamily: 'Pretendard-SemiBold',
-    textDecorationLine: 'underline',
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingCard: {
-    backgroundColor: '#FFFFFF',
-    padding: spacing.xl,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    ...shadows.lg,
-    minWidth: 200,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#374151',
-    marginTop: spacing.md,
-    fontWeight: '600',
-    fontFamily: 'Pretendard-SemiBold',
   },
 });
