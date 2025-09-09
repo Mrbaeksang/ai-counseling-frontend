@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
 import {
+  Alert,
   Animated,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FeatureSection } from '@/components/auth/FeatureSection';
 import { FooterSection } from '@/components/auth/FooterSection';
 import { LoadingOverlay } from '@/components/auth/LoadingOverlay';
@@ -21,7 +21,6 @@ import { useSimpleGoogleAuth } from '@/hooks/useSimpleGoogleAuth';
 import useAuthStore from '@/store/authStore';
 
 export default function PremiumLoginScreen() {
-  const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuthStore();
   const { signIn: googleSignIn, isLoading: isGoogleLoading } = useSimpleGoogleAuth();
   const { signIn: kakaoSignIn, isLoading: isKakaoLoading } = useKakaoAuth();
@@ -73,15 +72,23 @@ export default function PremiumLoginScreen() {
 
   // OAuth 로그인 핸들러
   const handleGoogleSignIn = useCallback(async () => {
-    await googleSignIn();
+    try {
+      await googleSignIn();
+    } catch {
+      Alert.alert('로그인 실패', 'Google 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   }, [googleSignIn]);
 
   const handleKakaoSignIn = useCallback(async () => {
-    await kakaoSignIn();
+    try {
+      await kakaoSignIn();
+    } catch {
+      Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   }, [kakaoSignIn]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ImageBackground
         source={require('@/assets/images/login-background.png')}
         style={styles.backgroundImage}
@@ -92,10 +99,7 @@ export default function PremiumLoginScreen() {
           style={styles.keyboardView}
         >
           <ScrollView
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg },
-            ]}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             <Animated.View
@@ -125,7 +129,7 @@ export default function PremiumLoginScreen() {
         isVisible={isGoogleLoading || isKakaoLoading}
         isGoogleLoading={isGoogleLoading}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -145,6 +149,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingVertical: spacing.lg,
   },
   content: {
     paddingHorizontal: spacing.lg,
