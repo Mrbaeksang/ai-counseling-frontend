@@ -11,21 +11,15 @@ export default function Index() {
     loadStoredAuth();
   }, [loadStoredAuth]);
 
-  // 로딩 중이면 스피너 표시
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#6B46C1" />
-      </View>
-    );
-  }
-
-  // 로딩 완료 후 리다이렉트
-  if (isAuthenticated) {
-    return <Redirect href="/(tabs)" />;
-  }
-
-  return <Redirect href="/(auth)/login" />;
+  // 항상 로딩 스피너를 먼저 표시 (리다이렉트 전까지)
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#6B46C1" />
+      {/* 로딩 완료 후 리다이렉트 - 화면에는 보이지 않음 */}
+      {!isLoading &&
+        (isAuthenticated ? <Redirect href="/(tabs)" /> : <Redirect href="/(auth)/login" />)}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
