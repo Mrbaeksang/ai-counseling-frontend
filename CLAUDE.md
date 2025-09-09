@@ -9,7 +9,7 @@ React Native mobile frontend for the AI Counseling App, providing AI-powered phi
 ## 🔴 Absolute Project Rules (절대 규칙)
 
 ### 1. Component Architecture
-- **Maximum 100 lines per component** - 초과시 즉시 분리
+- **Maximum 200 lines per component (권장), 300 lines (한계)** - 복잡한 화면은 200줄 초과시 분리 검토
 - **React.memo() 필수** - 모든 리스트 아이템 컴포넌트
 - **컴포넌트 내부 스타일** - StyleSheet.create() 사용, 별도 파일 금지
 - **Props 인터페이스 정의** - 모든 컴포넌트에 명확한 타입 정의
