@@ -1,177 +1,453 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Chip, Divider, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { borderRadius, shadows, spacing } from '@/constants/theme';
+import { CounselorCard } from '@/components/counselor/CounselorCard';
+import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
+import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
+import { spacing } from '@/constants/theme';
+import {
+  addFavorite,
+  getCounselors,
+  getFavoriteCounselors,
+  removeFavorite,
+} from '@/services/counselors';
+import type { Counselor, FavoriteCounselor } from '@/services/counselors/types';
 import useAuthStore from '@/store/authStore';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-interface CounselorCard {
+// 카테고리 타입 정의
+type CategoryType = {
   id: string;
-  name: string;
-  specialty: string;
+  label: string;
   icon: string;
   color: string;
-  description: string;
-}
+  gradient: [string, string];
+};
 
-const counselors: CounselorCard[] = [
+// 카테고리 정의 (12개) - 백엔드 InitDataConfig와 일치
+const CATEGORIES: CategoryType[] = [
   {
-    id: '1',
-    name: '마음 친구',
-    specialty: '일상 상담',
-    icon: 'heart',
+    id: 'self',
+    label: '자기이해·자존감',
+    icon: 'head-dots-horizontal',
+    color: '#8B5CF6',
+    gradient: ['#8B5CF6', '#A78BFA'],
+  },
+  {
+    id: 'emotion',
+    label: '감정·정서',
+    icon: 'emoticon-neutral',
     color: '#EC4899',
-    description: '일상의 고민을 편하게 나눌 수 있는 따뜻한 친구',
+    gradient: ['#EC4899', '#F9A8D4'],
   },
   {
-    id: '2',
-    name: '철학 멘토',
-    specialty: '철학 상담',
-    icon: 'book-open-variant',
-    color: '#6366F1',
-    description: '삶의 의미와 방향을 함께 탐구하는 철학적 동반자',
-  },
-  {
-    id: '3',
-    name: '성장 코치',
-    specialty: '자기계발',
-    icon: 'trending-up',
-    color: '#10B981',
-    description: '목표 달성과 성장을 위한 전문 코칭',
-  },
-  {
-    id: '4',
-    name: '힐링 가이드',
-    specialty: '스트레스 관리',
-    icon: 'spa',
+    id: 'anxiety',
+    label: '불안',
+    icon: 'alert-circle',
     color: '#F59E0B',
-    description: '마음의 평화와 휴식을 찾도록 돕는 가이드',
+    gradient: ['#F59E0B', '#FCD34D'],
+  },
+  {
+    id: 'depression',
+    label: '우울',
+    icon: 'weather-cloudy',
+    color: '#6B7280',
+    gradient: ['#6B7280', '#9CA3AF'],
+  },
+  {
+    id: 'stress',
+    label: '스트레스·번아웃',
+    icon: 'lightning-bolt',
+    color: '#EF4444',
+    gradient: ['#EF4444', '#F87171'],
+  },
+  {
+    id: 'trauma',
+    label: '트라우마·상실',
+    icon: 'bandage',
+    color: '#7C3AED',
+    gradient: ['#7C3AED', '#A78BFA'],
+  },
+  {
+    id: 'relationship',
+    label: '관계·연애',
+    icon: 'heart-multiple',
+    color: '#F472B6',
+    gradient: ['#F472B6', '#FBCFE8'],
+  },
+  {
+    id: 'family',
+    label: '가족·양육',
+    icon: 'home-heart',
+    color: '#10B981',
+    gradient: ['#10B981', '#6EE7B7'],
+  },
+  {
+    id: 'life',
+    label: '학업·진로',
+    icon: 'school',
+    color: '#3B82F6',
+    gradient: ['#3B82F6', '#93C5FD'],
+  },
+  {
+    id: 'work',
+    label: '직장·업무',
+    icon: 'briefcase',
+    color: '#0EA5E9',
+    gradient: ['#0EA5E9', '#38BDF8'],
+  },
+  {
+    id: 'finance',
+    label: '돈·경제',
+    icon: 'cash-multiple',
+    color: '#14B8A6',
+    gradient: ['#14B8A6', '#2DD4BF'],
+  },
+  {
+    id: 'habit',
+    label: '습관·중독·수면',
+    icon: 'sync-circle',
+    color: '#A855F7',
+    gradient: ['#A855F7', '#C084FC'],
   },
 ];
 
+// 메인 화면에 표시할 카테고리 (처음 6개)
+const MAIN_CATEGORIES = CATEGORIES.slice(0, 6);
+
+// 전체 카테고리 (더보기에서 표시)
+const ALL_CATEGORIES = CATEGORIES;
+
+// 시간대별 인사말
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 6) return '편안한 새벽이에요';
+  if (hour < 12) return '좋은 아침이에요';
+  if (hour < 17) return '오후도 화이팅';
+  if (hour < 21) return '저녁 시간이네요';
+  return '오늘 하루도 수고하셨어요';
+};
+
+const getSubGreeting = () => {
+  const hour = new Date().getHours();
+  const day = new Date().getDay();
+
+  if (day === 0 || day === 6) {
+    // 주말
+    return '주말에도 함께해요. 무엇을 도와드릴까요?';
+  }
+
+  if (hour < 6) return '잠이 안 오시나요? 편하게 이야기해요';
+  if (hour < 9) return '오늘 하루를 시작하며 마음을 나눠요';
+  if (hour < 12) return '어떤 고민이 있으신가요?';
+  if (hour < 14) return '점심은 드셨나요? 잠시 쉬면서 대화해요';
+  if (hour < 18) return '오후의 피로, 함께 풀어봐요';
+  if (hour < 21) return '하루를 마무리하며 마음을 정리해요';
+  return '오늘 있었던 일, 편하게 들려주세요';
+};
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { user } = useAuthStore();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const [counselors, setCounselors] = useState<Counselor[]>([]);
+  const [favoriteCounselors, setFavoriteCounselors] = useState<FavoriteCounselor[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'rating'>('latest');
+  // selectedCategory 제거 - 선택 즉시 필터링
+  const [showAllCategories, setShowAllCategories] = useState(false);
+
+  // 초기 데이터 로드
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // 정렬 옵션 매핑 (백엔드 정렬 옵션: popular, rating, recent)
+      const sortMap = {
+        latest: 'recent',
+        popular: 'popular',
+        rating: 'rating',
+      };
+
+      // 병렬로 데이터 로드 (페이지는 1부터 시작)
+      const [counselorsRes, favoritesRes] = await Promise.allSettled([
+        getCounselors(1, 20, sortMap[sortBy]),
+        getFavoriteCounselors(1, 10),
+      ]);
+
+      // 상담사 목록 처리
+      if (counselorsRes.status === 'fulfilled' && counselorsRes.value?.content) {
+        setCounselors(counselorsRes.value.content);
+      } else {
+        setCounselors([]);
+      }
+
+      // 즐겨찾기 처리 (로그인 안했을 때도 에러 없이 처리)
+      if (favoritesRes.status === 'fulfilled' && favoritesRes.value?.content) {
+        setFavoriteCounselors(favoritesRes.value.content);
+        // 즐겨찾기 ID 세트 생성
+        const favIds = new Set(favoritesRes.value.content.map((c) => c.id));
+        setFavoriteIds(favIds);
+      } else {
+        // 실패하거나 로그인 안한 경우 빈 배열로 설정
+        setFavoriteCounselors([]);
+        setFavoriteIds(new Set());
+      }
+    } catch (_error) {
+    } finally {
+      setLoading(false);
+    }
+  }, [sortBy]);
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
+    loadData();
+  }, [loadData]);
 
-  const handleCounselorPress = (counselor: CounselorCard) => {
-    router.push({
-      pathname: '/session/[id]',
-      params: { id: counselor.id },
-    });
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const toggleFavorite = async (counselor: Counselor) => {
+    // 로그인 여부 확인
+    if (!user) {
+      // TODO: 로그인 화면으로 이동
+      return;
+    }
+
+    try {
+      if (favoriteIds.has(counselor.id)) {
+        await removeFavorite(counselor.id);
+        setFavoriteIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(counselor.id);
+          return newSet;
+        });
+        setFavoriteCounselors((prev) => prev.filter((c) => c.id !== counselor.id));
+      } else {
+        await addFavorite(counselor.id);
+        setFavoriteIds((prev) => new Set(prev).add(counselor.id));
+        // FavoriteCounselor 형태로 변환
+        const favCounselor: FavoriteCounselor = {
+          id: counselor.id,
+          name: counselor.name,
+          title: counselor.title,
+          avatarUrl: counselor.avatarUrl,
+          averageRating: counselor.averageRating,
+        };
+        setFavoriteCounselors((prev) => [...prev, favCounselor]);
+      }
+    } catch (error) {
+      // 인증 에러인 경우
+      if ((error as Error & { response?: { status: number } }).response?.status === 401) {
+        // TODO: 로그인 화면으로 이동
+      }
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom + spacing.lg },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          {/* 헤더 섹션 */}
-          <View style={styles.header}>
-            <Text style={styles.greeting}>안녕하세요{user?.name ? `, ${user.name}님` : ''} 👋</Text>
-            <Text style={styles.subtitle}>오늘은 어떤 이야기를 나누고 싶으신가요?</Text>
-          </View>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <FlatList
+        data={counselors}
+        keyExtractor={(item) => item.id.toString()}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        ListHeaderComponent={
+          <>
+            {/* 웰컴 메시지 */}
+            <LinearGradient
+              colors={['#F3E8FF', '#FDF4FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.welcomeSection}
+            >
+              <Text style={styles.welcomeText}>
+                {getGreeting()}, {user?.nickname || '사용자'}님
+              </Text>
+              <Text style={styles.welcomeSubtext}>{getSubGreeting()}</Text>
+            </LinearGradient>
 
-          {/* 빠른 시작 카드 */}
-          <Pressable
-            style={({ pressed }) => [styles.quickStartCard, pressed && styles.cardPressed]}
-            onPress={() => handleCounselorPress(counselors[0])}
-          >
-            <View style={styles.quickStartContent}>
-              <View style={styles.quickStartTextContainer}>
-                <Text style={styles.quickStartTitle}>빠른 상담 시작</Text>
-                <Text style={styles.quickStartDescription}>
-                  AI 상담사와 바로 대화를 시작해보세요
-                </Text>
-              </View>
-              <View style={[styles.quickStartIcon, { backgroundColor: '#FEE2E2' }]}>
-                <MaterialCommunityIcons name="message-text" size={24} color="#EF4444" />
+            {/* 카테고리 섹션 */}
+            <View style={styles.categorySection}>
+              <Text style={styles.categoryTitle}>무엇이 가장 힘드신가요?</Text>
+              <Text style={styles.categorySubtitle}>고민에 맞는 철학자를 찾아드려요</Text>
+
+              <View style={styles.categoryContainer}>
+                {/* 메인 카테고리 그리드 (6개) */}
+                <View style={styles.categoryGrid}>
+                  {MAIN_CATEGORIES.map((category) => (
+                    <TouchableOpacity
+                      key={category.id}
+                      style={styles.categoryCard}
+                      onPress={() => {
+                        router.push(`/counselors/category?category=${category.id}`);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <LinearGradient
+                        colors={category.gradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.categoryGradient}
+                      >
+                        <MaterialCommunityIcons
+                          name={category.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                          size={26}
+                          color="white"
+                        />
+                      </LinearGradient>
+                      <Text style={styles.categoryLabel}>{category.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* 더보기 버튼 - 전체 너비로 */}
+                {!showAllCategories && (
+                  <TouchableOpacity
+                    style={styles.moreButtonFull}
+                    onPress={() => setShowAllCategories(true)}
+                  >
+                    <Text style={styles.moreButtonText}>더 많은 카테고리 보기</Text>
+                    <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                )}
+
+                {/* 추가 카테고리 (12개) - 확장 시 표시 */}
+                {showAllCategories && (
+                  <>
+                    <View style={styles.categoryGrid}>
+                      {ALL_CATEGORIES.slice(6).map((category) => (
+                        <TouchableOpacity
+                          key={category.id}
+                          style={styles.categoryCard}
+                          onPress={() => {
+                            setShowAllCategories(false);
+                            router.push(`/counselors/category?category=${category.id}`);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <LinearGradient
+                            colors={category.gradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.categoryGradient}
+                          >
+                            <MaterialCommunityIcons
+                              name={category.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                              size={26}
+                              color="white"
+                            />
+                          </LinearGradient>
+                          <Text style={styles.categoryLabel}>{category.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {/* 접기 버튼 */}
+                    <TouchableOpacity
+                      style={styles.collapseButton}
+                      onPress={() => setShowAllCategories(false)}
+                    >
+                      <Text style={styles.collapseButtonText}>접기</Text>
+                      <MaterialCommunityIcons name="chevron-up" size={20} color="#6B7280" />
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             </View>
-          </Pressable>
 
-          {/* 상담사 목록 */}
-          <View style={styles.counselorsSection}>
-            <Text style={styles.sectionTitle}>AI 상담사 선택</Text>
-            <View style={styles.counselorsGrid}>
-              {counselors.map((counselor, _index) => (
-                <Pressable
-                  key={counselor.id}
-                  style={({ pressed }) => [styles.counselorCard, pressed && styles.cardPressed]}
-                  onPress={() => handleCounselorPress(counselor)}
+            {/* 즐겨찾기 상담사 섹션 */}
+            {favoriteCounselors.length > 0 ? (
+              <View style={styles.favoriteSection}>
+                <View style={styles.sectionHeader}>
+                  <MaterialCommunityIcons name="heart" size={20} color="#EF4444" />
+                  <Text style={styles.sectionTitle}>즐겨찾는 상담사</Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.favoriteList}
                 >
-                  <View style={[styles.counselorIcon, { backgroundColor: `${counselor.color}15` }]}>
-                    <MaterialCommunityIcons
-                      name={counselor.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                      size={28}
-                      color={counselor.color}
-                    />
-                  </View>
-                  <Text style={styles.counselorName}>{counselor.name}</Text>
-                  <Text style={styles.counselorSpecialty}>{counselor.specialty}</Text>
-                  <Text style={styles.counselorDescription} numberOfLines={2}>
-                    {counselor.description}
-                  </Text>
-                </Pressable>
+                  {favoriteCounselors.map((counselor) => (
+                    <FavoriteCounselorCard key={counselor.id} counselor={counselor} />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+
+            <Divider style={styles.divider} />
+
+            {/* 전체 상담사 섹션 헤더 */}
+            <View style={styles.allCounselorsHeader}>
+              <Text style={styles.sectionTitle}>모든 상담사</Text>
+              <View style={styles.sortChips}>
+                <Chip
+                  mode={sortBy === 'latest' ? 'flat' : 'outlined'}
+                  onPress={() => setSortBy('latest')}
+                  style={styles.sortChip}
+                >
+                  최신순
+                </Chip>
+                <Chip
+                  mode={sortBy === 'popular' ? 'flat' : 'outlined'}
+                  onPress={() => setSortBy('popular')}
+                  style={styles.sortChip}
+                >
+                  인기순
+                </Chip>
+                <Chip
+                  mode={sortBy === 'rating' ? 'flat' : 'outlined'}
+                  onPress={() => setSortBy('rating')}
+                  style={styles.sortChip}
+                >
+                  평점순
+                </Chip>
+              </View>
+            </View>
+          </>
+        }
+        renderItem={({ item }) => (
+          <CounselorCard
+            counselor={item}
+            isFavorite={favoriteIds.has(item.id)}
+            onFavoriteToggle={() => toggleFavorite(item)}
+          />
+        )}
+        ListEmptyComponent={
+          loading ? (
+            <View>
+              {[1, 2, 3].map((i) => (
+                <CounselorCardSkeleton key={i} />
               ))}
             </View>
-          </View>
-
-          {/* 통계 카드 */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <MaterialCommunityIcons name="calendar-check" size={20} color="#6B7280" />
-              <Text style={styles.statNumber}>0</Text>
-              <Text style={styles.statLabel}>총 상담</Text>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <LinearGradient
+                colors={['#F3E8FF', '#EDE9FE']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.emptyIconContainer}
+              >
+                <MaterialCommunityIcons name="account-group-outline" size={32} color="#6B46C1" />
+              </LinearGradient>
+              <Text style={styles.emptyText}>상담사가 없습니다</Text>
+              <Text style={styles.emptySubtext}>다른 카테고리를 선택해보세요</Text>
             </View>
-            <View style={styles.statCard}>
-              <MaterialCommunityIcons name="clock-outline" size={20} color="#6B7280" />
-              <Text style={styles.statNumber}>0</Text>
-              <Text style={styles.statLabel}>이번 주</Text>
-            </View>
-            <View style={styles.statCard}>
-              <MaterialCommunityIcons name="fire" size={20} color="#6B7280" />
-              <Text style={styles.statNumber}>0</Text>
-              <Text style={styles.statLabel}>연속 일수</Text>
-            </View>
-          </View>
-        </Animated.View>
-      </ScrollView>
+          )
+        }
+        contentContainerStyle={styles.listContent}
+      />
     </View>
   );
 }
@@ -181,131 +457,187 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFAFA',
   },
-  scrollContent: {
-    flexGrow: 1,
+  listContent: {
+    paddingBottom: spacing.xl,
   },
-  content: {
+  welcomeSection: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    borderRadius: 16,
   },
-  header: {
-    marginBottom: spacing.xl,
-  },
-  greeting: {
-    fontSize: 28,
+  welcomeText: {
+    fontSize: 24,
     fontWeight: '700',
+    fontFamily: 'Pretendard-Bold',
     color: '#111827',
-    marginBottom: spacing.xs,
   },
-  subtitle: {
-    fontSize: 16,
+  welcomeSubtext: {
+    fontSize: 15,
+    fontFamily: 'Pretendard-Medium',
     color: '#6B7280',
+    marginTop: spacing.xs,
   },
-  quickStartCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.xl,
-    ...shadows.sm,
+  favoriteSection: {
+    marginTop: spacing.md,
   },
-  cardPressed: {
-    opacity: 0.95,
-    transform: [{ scale: 0.98 }],
-  },
-  quickStartContent: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
   },
-  quickStartTextContainer: {
-    flex: 1,
-  },
-  quickStartTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
+    fontFamily: 'Pretendard-SemiBold',
     color: '#111827',
-    marginBottom: 4,
   },
-  quickStartDescription: {
+  favoriteList: {
+    paddingHorizontal: spacing.lg,
+  },
+  divider: {
+    marginVertical: spacing.lg,
+    backgroundColor: '#E5E7EB',
+  },
+  allCounselorsHeader: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  sortChips: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  sortChip: {
+    height: 32,
+  },
+  sortChipText: {
+    fontSize: 13,
+    fontFamily: 'Pretendard-Medium',
+  },
+  loadingContainer: {
+    paddingVertical: spacing.xxl,
+    alignItems: 'center',
+  },
+  loadingText: {
     fontSize: 14,
+    fontFamily: 'Pretendard-Medium',
     color: '#6B7280',
+    marginTop: spacing.md,
   },
-  quickStartIcon: {
-    width: 48,
-    height: 48,
+  emptyContainer: {
+    paddingVertical: spacing.xxl * 2,
+    alignItems: 'center',
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: spacing.md,
-  },
-  counselorsSection: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
     marginBottom: spacing.md,
   },
-  counselorsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -spacing.xs,
-  },
-  counselorCard: {
-    width: (SCREEN_WIDTH - spacing.lg * 2 - spacing.xs * 2) / 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    margin: spacing.xs,
-    ...shadows.sm,
-  },
-  counselorIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  counselorName: {
+  emptyText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  counselorSpecialty: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginBottom: spacing.xs,
-  },
-  counselorDescription: {
-    fontSize: 13,
-    color: '#6B7280',
-    lineHeight: 18,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    marginBottom: spacing.xl,
-    marginHorizontal: -spacing.xs,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    margin: spacing.xs,
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontFamily: 'Pretendard-SemiBold',
     color: '#111827',
     marginTop: spacing.xs,
   },
-  statLabel: {
+  emptySubtext: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Regular',
+    color: '#6B7280',
+    marginTop: spacing.xs,
+  },
+  categorySection: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  categoryTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Pretendard-Bold',
+    color: '#111827',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xs,
+  },
+  categorySubtitle: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Regular',
+    color: '#6B7280',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  categoryContainer: {
+    paddingHorizontal: spacing.lg,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  categoryCard: {
+    alignItems: 'center',
+    width: '30%',
+    marginBottom: spacing.md,
+  },
+  categoryGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  categoryLabel: {
     fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 2,
+    fontFamily: 'Pretendard-Medium',
+    color: '#374151',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  moreButtonFull: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: spacing.xs,
+  },
+  moreButtonText: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Medium',
+    color: '#6B7280',
+  },
+  collapseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    gap: spacing.xs,
+  },
+  collapseButtonText: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Medium',
+    color: '#6B7280',
   },
 });

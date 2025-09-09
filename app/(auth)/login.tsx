@@ -257,9 +257,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
     backgroundColor: 'rgba(255, 255, 255, 0.85)',
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.xxl * 1.5,
     borderRadius: borderRadius.xl,
-    marginHorizontal: spacing.sm,
+    marginHorizontal: -spacing.md,
   },
   featureItem: {
     flexDirection: 'row',
