@@ -6,6 +6,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 React Native mobile frontend for the AI Counseling App, providing AI-powered philosophical counseling services through an intuitive mobile interface.
 
+## Key Libraries and Dependencies
+
+### Core Framework
+- **React Native 0.79.5** + **React 19.0.0**
+- **Expo ~53.0.22**: Development platform and build tools
+- **TypeScript ~5.8.3**: Type safety and better DX
+
+### Navigation & Routing
+- **Expo Router ~5.1.5**: File-based routing system
+
+### State Management
+- **Zustand ^5.0.8**: Global state management (auth, user preferences)
+- **@tanstack/react-query ^5.87.1**: Server state management, caching, and synchronization
+
+### UI Components & Styling
+- **React Native Paper ^5.14.5**: Material Design 3 components
+- **React Native Gifted Chat ^2.8.1**: Complete chat UI solution
+- **@gorhom/bottom-sheet ^5.2.6**: Native bottom sheet component
+- **React Native Skeleton Placeholder ^5.2.4**: Loading states
+- **React Native Vector Icons ^10.3.0**: Icon library
+- **Expo Linear Gradient ~14.1.5**: Gradient backgrounds
+- **Lottie React Native 7.2.2**: Animation support
+
+### Forms & Validation
+- **React Hook Form ^7.62.0**: Form state management
+- **@hookform/resolvers ^5.2.1**: Validation resolvers
+- **Zod ^4.1.5**: Schema validation
+
+### Network & API
+- **Axios ^1.11.0**: HTTP client with interceptors
+- **@react-native-async-storage/async-storage 2.1.2**: Persistent storage
+
+### Authentication
+- **@react-native-google-signin/google-signin ^16.0.0**: Google OAuth integration
+
+### Development Tools
+- **@biomejs/biome ^2.2.3**: Linting and formatting
+- **Husky ^9.1.7**: Git hooks
+- **@commitlint**: Commit message linting
+
 ## Development Commands
 
 ```bash
@@ -31,24 +71,42 @@ npx tsc --noEmit   # Run TypeScript type checking
 
 ## High-Level Architecture
 
-### Navigation Structure (Expo Router)
-
-The app uses file-based routing with Expo Router v5:
+### Project Structure
 
 ```
-app/
-├── _layout.tsx           # Root layout with providers
-├── index.tsx            # Entry redirect
-├── (auth)/             # Authentication stack
-│   ├── _layout.tsx     # Auth layout
-│   └── login.tsx       # Login screen
-├── (tabs)/             # Main tab navigator
-│   ├── _layout.tsx     # Tab layout
-│   ├── index.tsx       # Home/counselors screen
-│   ├── sessions.tsx    # Chat sessions list
-│   └── profile.tsx     # User profile
-└── session/
-    └── [id].tsx        # Dynamic chat session screen
+frontend/
+├── app/                    # Expo Router screens
+│   ├── _layout.tsx        # Root layout with QueryClient, Theme providers
+│   ├── index.tsx          # Entry redirect
+│   ├── (auth)/           # Authentication stack
+│   │   ├── _layout.tsx   # Auth layout
+│   │   └── login.tsx     # Login screen with OAuth
+│   ├── (tabs)/           # Main tab navigator
+│   │   ├── _layout.tsx   # Tab layout
+│   │   ├── index.tsx     # Home/counselors screen with categories
+│   │   ├── sessions.tsx  # Chat sessions list
+│   │   └── profile.tsx   # User profile
+│   └── session/
+│       └── [id].tsx      # Dynamic chat session screen
+├── components/            # Reusable components
+│   └── counselor/        # Counselor-related components
+│       ├── CounselorCard.tsx
+│       ├── CounselorCardSkeleton.tsx
+│       └── FavoriteCounselorCard.tsx
+├── hooks/                 # Custom React hooks
+│   └── useCounselors.ts # React Query hooks for counselors
+├── services/             # API layer
+│   ├── api.ts           # Axios instance with interceptors
+│   ├── auth/            # Auth endpoints
+│   ├── counselors/      # Counselor endpoints & types
+│   ├── sessions/        # Chat session endpoints
+│   └── users/           # User profile endpoints
+├── store/                # Global state
+│   └── authStore.ts     # Zustand auth store
+├── constants/            # App constants
+│   └── theme.ts         # Spacing, colors, typography
+└── assets/              # Static assets
+    └── fonts/           # Pretendard font files
 ```
 
 ### Service Layer Architecture
@@ -72,15 +130,30 @@ services/
 
 ### State Management Pattern
 
-**Global State (Zustand):**
+**Global State (Zustand v5.0.8):**
 - `store/authStore.ts`: Authentication state, tokens, user data
 - Persistent storage with AsyncStorage
 - Synchronous state updates with async persistence
+- Usage example:
+```typescript
+const { user, login, logout, isAuthenticated } = useAuthStore();
+```
 
-**Server State (React Query):**
-- Caching and synchronization
-- Optimistic updates
-- Background refetching
+**Server State (React Query v5.87.1):**
+- `hooks/useCounselors.ts`: Counselor data fetching and mutations
+  - `useCounselors()`: Fetch counselor list with pagination
+  - `useCounselorDetail()`: Fetch single counselor details
+  - `useFavoriteCounselors()`: Fetch favorite counselors
+  - `useToggleFavorite()`: Add/remove favorites with optimistic updates
+- `hooks/useSessions.ts`: Chat session management (to be implemented)
+- Automatic caching with 5-minute stale time
+- Background refetching on focus
+- Retry logic with exponential backoff
+- Usage example:
+```typescript
+const { data, isLoading, refetch } = useCounselors(page, size, sort);
+const { toggle, isLoading } = useToggleFavorite();
+```
 
 ### API Response Handling
 
@@ -148,12 +221,13 @@ Currently no test setup. When adding tests:
 - Test API service layers with MSW
 - Component testing with render helpers
 
-## Git Hooks
+## Git Hooks (Husky)
 
-Pre-commit hook automatically:
-1. Runs Biome linter with auto-fix
-2. Stages formatted files
-3. Ensures code quality before commit
+Pre-commit hook (`.husky/pre-commit`) automatically:
+1. Runs Biome linter with auto-fix (`npm run lint -- --write`)
+2. Runs TypeScript type checking (`npx tsc --noEmit`)
+3. Stages formatted files (`git add -A`)
+4. Blocks commit if any checks fail
 
 ## Commit Messages
 

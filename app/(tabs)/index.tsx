@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -16,13 +16,8 @@ import { CounselorCard } from '@/components/counselor/CounselorCard';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
 import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
-import {
-  addFavorite,
-  getCounselors,
-  getFavoriteCounselors,
-  removeFavorite,
-} from '@/services/counselors';
-import type { Counselor, FavoriteCounselor } from '@/services/counselors/types';
+import { useCounselors, useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
+import type { Counselor } from '@/services/counselors/types';
 import useAuthStore from '@/store/authStore';
 
 // 카테고리 타입 정의
@@ -159,102 +154,44 @@ const getSubGreeting = () => {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
-  const [counselors, setCounselors] = useState<Counselor[]>([]);
-  const [favoriteCounselors, setFavoriteCounselors] = useState<FavoriteCounselor[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'rating'>('latest');
-  // selectedCategory 제거 - 선택 즉시 필터링
   const [showAllCategories, setShowAllCategories] = useState(false);
 
-  // 초기 데이터 로드
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      // 정렬 옵션 매핑 (백엔드 정렬 옵션: popular, rating, recent)
-      const sortMap = {
-        latest: 'recent',
-        popular: 'popular',
-        rating: 'rating',
-      };
-
-      // 병렬로 데이터 로드 (페이지는 1부터 시작)
-      const [counselorsRes, favoritesRes] = await Promise.allSettled([
-        getCounselors(1, 20, sortMap[sortBy]),
-        getFavoriteCounselors(1, 10),
-      ]);
-
-      // 상담사 목록 처리
-      if (counselorsRes.status === 'fulfilled' && counselorsRes.value?.content) {
-        setCounselors(counselorsRes.value.content);
-      } else {
-        setCounselors([]);
-      }
-
-      // 즐겨찾기 처리 (로그인 안했을 때도 에러 없이 처리)
-      if (favoritesRes.status === 'fulfilled' && favoritesRes.value?.content) {
-        setFavoriteCounselors(favoritesRes.value.content);
-        // 즐겨찾기 ID 세트 생성
-        const favIds = new Set(favoritesRes.value.content.map((c) => c.id));
-        setFavoriteIds(favIds);
-      } else {
-        // 실패하거나 로그인 안한 경우 빈 배열로 설정
-        setFavoriteCounselors([]);
-        setFavoriteIds(new Set());
-      }
-    } catch (_error) {
-    } finally {
-      setLoading(false);
-    }
-  }, [sortBy]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
+  // 정렬 옵션 매핑 (백엔드 정렬 옵션: popular, rating, recent)
+  const sortMap = {
+    latest: 'recent',
+    popular: 'popular',
+    rating: 'rating',
   };
 
-  const toggleFavorite = async (counselor: Counselor) => {
+  // React Query hooks
+  const {
+    data: counselorsData,
+    isLoading,
+    refetch: refetchCounselors,
+  } = useCounselors(1, 20, sortMap[sortBy]);
+  const { data: favoritesData, refetch: refetchFavorites } = useFavoriteCounselors(1, 10);
+  const { toggle: toggleFavorite } = useToggleFavorite();
+
+  // 상담사 목록
+  const counselors = counselorsData?.content || [];
+
+  // 즐겨찾기 목록 및 ID 세트
+  const favoriteCounselors = favoritesData?.content || [];
+  const favoriteIds = new Set(favoriteCounselors.map((c) => c.id));
+
+  const handleRefresh = async () => {
+    await Promise.all([refetchCounselors(), refetchFavorites()]);
+  };
+
+  const handleToggleFavorite = (counselor: Counselor) => {
     // 로그인 여부 확인
     if (!user) {
       // TODO: 로그인 화면으로 이동
       return;
     }
 
-    try {
-      if (favoriteIds.has(counselor.id)) {
-        await removeFavorite(counselor.id);
-        setFavoriteIds((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(counselor.id);
-          return newSet;
-        });
-        setFavoriteCounselors((prev) => prev.filter((c) => c.id !== counselor.id));
-      } else {
-        await addFavorite(counselor.id);
-        setFavoriteIds((prev) => new Set(prev).add(counselor.id));
-        // FavoriteCounselor 형태로 변환
-        const favCounselor: FavoriteCounselor = {
-          id: counselor.id,
-          name: counselor.name,
-          title: counselor.title,
-          avatarUrl: counselor.avatarUrl,
-          averageRating: counselor.averageRating,
-        };
-        setFavoriteCounselors((prev) => [...prev, favCounselor]);
-      }
-    } catch (error) {
-      // 인증 에러인 경우
-      if ((error as Error & { response?: { status: number } }).response?.status === 401) {
-        // TODO: 로그인 화면으로 이동
-      }
-    }
+    toggleFavorite(counselor.id, favoriteIds.has(counselor.id));
   };
 
   return (
@@ -262,7 +199,7 @@ export default function HomeScreen() {
       <FlatList
         data={counselors}
         keyExtractor={(item) => item.id.toString()}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={handleRefresh} />}
         ListHeaderComponent={
           <>
             {/* 웰컴 메시지 */}
@@ -421,11 +358,11 @@ export default function HomeScreen() {
           <CounselorCard
             counselor={item}
             isFavorite={favoriteIds.has(item.id)}
-            onFavoriteToggle={() => toggleFavorite(item)}
+            onFavoriteToggle={() => handleToggleFavorite(item)}
           />
         )}
         ListEmptyComponent={
-          loading ? (
+          isLoading ? (
             <View>
               {[1, 2, 3].map((i) => (
                 <CounselorCardSkeleton key={i} />

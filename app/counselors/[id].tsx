@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -13,8 +13,7 @@ import {
 import { Button, Chip, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '@/constants/theme';
-import { getCounselorDetail } from '@/services/counselors';
-import type { CounselorDetail } from '@/services/counselors/types';
+import { useCounselorDetail } from '@/hooks/useCounselors';
 import { startSession } from '@/services/sessions';
 import useAuthStore from '@/store/authStore';
 
@@ -45,25 +44,10 @@ export default function CounselorDetailScreen() {
   const { user } = useAuthStore();
 
   const counselorId = Number(params.id);
-  const [counselor, setCounselor] = useState<CounselorDetail | null>(null);
-  const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
 
-  const loadCounselorDetail = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getCounselorDetail(counselorId);
-      setCounselor(data);
-    } catch (_error) {
-      // 에러 처리
-    } finally {
-      setLoading(false);
-    }
-  }, [counselorId]);
-
-  useEffect(() => {
-    loadCounselorDetail();
-  }, [loadCounselorDetail]);
+  // React Query 훅 사용
+  const { data: counselor, isLoading } = useCounselorDetail(counselorId);
 
   const handleStartSession = async () => {
     if (!user) {
@@ -89,7 +73,7 @@ export default function CounselorDetailScreen() {
     return imageName && counselorImages[imageName];
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color="#6B46C1" />
