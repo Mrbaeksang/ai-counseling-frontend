@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
-import { borderRadius, shadows, spacing } from '@/constants/theme';
+import { borderRadius, colors, shadows, spacing } from '@/constants/theme';
 
 interface LoadingOverlayProps {
   isVisible: boolean;
@@ -14,7 +14,10 @@ export const LoadingOverlay = React.memo(({ isVisible, isGoogleLoading }: Loadin
   return (
     <View style={styles.loadingOverlay}>
       <View style={styles.loadingCard}>
-        <ActivityIndicator size="large" color={isGoogleLoading ? '#4285F4' : '#FEE500'} />
+        <ActivityIndicator
+          size="large"
+          color={isGoogleLoading ? colors.brand.google : colors.brand.kakao}
+        />
         <Text style={styles.loadingText}>로그인 중...</Text>
       </View>
     </View>

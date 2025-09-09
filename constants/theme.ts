@@ -83,6 +83,17 @@ export const colors = {
     aurora: ['#10B981', '#3B82F6'],
     premium: ['#FFD700', '#FFA500', '#FF6347'],
   },
+
+  // Brand Colors
+  brand: {
+    google: '#4285F4',
+    googleRed: '#EA4335',
+    kakao: '#FEE500',
+    kakaoText: '#3C1E1E',
+    naver: '#03C75A',
+    facebook: '#1877F2',
+    apple: '#000000',
+  },
 };
 
 // Typography Scale

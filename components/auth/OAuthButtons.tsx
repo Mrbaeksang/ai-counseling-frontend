@@ -1,8 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { PremiumButton } from '@/components/common/PremiumButton';
-import { spacing } from '@/constants/theme';
+import { colors, spacing } from '@/constants/theme';
 
 interface OAuthButtonsProps {
   onGoogleSignIn: () => Promise<void>;
@@ -13,33 +13,25 @@ interface OAuthButtonsProps {
 
 export const OAuthButtons = React.memo(
   ({ onGoogleSignIn, onKakaoSignIn, isGoogleLoading, isKakaoLoading }: OAuthButtonsProps) => {
-    const handleGooglePress = useCallback(() => {
-      onGoogleSignIn();
-    }, [onGoogleSignIn]);
-
-    const handleKakaoPress = useCallback(() => {
-      onKakaoSignIn();
-    }, [onKakaoSignIn]);
-
     return (
       <View style={styles.loginSection}>
         <View style={styles.buttonContainer}>
           <PremiumButton
-            onPress={handleGooglePress}
+            onPress={onGoogleSignIn}
             disabled={isGoogleLoading}
-            icon={<MaterialCommunityIcons name="google" size={20} color="#EA4335" />}
+            icon={<MaterialCommunityIcons name="google" size={20} color={colors.brand.googleRed} />}
             text="Google로 계속하기"
-            gradientColors={['#FFFFFF', '#FFFFFF']}
-            textColor="#374151"
+            gradientColors={[colors.neutral[0], colors.neutral[0]]}
+            textColor={colors.neutral[700]}
           />
 
           <PremiumButton
-            onPress={handleKakaoPress}
+            onPress={onKakaoSignIn}
             disabled={isKakaoLoading}
-            icon={<MaterialCommunityIcons name="chat" size={20} color="#3C1E1E" />}
+            icon={<MaterialCommunityIcons name="chat" size={20} color={colors.brand.kakaoText} />}
             text="카카오로 계속하기"
-            gradientColors={['#FEE500', '#FEE500']}
-            textColor="#3C1E1E"
+            gradientColors={[colors.brand.kakao, colors.brand.kakao]}
+            textColor={colors.brand.kakaoText}
           />
         </View>
       </View>
