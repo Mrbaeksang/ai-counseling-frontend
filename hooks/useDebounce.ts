@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * 중복 클릭 방지를 위한 디바운스 훅
@@ -12,6 +12,15 @@ export function useDebounce<T extends (...args: unknown[]) => unknown>(
 ): [(...args: Parameters<T>) => void, boolean] {
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // 컴포넌트 언마운트 시 타이머 정리
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const debouncedCallback = useCallback(
     (...args: Parameters<T>) => {
@@ -46,19 +55,31 @@ export function useThrottle<T extends (...args: unknown[]) => unknown>(
 ): [(...args: Parameters<T>) => void, boolean] {
   const [isThrottled, setIsThrottled] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isThrottledRef = useRef(false);
+
+  useEffect(() => {
+    // 컴포넌트 언마운트 시 타이머 정리
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const throttledCallback = useCallback(
     (...args: Parameters<T>) => {
-      if (isThrottled) return;
+      if (isThrottledRef.current) return;
 
       callback(...args);
+      isThrottledRef.current = true;
       setIsThrottled(true);
 
       timeoutRef.current = setTimeout(() => {
+        isThrottledRef.current = false;
         setIsThrottled(false);
       }, delay);
     },
-    [callback, delay, isThrottled],
+    [callback, delay],
   );
 
   return [throttledCallback, !isThrottled];
@@ -73,19 +94,22 @@ export function useAsyncThrottle<T extends (...args: unknown[]) => Promise<unkno
   asyncCallback: T,
 ): [(...args: Parameters<T>) => Promise<void>, boolean] {
   const [isLoading, setIsLoading] = useState(false);
+  const isLoadingRef = useRef(false);
 
   const throttledCallback = useCallback(
     async (...args: Parameters<T>) => {
-      if (isLoading) return;
+      if (isLoadingRef.current) return;
 
+      isLoadingRef.current = true;
+      setIsLoading(true);
       try {
-        setIsLoading(true);
         await asyncCallback(...args);
       } finally {
+        isLoadingRef.current = false;
         setIsLoading(false);
       }
     },
-    [asyncCallback, isLoading],
+    [asyncCallback],
   );
 
   return [throttledCallback, isLoading];
