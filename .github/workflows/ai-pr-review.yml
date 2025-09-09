@@ -10,7 +10,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-      issues: write
 
     steps:
       - uses: actions/checkout@v4
@@ -32,12 +31,11 @@ jobs:
 
             // 리뷰할 파일 필터링
             const filesToReview = diff.data.files.filter(file =>
-              file.patch && // 패치가 있는 파일만
+              file.patch && 
               !file.filename.includes('node_modules/') &&
               !file.filename.includes('.expo/') &&
               !file.filename.includes('dist/') &&
-              !file.filename.endsWith('.lock') &&
-              !file.filename.endsWith('.log')
+              !file.filename.endsWith('.lock')
             );
 
             if (filesToReview.length === 0) {
@@ -45,172 +43,79 @@ jobs:
               return;
             }
 
-            console.log(`Found ${filesToReview.length} files to review`);
-
-            // 파일 타입별 분류
-            const fileCategories = {
-              screens: [],      // app/ 폴더의 화면들
-              components: [],   // 컴포넌트
-              services: [],     // API 서비스
-              hooks: [],        // Custom Hooks
-              stores: [],       // Zustand 스토어
-              types: [],        // TypeScript 타입
-              configs: [],      // 설정 파일
-              others: []
-            };
-
-            filesToReview.forEach(file => {
-              if (file.filename.includes('app/')) fileCategories.screens.push(file);
-              else if (file.filename.includes('components/')) fileCategories.components.push(file);
-              else if (file.filename.includes('services/')) fileCategories.services.push(file);
-              else if (file.filename.includes('hooks/')) fileCategories.hooks.push(file);
-              else if (file.filename.includes('store/')) fileCategories.stores.push(file);
-              else if (file.filename.includes('types/')) fileCategories.types.push(file);
-              else if (file.filename.endsWith('.json') || file.filename.endsWith('.yml')) fileCategories.configs.push(file);
-              else fileCategories.others.push(file);
-            });
-
-            // 전체 변경사항 요약
-            const summary = {
-              total: filesToReview.length,
-              additions: diff.data.files.reduce((sum, f) => sum + f.additions, 0),
-              deletions: diff.data.files.reduce((sum, f) => sum + f.deletions, 0),
-              categories: Object.entries(fileCategories).filter(([_, files]) => files.length > 0)
-                .map(([category, files]) => `${category}: ${files.length}개`)
-            };
-
-            // PR 전체 리뷰 시작
-            let overallReview = `# 🤖 AI 코드 리뷰 보고서\n\n`;
-            overallReview += `## 📊 변경 통계\n`;
-            overallReview += `- **총 파일 수**: ${summary.total}개\n`;
-            overallReview += `- **추가된 라인**: +${summary.additions}\n`;
-            overallReview += `- **삭제된 라인**: -${summary.deletions}\n`;
-            overallReview += `- **카테고리별**: ${summary.categories.join(', ')}\n\n`;
-
-            // 모든 파일 변경사항을 하나의 요청으로 통합
-            overallReview += `## 📝 코드 리뷰\n\n`;
-
-            // 전체 변경사항을 한번에 수집
+            // 전체 변경사항 수집
             let allChanges = '';
             const filesSummary = [];
-
+            
             for (const file of filesToReview) {
               filesSummary.push(`- ${file.filename} (+${file.additions}/-${file.deletions})`);
               allChanges += `\n### ${file.filename}\n`;
               allChanges += `\`\`\`diff\n${file.patch}\n\`\`\`\n`;
             }
 
-            console.log('Sending single API request for all files...');
+            // AI 리뷰 요청
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: 'openrouter/sonoma-sky-alpha',
+                messages: [{
+                  role: 'system',
+                  content: `React Native 프론트엔드 코드 리뷰어입니다.
 
-            try {
-              const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  model: 'openrouter/sonoma-sky-alpha',
-                  messages: [{
-                    role: 'system',
-                    content: `당신은 AI Counseling App React Native 프론트엔드의 코드 리뷰어입니다.
-                    이 프로젝트는 Expo + React Native + TypeScript로 구현된 AI 철학자 상담 모바일 앱입니다.
+                  ## 🔴 절대 규칙 (반드시 체크)
+                  
+                  1. **컴포넌트 100줄 제한** - 초과시 즉시 분리 필요
+                  2. **React.memo() 필수** - 모든 리스트 아이템 컴포넌트
+                  3. **스타일 위치** - 컴포넌트 내부에만 (별도 파일 금지)
+                  4. **any 타입 금지** - 반드시 proper TypeScript 타입 사용
+                  5. **상태 관리** - Zustand(전역), React Query(서버)
+                  
+                  ## 체크 포인트
+                  - [ ] 100줄 넘는 컴포넌트 있는가?
+                  - [ ] 리스트 아이템에 React.memo 적용했는가?
+                  - [ ] any 타입 사용한 곳 있는가?
+                  - [ ] StyleSheet.create() 사용했는가?
+                  - [ ] 불필요한 prop drilling 있는가?`
+                }, {
+                  role: 'user',
+                  content: `다음 ${filesToReview.length}개 파일 리뷰:
+                  
+                  ${filesSummary.join('\n')}
+                  
+                  변경사항:
+                  ${allChanges}
+                  
+                  절대 규칙 위반사항만 집중해서 리뷰해주세요.`
+                }],
+                max_tokens: 8000,
+                temperature: 0.3
+              })
+            });
 
-                    ## 🔴 필수 체크 사항
+            let reviewBody = `# 🤖 AI 코드 리뷰\n\n`;
+            reviewBody += `## 📊 변경 통계\n`;
+            reviewBody += `- 파일: ${filesToReview.length}개\n`;
+            reviewBody += `- 추가: +${diff.data.files.reduce((sum, f) => sum + f.additions, 0)}\n`;
+            reviewBody += `- 삭제: -${diff.data.files.reduce((sum, f) => sum + f.deletions, 0)}\n\n`;
 
-                    1. **Expo Router 패턴**
-                       - app/ 폴더 내 파일 기반 라우팅
-                       - _layout.tsx로 레이아웃 정의
-                       - (group) 폴더로 URL 없는 그룹화
-                       - [param].tsx로 동적 라우팅
-
-                    2. **React Native 베스트 프랙티스**
-                       - StyleSheet.create() 사용 (인라인 스타일 지양)
-                       - Platform.OS로 플랫폼별 처리
-                       - React Native Paper 컴포넌트 활용
-                       - FlatList로 긴 목록 최적화
-
-                    3. **상태 관리 패턴**
-                       - Zustand로 전역 상태 관리
-                       - React Query로 서버 상태 관리
-                       - AsyncStorage로 토큰 저장
-                       - React Hook Form으로 폼 관리
-
-                    4. **TypeScript 사용**
-                       - 모든 props, state에 타입 정의
-                       - any 타입 사용 금지
-                       - 절대 경로 import (@/) 사용
-
-                    5. **API 통신 패턴**
-                       - services/ 폴더에 API 로직 분리
-                       - axios 인터셉터로 토큰 자동 추가
-                       - 에러 처리 패턴 통일
-
-                    ## 리뷰 체크리스트
-
-                    #### 📄 [파일명]
-                    ✅ **패턴 준수**: Expo Router, React Native 패턴 체크
-                    🟢 **Good**: 잘 작성된 부분
-                    🟡 **Suggest**: 개선 제안
-                    🔴 **Issue**: 반드시 수정 필요
-
-                    특히 확인:
-                    □ StyleSheet.create() 사용하는가?
-                    □ TypeScript 타입 정의가 명확한가?
-                    □ React Native Paper 컴포넌트 활용하는가?
-                    □ 절대 경로 import 사용하는가?
-                    □ React Query 훅 네이밍 규칙 (useQuery, useMutation)?
-                    □ 한국어 UI 텍스트 사용하는가?`
-                  }, {
-                    role: 'user',
-                    content: `다음 PR의 ${filesToReview.length}개 파일을 리뷰해주세요:
-
-                    변경된 파일:
-                    ${filesSummary.join('\n')}
-
-                    전체 변경사항:
-                    ${allChanges}
-
-                    각 파일별로 구체적인 리뷰를 제공해주세요.`
-                  }],
-                  max_tokens: 20000,
-                  temperature: 0.3
-                })
-              });
-
-              if (response.ok) {
-                const result = await response.json();
-                overallReview += result.choices[0].message.content + '\n\n';
-                console.log('✅ Single API review completed successfully!');
-              } else {
-                const errorText = await response.text();
-                console.error('API request failed:', response.status, errorText);
-                overallReview += `> ⚠️ 리뷰 실패: ${response.status} - ${errorText}\n\n`;
-              }
-            } catch (error) {
-              console.error('Error during review:', error);
-              overallReview += `> ⚠️ 리뷰 실패: ${error.message}\n\n`;
+            if (response.ok) {
+              const result = await response.json();
+              reviewBody += result.choices[0].message.content;
+            } else {
+              reviewBody += `⚠️ 리뷰 실패: ${response.status}`;
             }
 
-            // 체크리스트 추가
-            overallReview += `## ✅ 체크리스트\n\n`;
-            overallReview += `- [ ] Biome 린트 통과하는가?\n`;
-            overallReview += `- [ ] TypeScript 타입 체크 통과하는가?\n`;
-            overallReview += `- [ ] React Native Paper 테마 일관성 있는가?\n`;
-            overallReview += `- [ ] 접근성(Accessibility) 고려되었는가?\n`;
-            overallReview += `- [ ] iOS/Android 플랫폼별 테스트 완료?\n\n`;
-
-            overallReview += `---\n`;
-            overallReview += `*🤖 AI Review powered by Deepseek 3.1 via OpenRouter*\n`;
-            overallReview += `*⏱️ Reviewed at: ${new Date().toISOString()}*`;
-
-            // 최종 리뷰 제출
+            // PR 리뷰 제출
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
-              body: overallReview,
+              body: reviewBody,
               event: 'COMMENT'
             });
 
-            console.log(`✅ Review completed for ${filesToReview.length} files!`);
+            console.log('✅ Review completed!');
