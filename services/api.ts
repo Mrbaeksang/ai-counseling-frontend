@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios, { type AxiosRequestConfig } from 'axios';
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import Constants from 'expo-constants';
 
 // Get API URL from environment variables
@@ -56,8 +56,26 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Handle backend RsData response structure
-    if (response.data?.resultCode?.startsWith('S-')) {
-      response.data = response.data.data;
+    if (response.data?.resultCode) {
+      if (response.data.resultCode.startsWith('S-')) {
+        // Success response - unwrap data
+        // 문자열이 반환되는 경우 (즐겨찾기 추가/삭제 등) 빈 객체로 처리
+        const unwrappedData = response.data.data;
+        if (typeof unwrappedData === 'string') {
+          response.data = {}; // 문자열은 빈 객체로 변환
+        } else {
+          response.data = unwrappedData;
+        }
+      } else if (response.data.resultCode.startsWith('F-')) {
+        // Failure response - throw error with message
+        const error = new Error(response.data.msg || 'Request failed') as Error & {
+          code?: string;
+          response?: AxiosResponse;
+        };
+        error.code = response.data.resultCode;
+        error.response = response;
+        return Promise.reject(error);
+      }
     }
     return response;
   },
