@@ -35,7 +35,8 @@ jobs:
               !file.filename.includes('node_modules/') &&
               !file.filename.includes('.expo/') &&
               !file.filename.includes('dist/') &&
-              !file.filename.endsWith('.lock')
+              !file.filename.endsWith('.lock') &&
+              !file.filename.endsWith('.log')
             );
 
             if (filesToReview.length === 0) {
@@ -43,12 +44,21 @@ jobs:
               return;
             }
 
+            // 파일 분류
+            const tsxFiles = filesToReview.filter(f => f.filename.endsWith('.tsx'));
+            const tsFiles = filesToReview.filter(f => f.filename.endsWith('.ts'));
+            const componentFiles = filesToReview.filter(f => f.filename.includes('/components/'));
+            const hookFiles = filesToReview.filter(f => f.filename.includes('/hooks/'));
+            const serviceFiles = filesToReview.filter(f => f.filename.includes('/services/'));
+
             // 전체 변경사항 수집
             let allChanges = '';
             const filesSummary = [];
             
             for (const file of filesToReview) {
-              filesSummary.push(`- ${file.filename} (+${file.additions}/-${file.deletions})`);
+              // 파일 크기 체크 (100줄 넘는지)
+              const lines = file.patch.split('\n').length;
+              filesSummary.push(`- ${file.filename} (+${file.additions}/-${file.deletions}) [${lines} lines]`);
               allChanges += `\n### ${file.filename}\n`;
               allChanges += `\`\`\`diff\n${file.patch}\n\`\`\`\n`;
             }
@@ -66,41 +76,76 @@ jobs:
                   role: 'system',
                   content: `React Native 프론트엔드 코드 리뷰어입니다.
 
-                  ## 🔴 절대 규칙 (반드시 체크)
+                  ## 🔴 절대 규칙 체크리스트
                   
-                  1. **컴포넌트 100줄 제한** - 초과시 즉시 분리 필요
-                  2. **React.memo() 필수** - 모든 리스트 아이템 컴포넌트
-                  3. **스타일 위치** - 컴포넌트 내부에만 (별도 파일 금지)
-                  4. **any 타입 금지** - 반드시 proper TypeScript 타입 사용
-                  5. **상태 관리** - Zustand(전역), React Query(서버)
+                  ### 1. Component Architecture
+                  - [ ] 컴포넌트가 100줄을 초과하는가? → 즉시 분리 필요
+                  - [ ] 리스트 아이템에 React.memo()가 적용되었는가?
+                  - [ ] StyleSheet.create()를 사용하는가? (인라인 스타일 금지)
+                  - [ ] Props 인터페이스가 명확히 정의되었는가?
                   
-                  ## 체크 포인트
-                  - [ ] 100줄 넘는 컴포넌트 있는가?
-                  - [ ] 리스트 아이템에 React.memo 적용했는가?
-                  - [ ] any 타입 사용한 곳 있는가?
-                  - [ ] StyleSheet.create() 사용했는가?
-                  - [ ] 불필요한 prop drilling 있는가?`
+                  ### 2. TypeScript Rules  
+                  - [ ] 'any' 타입을 사용한 곳이 있는가? → 절대 금지
+                  - [ ] null/undefined 체크가 되어있는가?
+                  - [ ] import type을 사용하여 타입을 import했는가?
+                  - [ ] @/ 절대 경로를 사용하는가?
+                  
+                  ### 3. State Management
+                  - [ ] 3단계 이상 prop drilling이 있는가? → Zustand 사용
+                  - [ ] 서버 데이터는 React Query를 사용하는가?
+                  - [ ] 전역 상태는 Zustand를 사용하는가?
+                  
+                  ### 4. React Native Specific
+                  - [ ] 긴 목록에 FlatList를 사용하는가? (ScrollView 금지)
+                  - [ ] 키보드 입력시 KeyboardAvoidingView를 사용하는가?
+                  - [ ] Platform.OS로 플랫폼 분기를 처리하는가?
+                  - [ ] SafeAreaView로 노치 영역을 처리하는가?
+                  
+                  ### 5. Performance
+                  - [ ] 이벤트 핸들러에 useCallback을 사용하는가?
+                  - [ ] 복잡한 계산에 useMemo를 사용하는가?
+                  - [ ] 리스트 아이템 컴포넌트에 React.memo를 사용하는가?
+                  
+                  ### 6. API Communication
+                  - [ ] services/ 폴더의 API 함수를 사용하는가?
+                  - [ ] 에러 처리가 되어있는가?
+                  - [ ] 로딩 상태를 처리하는가?
+                  
+                  각 파일별로 위 체크리스트 기준으로 리뷰하고,
+                  🔴 반드시 수정 필요한 사항
+                  🟡 개선 권장 사항
+                  🟢 잘 작성된 부분
+                  으로 구분해서 리뷰해주세요.`
                 }, {
                   role: 'user',
-                  content: `다음 ${filesToReview.length}개 파일 리뷰:
+                  content: `다음 ${filesToReview.length}개 파일을 리뷰해주세요:
                   
+                  파일 목록:
                   ${filesSummary.join('\n')}
+                  
+                  분류:
+                  - 컴포넌트: ${componentFiles.length}개
+                  - Hooks: ${hookFiles.length}개  
+                  - Services: ${serviceFiles.length}개
+                  - TypeScript: ${tsFiles.length}개
+                  - TSX: ${tsxFiles.length}개
                   
                   변경사항:
                   ${allChanges}
                   
-                  절대 규칙 위반사항만 집중해서 리뷰해주세요.`
+                  절대 규칙 위반사항을 중점적으로 체크해주세요.`
                 }],
-                max_tokens: 8000,
+                max_tokens: 10000,
                 temperature: 0.3
               })
             });
 
             let reviewBody = `# 🤖 AI 코드 리뷰\n\n`;
             reviewBody += `## 📊 변경 통계\n`;
-            reviewBody += `- 파일: ${filesToReview.length}개\n`;
-            reviewBody += `- 추가: +${diff.data.files.reduce((sum, f) => sum + f.additions, 0)}\n`;
-            reviewBody += `- 삭제: -${diff.data.files.reduce((sum, f) => sum + f.deletions, 0)}\n\n`;
+            reviewBody += `- **총 파일**: ${filesToReview.length}개\n`;
+            reviewBody += `- **추가된 라인**: +${diff.data.files.reduce((sum, f) => sum + f.additions, 0)}\n`;
+            reviewBody += `- **삭제된 라인**: -${diff.data.files.reduce((sum, f) => sum + f.deletions, 0)}\n`;
+            reviewBody += `- **컴포넌트**: ${componentFiles.length}개 | **Hooks**: ${hookFiles.length}개 | **Services**: ${serviceFiles.length}개\n\n`;
 
             if (response.ok) {
               const result = await response.json();
@@ -108,6 +153,14 @@ jobs:
             } else {
               reviewBody += `⚠️ 리뷰 실패: ${response.status}`;
             }
+            
+            // 자동 체크 추가
+            reviewBody += `\n\n## ✅ 자동 체크리스트\n`;
+            reviewBody += `- [ ] \`npm run lint\` 실행했는가?\n`;
+            reviewBody += `- [ ] \`npx tsc --noEmit\` 타입 체크 통과하는가?\n`;
+            reviewBody += `- [ ] 100줄 넘는 컴포넌트가 없는가?\n`;
+            reviewBody += `- [ ] 모든 리스트 아이템에 React.memo 적용했는가?\n`;
+            reviewBody += `- [ ] any 타입 사용한 곳이 없는가?\n`;
 
             // PR 리뷰 제출
             await github.rest.pulls.createReview({
