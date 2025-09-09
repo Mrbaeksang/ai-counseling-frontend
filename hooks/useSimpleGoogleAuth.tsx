@@ -1,13 +1,27 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import authService from '@/services/authService';
 
-// Google OAuth 설정
-GoogleSignin.configure({
-  webClientId: '470745173996-2m81qutdnesqnqprc55n8cce7lrr7hm5.apps.googleusercontent.com',
-});
+// Google Sign-In 조건부 import (Expo Go에서는 사용 불가)
+interface GoogleSignInType {
+  configure: (options: { webClientId: string }) => void;
+  hasPlayServices: (options?: { showPlayServicesUpdateDialog?: boolean }) => Promise<boolean>;
+  signIn: () => Promise<{ data?: { user: { id: string; email: string | null } } }>;
+  getTokens: () => Promise<{ idToken: string }>;
+}
+
+let GoogleSignin: GoogleSignInType | null = null;
+try {
+  const googleSignInModule = require('@react-native-google-signin/google-signin');
+  GoogleSignin = googleSignInModule.GoogleSignin;
+  // Google OAuth 설정
+  if (GoogleSignin) {
+    GoogleSignin.configure({
+      webClientId: '470745173996-2m81qutdnesqnqprc55n8cce7lrr7hm5.apps.googleusercontent.com',
+    });
+  }
+} catch (_error) {}
 
 export const useSimpleGoogleAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,20 +30,31 @@ export const useSimpleGoogleAuth = () => {
     try {
       setIsLoading(true);
 
+      // Expo Go 환경 체크
+      if (!GoogleSignin) {
+        if (__DEV__) {
+          Alert.alert(
+            '개발 모드 알림',
+            'Google 로그인은 실제 빌드에서만 작동합니다.\n개발 빌드를 생성하거나 카카오 로그인을 사용해주세요.',
+            [{ text: '확인' }],
+          );
+          return;
+        }
+        throw new Error('Google Sign-In not available');
+      }
       // Google 로그인
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const _userInfo = await GoogleSignin.signIn();
 
       // ID Token 가져오기 - 구조 수정
-      const idToken = userInfo.data?.idToken;
+      const tokens = await GoogleSignin.getTokens();
+      const idToken = tokens.idToken;
 
       if (!idToken) {
         throw new Error('ID Token을 가져올 수 없습니다');
       }
-
       // authService를 통해 백엔드로 전송
       await authService.googleLogin(idToken);
-
       // 메인 화면으로 이동
       router.replace('/(tabs)');
     } catch (error) {

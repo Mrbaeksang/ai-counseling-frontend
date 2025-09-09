@@ -28,15 +28,12 @@ export const useKakaoAuth = () => {
         }
         throw error;
       }
-
-      if (!token.accessToken) {
+      if (!token?.accessToken) {
         throw new Error('카카오 로그인에 실패했습니다');
       }
-
       // 백엔드로 액세스 토큰 전송
       // 백엔드에서 카카오 사용자 정보 조회 후 JWT 발급
       await authService.kakaoLogin(token.accessToken);
-
       // 메인 화면으로 이동
       router.replace('/(tabs)');
     } catch (error) {

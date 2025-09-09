@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from '@/components/common/Toast';
 import { deleteSession, getSessionDetail, getSessions } from '@/services/sessions';
+import { useToast } from '@/store/toastStore';
 
 // 세션 목록 조회
 export const useSessions = (page = 1, size = 20) => {
@@ -26,23 +26,24 @@ export const useSessionDetail = (id: number) => {
 // 세션 삭제
 export const useDeleteSession = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   return useMutation({
     mutationFn: (sessionId: number) => deleteSession(sessionId),
     onSuccess: () => {
       // 세션 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      toast.success('상담 기록이 삭제되었습니다');
+      toast.show('상담 기록이 삭제되었습니다', 'success');
     },
     onError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status: number } };
         if (axiosError.response?.status === 401) {
-          toast.warning('로그인 후 이용해주세요');
+          toast.show('로그인 후 이용해주세요', 'warning');
           return;
         }
       }
-      toast.error('삭제에 실패했습니다');
+      toast.show('삭제에 실패했습니다', 'error');
     },
   });
 };

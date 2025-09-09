@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from '@/components/common/Toast';
 import {
   addFavorite,
   getCounselorDetail,
@@ -8,6 +7,7 @@ import {
   removeFavorite,
 } from '@/services/counselors';
 import type { CounselorDetail } from '@/services/counselors/types';
+import { useToast } from '@/store/toastStore';
 
 // 상담사 목록 조회
 export const useCounselors = (page = 1, size = 20, sort = 'popular') => {
@@ -44,6 +44,7 @@ export const useFavoriteCounselors = (page = 1, size = 20) => {
 // 즐겨찾기 추가
 export const useAddFavorite = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   return useMutation({
     mutationFn: (counselorId: number) => addFavorite(counselorId),
@@ -55,17 +56,17 @@ export const useAddFavorite = () => {
         if (!old) return old;
         return { ...old, isFavorite: true };
       });
-      toast.success('즐겨찾기에 추가되었습니다');
+      toast.show('즐겨찾기에 추가되었습니다', 'success');
     },
     onError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status: number } };
         if (axiosError.response?.status === 401) {
-          toast.warning('로그인 후 이용해주세요');
+          toast.show('로그인 후 이용해주세요', 'warning');
           return;
         }
       }
-      toast.error('즐겨찾기 추가에 실패했습니다');
+      toast.show('즐겨찾기 추가에 실패했습니다', 'error');
     },
   });
 };
@@ -73,6 +74,7 @@ export const useAddFavorite = () => {
 // 즐겨찾기 제거
 export const useRemoveFavorite = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   return useMutation({
     mutationFn: (counselorId: number) => removeFavorite(counselorId),
@@ -84,17 +86,17 @@ export const useRemoveFavorite = () => {
         if (!old) return old;
         return { ...old, isFavorite: false };
       });
-      toast.info('즐겨찾기에서 제거되었습니다');
+      toast.show('즐겨찾기에서 제거되었습니다', 'info');
     },
     onError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status: number } };
         if (axiosError.response?.status === 401) {
-          toast.warning('로그인 후 이용해주세요');
+          toast.show('로그인 후 이용해주세요', 'warning');
           return;
         }
       }
-      toast.error('즐겨찾기 제거에 실패했습니다');
+      toast.show('즐겨찾기 제거에 실패했습니다', 'error');
     },
   });
 };
