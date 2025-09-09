@@ -17,6 +17,7 @@ import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkele
 import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import { useCounselors, useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
+import { useThrottle } from '@/hooks/useDebounce';
 import type { Counselor } from '@/services/counselors/types';
 import useAuthStore from '@/store/authStore';
 
@@ -194,6 +195,16 @@ export default function HomeScreen() {
     toggleFavorite(counselor.id, favoriteIds.has(counselor.id));
   };
 
+  // 카테고리 네비게이션 함수 쓰로틀 적용
+  const handleCategoryPressRaw = (categoryId: string) => {
+    router.push(`/counselors/category?category=${categoryId}`);
+  };
+
+  const [handleCategoryPress] = useThrottle(
+    handleCategoryPressRaw as (...args: unknown[]) => unknown,
+    1000,
+  );
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <FlatList
@@ -227,9 +238,7 @@ export default function HomeScreen() {
                     <TouchableOpacity
                       key={category.id}
                       style={styles.categoryCard}
-                      onPress={() => {
-                        router.push(`/counselors/category?category=${category.id}`);
-                      }}
+                      onPress={() => handleCategoryPress(category.id)}
                       activeOpacity={0.7}
                     >
                       <LinearGradient
@@ -270,7 +279,7 @@ export default function HomeScreen() {
                           style={styles.categoryCard}
                           onPress={() => {
                             setShowAllCategories(false);
-                            router.push(`/counselors/category?category=${category.id}`);
+                            handleCategoryPress(category.id);
                           }}
                           activeOpacity={0.7}
                         >

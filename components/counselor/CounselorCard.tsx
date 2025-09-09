@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
+import { useThrottle } from '@/hooks/useDebounce';
 import type { Counselor } from '@/services/counselors/types';
 
 // 상담사 이미지 매핑
@@ -34,10 +35,13 @@ interface CounselorCardProps {
 }
 
 export function CounselorCard({ counselor, isFavorite, onFavoriteToggle }: CounselorCardProps) {
-  const handlePress = () => {
+  const handlePressRaw = () => {
     // 상담사 상세 페이지로 이동
     router.push(`/counselors/${counselor.id}`);
   };
+
+  // 쓰로틀 적용 - 1초 동안 중복 클릭 방지
+  const [handlePress, canClick] = useThrottle(handlePressRaw, 1000);
 
   const getImageSource = () => {
     const imageName = counselor.avatarUrl?.split('/').pop();
@@ -47,7 +51,7 @@ export function CounselorCard({ counselor, isFavorite, onFavoriteToggle }: Couns
   const imageSource = getImageSource();
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.95}>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.95} disabled={!canClick}>
       <Surface style={styles.card}>
         <LinearGradient
           colors={['#FFFFFF', '#FAFBFF']}
