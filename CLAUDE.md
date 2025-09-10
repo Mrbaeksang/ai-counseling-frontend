@@ -11,14 +11,15 @@ React Native mobile frontend for the AI Counseling App, providing AI-powered phi
 ### 1. Component Architecture
 - **Maximum 200 lines per component (권장), 300 lines (한계)** - 복잡한 화면은 200줄 초과시 분리 검토
 - **React.memo() 필수** - 모든 리스트 아이템 컴포넌트
-- **컴포넌트 내부 스타일** - StyleSheet.create() 사용, 별도 파일 금지
+- **No inline styles** - StyleSheet.create() only, no style={{}} 
 - **Props 인터페이스 정의** - 모든 컴포넌트에 명확한 타입 정의
 
-### 2. TypeScript Rules
-- **No 'any' types** - 절대 사용 금지
+### 2. TypeScript Rules  
+- **No 'any' types** - 절대 사용 금지, use 'unknown' or proper types
 - **Strict null checks** - undefined/null 체크 필수
 - **Type imports** - `import type` 사용으로 번들 크기 최적화
 - **절대 경로 import** - @/ prefix 사용 (tsconfig.json paths)
+- **Error handling** - catch (error: unknown) not catch (_error)
 
 ### 3. State Management Pattern
 - **Zustand** - 전역 상태 (auth, toast, user preferences)
@@ -79,14 +80,15 @@ frontend/
 │       └── [id].tsx      # 채팅 세션 (동적)
 │
 ├── components/           # 재사용 컴포넌트
+│   ├── auth/            # 인증 컴포넌트
+│   ├── chat/            # 채팅 UI 컴포넌트
+│   │   ├── ChatHeader.tsx
+│   │   ├── CustomAvatar.tsx
+│   │   ├── RatingDialog.tsx
+│   │   └── TitleEditDialog.tsx
 │   ├── common/          # 공통 컴포넌트
 │   │   ├── Toast.tsx
 │   │   └── PremiumButton.tsx
-│   ├── home/            # 홈 화면 컴포넌트
-│   │   ├── CategoryGrid.tsx
-│   │   ├── CounselorList.tsx
-│   │   ├── FilterChips.tsx
-│   │   └── WelcomeSection.tsx
 │   ├── counselor/       # 상담사 컴포넌트
 │   │   ├── CounselorCard.tsx
 │   │   ├── CounselorCardSkeleton.tsx
@@ -94,10 +96,15 @@ frontend/
 │   │   ├── ProfileHeader.tsx
 │   │   ├── CategorySection.tsx
 │   │   └── CounselingMethod.tsx
-│   └── auth/            # 인증 컴포넌트
+│   └── home/            # 홈 화면 컴포넌트
+│       ├── CategoryGrid.tsx
+│       ├── CounselorList.tsx
+│       ├── FilterChips.tsx
+│       └── WelcomeSection.tsx
 │
 ├── hooks/               # Custom React Hooks
-│   ├── useCounselors.ts # React Query hooks
+│   ├── useCounselors.ts
+│   ├── useSessionMessages.ts
 │   ├── useSessions.ts
 │   ├── useDebounce.ts
 │   ├── useSimpleGoogleAuth.tsx
@@ -105,13 +112,18 @@ frontend/
 │
 ├── services/           # API 레이어
 │   ├── api.ts         # Axios 설정 (인터셉터)
-│   ├── authService.ts # 인증 서비스
-│   ├── auth/          # OAuth 관련
+│   ├── auth/          # OAuth & JWT 인증
+│   │   ├── index.ts
+│   │   └── types.ts
 │   ├── counselors/    # 상담사 API
 │   │   ├── index.ts
 │   │   └── types.ts
 │   ├── sessions/      # 세션 API
+│   │   ├── index.ts
+│   │   └── types.ts
 │   └── users/         # 사용자 API
+│       ├── index.ts
+│       └── types.ts
 │
 ├── store/             # Zustand 스토어
 │   ├── authStore.ts   # 인증 상태
@@ -122,8 +134,15 @@ frontend/
 │   ├── counselorImages.ts
 │   └── counselingMethods.ts
 │
-└── types/            # 전역 타입 정의
-    └── icons.ts      # 아이콘 타입
+├── assets/            # 정적 리소스
+│   ├── counselors/    # 상담사 아바타 이미지
+│   ├── fonts/         # Pretendard 폰트
+│   └── images/        # 기타 이미지
+│
+├── types/            # 전역 타입 정의
+│   └── icons.ts      # 아이콘 타입
+│
+└── utils/            # 헬퍼 함수
 ```
 
 ## 🎨 UI/UX Guidelines
@@ -211,10 +230,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 ## 🚀 Development Commands
 
 ```bash
-# 개발 서버
-npm start          # Expo 개발 서버
-npm run android    # Android 에뮬레이터
-npm run ios        # iOS 시뮬레이터
+# 개발 서버 (중요: Android는 항상 아래 명령어 사용!)
+npx expo run:android    # ⭐ Android 개발시 항상 이것 사용 (npm run android 대신)
+npm run ios            # iOS 시뮬레이터
+npm start              # 기본 Expo 서버 (거의 사용 안함)
 
 # 코드 품질
 npm run lint       # Biome 린팅 + 자동 수정
@@ -224,6 +243,46 @@ npx tsc --noEmit   # TypeScript 타입 체크
 npx expo prebuild  # 네이티브 코드 생성
 npx expo run:android --variant release
 ```
+
+## 🔗 Backend Integration
+
+### API Endpoints Pattern
+- Base URL: `http://localhost:8080/api`
+- Auth: `/auth/login`, `/auth/refresh`, `/auth/logout`
+- Sessions: `/sessions`, `/sessions/{id}/messages`, `/sessions/{id}/rate`
+- Counselors: `/counselors`, `/counselors/{id}`
+- Users: `/users/me`, `/users/profile`
+
+### Response Format (RsData)
+```typescript
+interface RsData<T> {
+  resultCode: "S-1" | "F-400" | "F-401" | "F-404" | "F-500";
+  msg: string;
+  data: T | null;
+}
+```
+
+### Backend Constants Sync
+- Session title: "새 상담" (DEFAULT_SESSION_TITLE)
+- Max conversation history: 9 messages
+- Rating: 1-10 (0.5 stars = 1 point)
+- Pagination: Default 20, Max 100
+- Message roles: 'USER', 'AI'
+
+## 📦 Dependencies & Versions
+
+### Core
+- **React Native**: 0.76.5 (New Architecture)
+- **Expo**: SDK 53 with Expo Router v5
+- **React**: 19.0.0
+- **TypeScript**: 5.8.3
+
+### Key Libraries
+- **UI**: React Native Paper 5.x (MD3), React Native Gifted Chat
+- **State**: Zustand 5.x (global), React Query 5.x (server)
+- **Navigation**: Expo Router (file-based)
+- **API**: Axios with interceptors
+- **Auth**: expo-auth-session (OAuth2)
 
 ## 🔍 Debugging
 
@@ -265,6 +324,7 @@ chore: 빌드, 설정 변경
 5. **Platform 분기 미처리** - iOS/Android 차이
 6. **키보드 처리 누락** - KeyboardAvoidingView 미사용
 7. **안전 영역 미처리** - SafeAreaView 누락
+8. **catch (_error)** - catch (error: unknown) 사용
 
 ## 🔐 Security
 

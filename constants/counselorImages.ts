@@ -21,6 +21,7 @@ export const counselorImages: { [key: string]: ReturnType<typeof require> } = {
 
 // 상담사 이미지 가져오기 헬퍼 함수
 export const getCounselorImage = (avatarUrl?: string) => {
+  // 로컬 경로에서 파일명 추출해서 require된 이미지 반환
   const imageName = avatarUrl?.split('/').pop();
   return imageName && counselorImages[imageName];
 };

@@ -31,10 +31,20 @@ export default function CounselorDetailScreen() {
 
     try {
       setStarting(true);
-      const session = await startSession(counselorId);
-      // 세션 화면으로 이동
-      router.replace(`/session/${session.id}`);
-    } catch (_error) {
+      const response = await startSession(counselorId);
+      // 세션 화면으로 이동 (백엔드 응답의 counselorId 사용)
+      router.replace({
+        pathname: `/session/${response.sessionId}`,
+        params: {
+          counselorId: response.counselorId.toString(),
+          counselorName: response.counselorName,
+          title: response.title,
+          avatarUrl: response.avatarUrl || '',
+          isBookmarked: 'false', // 새 세션은 항상 북마크되지 않은 상태
+        },
+      });
+    } catch (error) {
+      alert(`세션 시작 실패: ${error}`);
     } finally {
       setStarting(false);
     }

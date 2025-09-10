@@ -64,8 +64,8 @@ export const CounselorCard = React.memo(
                 </LinearGradient>
               )}
 
-              {/* 인기 뱃지 */}
-              {counselor.averageRating >= 45 && (
+              {/* 인기 뱃지 - 평균 4.0점 이상 */}
+              {counselor.averageRating >= 40 && (
                 <View style={styles.popularBadge}>
                   <MaterialCommunityIcons name="star" size={12} color="#FFF" />
                   <Text style={styles.badgeText}>인기</Text>
