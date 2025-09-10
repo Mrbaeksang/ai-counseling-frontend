@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deleteSession, getSessionDetail, getSessions } from '@/services/sessions';
+import { endSession, getSessions } from '@/services/sessions';
 import { useToast } from '@/store/toastStore';
 
 // 세션 목록 조회
@@ -12,16 +12,16 @@ export const useSessions = (page = 1, size = 20) => {
   });
 };
 
-// 세션 상세 조회
-export const useSessionDetail = (id: number) => {
-  return useQuery({
-    queryKey: ['session', id],
-    queryFn: () => getSessionDetail(id),
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
-};
+// 세션 상세 조회 (현재 사용하지 않음)
+// export const useSessionDetail = (id: number) => {
+//   return useQuery({
+//     queryKey: ['session', id],
+//     queryFn: () => getSessionDetail(id),
+//     enabled: !!id,
+//     staleTime: 5 * 60 * 1000,
+//     gcTime: 10 * 60 * 1000,
+//   });
+// };
 
 // 세션 삭제
 export const useDeleteSession = () => {
@@ -29,7 +29,7 @@ export const useDeleteSession = () => {
   const toast = useToast();
 
   return useMutation({
-    mutationFn: (sessionId: number) => deleteSession(sessionId),
+    mutationFn: (sessionId: number) => endSession(sessionId),
     onSuccess: () => {
       // 세션 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ['sessions'] });

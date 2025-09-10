@@ -30,6 +30,7 @@ export default {
     },
     plugins: [
       'expo-router',
+      'expo-build-properties',
       [
         '@react-native-seoul/kakao-login',
         {

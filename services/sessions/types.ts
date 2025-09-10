@@ -1,12 +1,11 @@
-// 세션 목록 아이템
+// 세션 목록 아이템 (백엔드 SessionListResponse와 일치)
 export interface Session {
-  id: number;
-  counselorId: number;
+  sessionId: number;
+  title: string;
   counselorName: string;
-  messageCount: number;
-  lastMessage?: string;
-  createdAt: string;
-  updatedAt: string;
+  lastMessageAt: string;
+  isBookmarked: boolean;
+  avatarUrl?: string;
 }
 
 // 세션 상세
@@ -25,11 +24,32 @@ export interface Message {
   createdAt: string;
 }
 
-// 세션 시작 응답
-export interface StartSessionResponse {
+// 메시지 전송 요청
+export interface SendMessageRequest {
+  content: string;
+}
+
+// 메시지 전송 응답
+export interface SendMessageResponse {
+  userMessage: string;
+  aiMessage: string;
+  sessionTitle?: string;
+}
+
+// 메시지 목록 아이템
+export interface MessageItem {
   id: number;
-  counselorId: number;
+  content: string;
+  role: 'USER' | 'AI';
   createdAt: string;
+}
+
+// 세션 시작 응답 (백엔드 CreateSessionResponse와 일치)
+export interface StartSessionResponse {
+  sessionId: number;
+  counselorName: string;
+  title: string;
+  avatarUrl?: string;
 }
 
 // 페이지네이션 응답

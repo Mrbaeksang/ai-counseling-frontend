@@ -211,10 +211,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 ## 🚀 Development Commands
 
 ```bash
-# 개발 서버
-npm start          # Expo 개발 서버
-npm run android    # Android 에뮬레이터
-npm run ios        # iOS 시뮬레이터
+# 개발 서버 (중요: Android는 항상 아래 명령어 사용!)
+npx expo run:android    # ⭐ Android 개발시 항상 이것 사용 (npm run android 대신)
+npm run ios            # iOS 시뮬레이터
+npm start              # 기본 Expo 서버 (거의 사용 안함)
 
 # 코드 품질
 npm run lint       # Biome 린팅 + 자동 수정

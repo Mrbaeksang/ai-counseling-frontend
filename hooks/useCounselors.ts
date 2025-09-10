@@ -20,11 +20,11 @@ export const useCounselors = (page = 1, size = 20, sort = 'popular') => {
 };
 
 // 상담사 상세 조회
-export const useCounselorDetail = (id: number) => {
+export const useCounselorDetail = (id: number, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['counselor', id],
     queryFn: () => getCounselorDetail(id),
-    enabled: !!id,
+    enabled: options?.enabled !== undefined ? options.enabled : !!id,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });

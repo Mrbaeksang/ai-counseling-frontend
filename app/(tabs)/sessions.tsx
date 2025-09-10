@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Divider, IconButton, Surface, Text } from 'react-native-paper';
+import { IconButton, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '@/constants/theme';
 import { useDeleteSession, useSessions } from '@/hooks/useSessions';
@@ -32,7 +32,7 @@ export default function SessionsScreen() {
   };
 
   const handleSessionPress = (session: Session) => {
-    router.push(`/session/${session.id}`);
+    router.push(`/session/${session.sessionId}`);
   };
 
   const handleDeleteSession = (sessionId: number) => {
@@ -49,26 +49,26 @@ export default function SessionsScreen() {
             </View>
             <View style={styles.sessionDetails}>
               <Text style={styles.counselorName}>{item.counselorName || '철학자'}</Text>
-              <Text style={styles.sessionDate}>{formatDate(item.createdAt)}</Text>
+              <Text style={styles.sessionDate}>{formatDate(item.lastMessageAt)}</Text>
             </View>
           </View>
           <View style={styles.sessionActions}>
-            <Text style={styles.messageCount}>{item.messageCount || 0}개 메시지</Text>
+            {/* <Text style={styles.messageCount}>{item.messageCount || 0}개 메시지</Text> */}
             <IconButton
               icon="delete-outline"
               size={20}
-              onPress={() => handleDeleteSession(item.id)}
+              onPress={() => handleDeleteSession(item.sessionId)}
             />
           </View>
         </View>
-        {item.lastMessage && (
+        {/* {item.lastMessage && (
           <>
             <Divider style={styles.divider} />
             <Text style={styles.lastMessage} numberOfLines={2}>
               {item.lastMessage}
             </Text>
           </>
-        )}
+        )} */}
       </TouchableOpacity>
     </Surface>
   );
@@ -82,7 +82,7 @@ export default function SessionsScreen() {
 
       <FlatList
         data={sessions}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.sessionId.toString()}
         renderItem={renderSession}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
         ListEmptyComponent={() => (

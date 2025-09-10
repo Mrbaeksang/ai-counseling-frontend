@@ -7,7 +7,10 @@
       "mcp__filesystem__list_directory",
       "mcp__filesystem__read_file",
       "mcp__filesystem__search_files",
-      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/docs/**)"
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/docs/**)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/controller/**)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/dto/**)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/service/**)"
     ],
     "deny": [],
     "ask": []
