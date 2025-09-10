@@ -16,27 +16,36 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '상담사',
+          title: '홈',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-group" size={size} color={color} />
+            <MaterialCommunityIcons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: '즐겨찾기',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="heart" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="sessions"
         options={{
-          title: '대화 내역',
+          title: '상담내역',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="chat-outline" size={size} color={color} />
+            <MaterialCommunityIcons name="message-text-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: '내 정보',
+          title: '프로필',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-circle-outline" size={size} color={color} />
+            <MaterialCommunityIcons name="account-outline" size={size} color={color} />
           ),
         }}
       />

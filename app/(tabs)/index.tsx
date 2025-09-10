@@ -5,8 +5,7 @@ import { CategoryGrid } from '@/components/home/CategoryGrid';
 import { CounselorList } from '@/components/home/CounselorList';
 import { FilterChips } from '@/components/home/FilterChips';
 import { WelcomeSection } from '@/components/home/WelcomeSection';
-import { useCounselors, useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
-import type { FavoriteCounselor } from '@/services/counselors/types';
+import { useCounselors, useToggleFavorite } from '@/hooks/useCounselors';
 import useAuthStore from '@/store/authStore';
 
 export default function HomeScreen() {
@@ -32,8 +31,6 @@ export default function HomeScreen() {
     refetch: refetchCounselors,
   } = useCounselors(1, 20, sortMap[sortBy]);
 
-  const { data: favoritesData, refetch: refetchFavorites } = useFavoriteCounselors();
-
   const toggleFavoriteMutation = useToggleFavorite();
   const toggleFavorite = useCallback(
     (counselorId: number, isFavorite: boolean) => {
@@ -54,19 +51,12 @@ export default function HomeScreen() {
     });
   }, [allCounselors, selectedCategories]);
 
-  // 즐겨찾기 데이터 (useMemo로 최적화)
-  const favoriteCounselors = favoritesData || [];
-  const favoriteIds = useMemo(
-    () => new Set<number>(favoriteCounselors.map((c: FavoriteCounselor) => c.id)),
-    [favoriteCounselors],
-  );
-
   // 이벤트 핸들러 (useCallback으로 최적화)
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await Promise.all([refetchCounselors(), refetchFavorites()]);
+    await refetchCounselors();
     setIsRefreshing(false);
-  }, [refetchCounselors, refetchFavorites]);
+  }, [refetchCounselors]);
 
   const handleCategoryPress = useCallback((categoryId: string) => {
     setSelectedCategories((prev) => {
@@ -128,8 +118,6 @@ export default function HomeScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <CounselorList
         counselors={filteredCounselors}
-        favoriteCounselors={favoriteCounselors}
-        favoriteIds={favoriteIds}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
         sortBy={sortBy}

@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
+import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselor } from '@/services/counselors/types';
 
@@ -14,6 +15,8 @@ export function FavoriteCounselorCard({ counselor }: FavoriteCounselorCardProps)
   const handlePress = () => {
     router.push(`/session/new?counselorId=${counselor.id}`);
   };
+
+  const imageSource = getCounselorImage(counselor.avatarUrl);
 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
@@ -29,14 +32,18 @@ export function FavoriteCounselorCard({ counselor }: FavoriteCounselorCardProps)
           </View>
 
           <View style={styles.container}>
-            <LinearGradient
-              colors={['#EC4899', '#F472B6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.avatarGradient}
-            >
-              <Text style={styles.avatarText}>{counselor.name.substring(0, 2)}</Text>
-            </LinearGradient>
+            {imageSource ? (
+              <Image source={imageSource} style={styles.avatar} resizeMode="cover" />
+            ) : (
+              <LinearGradient
+                colors={['#EC4899', '#F472B6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatarGradient}
+              >
+                <Text style={styles.avatarText}>{counselor.name.substring(0, 2)}</Text>
+              </LinearGradient>
+            )}
 
             <Text style={styles.name} numberOfLines={1}>
               {counselor.name}
@@ -49,7 +56,7 @@ export function FavoriteCounselorCard({ counselor }: FavoriteCounselorCardProps)
             {counselor.averageRating > 0 && (
               <View style={styles.rating}>
                 <MaterialCommunityIcons name="star" size={12} color="#F59E0B" />
-                <Text style={styles.ratingText}>{counselor.averageRating.toFixed(1)}</Text>
+                <Text style={styles.ratingText}>{(counselor.averageRating / 10).toFixed(1)}</Text>
               </View>
             )}
           </View>
@@ -96,6 +103,13 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    marginBottom: spacing.xs,
+    backgroundColor: '#F3F4F6',
   },
   avatarGradient: {
     width: 48,

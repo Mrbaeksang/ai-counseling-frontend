@@ -1,18 +1,15 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Divider, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { CounselorCard } from '@/components/counselor/CounselorCard';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
-import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
-import type { Counselor, FavoriteCounselor } from '@/services/counselors/types';
+import type { Counselor } from '@/services/counselors/types';
 import type { IconName } from '@/types/icons';
 
 interface CounselorListProps {
   counselors: Counselor[];
-  favoriteCounselors: FavoriteCounselor[];
-  favoriteIds: Set<number>;
   isLoading: boolean;
   isRefreshing: boolean;
   sortBy: 'latest' | 'popular' | 'rating';
@@ -25,8 +22,6 @@ interface CounselorListProps {
 export const CounselorList = React.memo(
   ({
     counselors,
-    favoriteCounselors,
-    favoriteIds,
     isLoading,
     isRefreshing,
     sortBy,
@@ -49,11 +44,11 @@ export const CounselorList = React.memo(
       ({ item }: { item: Counselor }) => (
         <CounselorCard
           counselor={item}
-          isFavorite={favoriteIds.has(item.id)}
-          onFavoriteToggle={() => onFavoriteToggle(item.id, favoriteIds.has(item.id))}
+          isFavorite={item.isFavorite}
+          onFavoriteToggle={() => onFavoriteToggle(item.id, item.isFavorite)}
         />
       ),
-      [favoriteIds, onFavoriteToggle],
+      [onFavoriteToggle],
     );
 
     const renderSkeleton = useCallback(
@@ -65,25 +60,6 @@ export const CounselorList = React.memo(
       () => (
         <>
           {ListHeaderComponent}
-
-          {/* 즐겨찾기 섹션 */}
-          {favoriteCounselors.length > 0 && (
-            <View style={styles.favoritesSection}>
-              <View style={styles.sectionHeader}>
-                <MaterialCommunityIcons name="heart" size={20} color="#EF4444" />
-                <Text style={styles.sectionTitle}>즐겨찾기 상담사</Text>
-              </View>
-              <FlatList
-                horizontal
-                data={favoriteCounselors}
-                renderItem={({ item }) => <FavoriteCounselorCard counselor={item} />}
-                keyExtractor={(item) => `favorite-${item.id}`}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.favoritesContent}
-              />
-              <Divider style={styles.divider} />
-            </View>
-          )}
 
           {/* 정렬 옵션 */}
           <View style={styles.sortSection}>
@@ -114,7 +90,7 @@ export const CounselorList = React.memo(
           </View>
         </>
       ),
-      [ListHeaderComponent, favoriteCounselors, sortOptions, sortBy, onSortChange],
+      [ListHeaderComponent, sortOptions, sortBy, onSortChange],
     );
 
     const ListEmpty = useCallback(
@@ -153,31 +129,6 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxl,
-  },
-  favoritesSection: {
-    marginTop: spacing.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Pretendard-Bold',
-    color: '#111827',
-  },
-  favoritesContent: {
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-  },
-  divider: {
-    marginTop: spacing.lg,
-    marginHorizontal: spacing.lg,
-    backgroundColor: '#E5E7EB',
   },
   sortSection: {
     flexDirection: 'row',

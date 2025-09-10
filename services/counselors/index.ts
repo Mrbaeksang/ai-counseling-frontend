@@ -36,17 +36,40 @@ export const getCounselorDetail = async (counselorId: number): Promise<Counselor
 
 // 즐겨찾기 상담사 목록 조회
 export const getFavoriteCounselors = async (): Promise<FavoriteCounselorResponse[]> => {
-  const response = await api.get<FavoriteCounselorResponse[]>('/counselors/favorites');
+  try {
+    const response =
+      await api.get<PageResponse<FavoriteCounselorResponse>>('/counselors/favorites');
 
-  if (!response.data) {
-    // 즐겨찾기가 없을 수도 있으므로 빈 배열 반환
+    // PagedResponse의 content 필드에서 데이터 추출
+    if (!response.data || !response.data.content) {
+      return [];
+    }
+
+    return response.data.content;
+  } catch (error: unknown) {
+    // 401 에러는 로그인 필요, 그 외는 빈 배열 반환
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError.response?.status === 401) {
+        // 인증 에러는 빈 배열 반환 (로그인 전 상태)
+        return [];
+      }
+    }
+    // 기타 에러도 빈 배열 반환
     return [];
   }
-
-  return response.data;
 };
 
 // 상담사 즐겨찾기 토글
-export const toggleCounselorFavorite = async (counselorId: number): Promise<void> => {
-  await api.post(`/counselors/${counselorId}/favorite`);
+export const toggleCounselorFavorite = async (
+  counselorId: number,
+  isFavorite: boolean,
+): Promise<void> => {
+  if (isFavorite) {
+    // 이미 즐겨찾기한 경우 DELETE로 제거
+    await api.delete(`/counselors/${counselorId}/favorite`);
+  } else {
+    // 즐겨찾기하지 않은 경우 POST로 추가
+    await api.post(`/counselors/${counselorId}/favorite`);
+  }
 };
