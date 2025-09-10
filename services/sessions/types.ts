@@ -1,6 +1,7 @@
 // 세션 목록 아이템 (백엔드 SessionListResponse와 일치)
 export interface Session {
   sessionId: number;
+  counselorId: number;
   title: string;
   counselorName: string;
   lastMessageAt: string;
@@ -36,20 +37,25 @@ export interface SendMessageResponse {
   sessionTitle?: string;
 }
 
-// 메시지 목록 아이템
+// 메시지 목록 아이템 (백엔드 MessageItem과 일치)
 export interface MessageItem {
-  id: number;
   content: string;
-  role: 'USER' | 'AI';
-  createdAt: string;
+  senderType: 'USER' | 'AI'; // 백엔드는 senderType 사용
 }
 
 // 세션 시작 응답 (백엔드 CreateSessionResponse와 일치)
 export interface StartSessionResponse {
   sessionId: number;
+  counselorId: number;
   counselorName: string;
   title: string;
   avatarUrl?: string;
+}
+
+// 북마크 토글 응답
+export interface ToggleBookmarkResponse {
+  sessionId: number;
+  isBookmarked: boolean;
 }
 
 // 페이지네이션 응답

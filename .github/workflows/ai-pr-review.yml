@@ -44,21 +44,39 @@ jobs:
               return;
             }
 
-            // 파일 분류
+            // 파일 분류 (실제 프로젝트 구조에 맞게 수정)
             const tsxFiles = filesToReview.filter(f => f.filename.endsWith('.tsx'));
             const tsFiles = filesToReview.filter(f => f.filename.endsWith('.ts'));
-            const componentFiles = filesToReview.filter(f => f.filename.includes('/components/'));
-            const hookFiles = filesToReview.filter(f => f.filename.includes('/hooks/'));
-            const serviceFiles = filesToReview.filter(f => f.filename.includes('/services/'));
+            const appFiles = filesToReview.filter(f => f.filename.includes('app/'));
+            const componentFiles = filesToReview.filter(f => f.filename.includes('components/'));
+            const hookFiles = filesToReview.filter(f => f.filename.includes('hooks/'));
+            const serviceFiles = filesToReview.filter(f => f.filename.includes('services/'));
+            const storeFiles = filesToReview.filter(f => f.filename.includes('store/'));
 
             // 전체 변경사항 수집
             let allChanges = '';
             const filesSummary = [];
             
             for (const file of filesToReview) {
-              // 파일 크기 체크 (100줄 넘는지)
-              const lines = file.patch.split('\n').length;
-              filesSummary.push(`- ${file.filename} (+${file.additions}/-${file.deletions}) [${lines} lines]`);
+              // 실제 파일의 전체 라인 수를 가져오기 위해 파일 내용 조회
+              let totalLines = 0;
+              try {
+                const fileContent = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path: file.filename,
+                  ref: context.payload.pull_request.head.sha
+                });
+                
+                if (fileContent.data.content) {
+                  const content = Buffer.from(fileContent.data.content, 'base64').toString('utf-8');
+                  totalLines = content.split('\n').length;
+                }
+              } catch (e) {
+                totalLines = file.additions; // 새 파일의 경우
+              }
+              
+              filesSummary.push(`- ${file.filename} (+${file.additions}/-${file.deletions}) [총 ${totalLines}줄]`);
               allChanges += `\n### ${file.filename}\n`;
               allChanges += `\`\`\`diff\n${file.patch}\n\`\`\`\n`;
             }
@@ -81,14 +99,16 @@ jobs:
                   ### 1. Component Architecture
                   - [ ] 컴포넌트가 300줄을 초과하는가? → 즉시 분리 필요 (200줄 초과시 분리 권장)
                   - [ ] 리스트 아이템에 React.memo()가 적용되었는가?
-                  - [ ] StyleSheet.create()를 사용하는가? (인라인 스타일 금지)
+                  - [ ] StyleSheet.create()를 사용하는가? (인라인 스타일 절대 금지)
                   - [ ] Props 인터페이스가 명확히 정의되었는가?
+                  - [ ] style={[styles.container, { paddingTop: insets.top }]} 같은 인라인 스타일이 있는가? → 절대 금지
                   
                   ### 2. TypeScript Rules  
                   - [ ] 'any' 타입을 사용한 곳이 있는가? → 절대 금지
                   - [ ] null/undefined 체크가 되어있는가?
                   - [ ] import type을 사용하여 타입을 import했는가?
                   - [ ] @/ 절대 경로를 사용하는가?
+                  - [ ] catch (_error) 대신 catch (error: unknown)을 사용하는가? → _error 금지
                   
                   ### 3. State Management
                   - [ ] 3단계 이상 prop drilling이 있는가? → Zustand 사용
@@ -124,9 +144,11 @@ jobs:
                   ${filesSummary.join('\n')}
                   
                   분류:
+                  - App (라우팅): ${appFiles.length}개
                   - 컴포넌트: ${componentFiles.length}개
                   - Hooks: ${hookFiles.length}개  
                   - Services: ${serviceFiles.length}개
+                  - Store (상태관리): ${storeFiles.length}개
                   - TypeScript: ${tsFiles.length}개
                   - TSX: ${tsxFiles.length}개
                   
@@ -145,7 +167,7 @@ jobs:
             reviewBody += `- **총 파일**: ${filesToReview.length}개\n`;
             reviewBody += `- **추가된 라인**: +${diff.data.files.reduce((sum, f) => sum + f.additions, 0)}\n`;
             reviewBody += `- **삭제된 라인**: -${diff.data.files.reduce((sum, f) => sum + f.deletions, 0)}\n`;
-            reviewBody += `- **컴포넌트**: ${componentFiles.length}개 | **Hooks**: ${hookFiles.length}개 | **Services**: ${serviceFiles.length}개\n\n`;
+            reviewBody += `- **App**: ${appFiles.length}개 | **컴포넌트**: ${componentFiles.length}개 | **Hooks**: ${hookFiles.length}개 | **Services**: ${serviceFiles.length}개 | **Store**: ${storeFiles.length}개\n\n`;
 
             if (response.ok) {
               const result = await response.json();

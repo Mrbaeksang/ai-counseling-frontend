@@ -1,110 +1,140 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { GiftedChat, type IMessage } from 'react-native-gifted-chat';
-import {
-  ActivityIndicator,
-  Appbar,
-  Button,
-  Dialog,
-  IconButton,
-  Portal,
-  Text,
-  TextInput,
-} from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, Provider as PaperProvider } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChatHeader } from '@/components/chat/ChatHeader';
+import { CustomAvatar } from '@/components/chat/CustomAvatar';
+import { RatingDialog } from '@/components/chat/RatingDialog';
+import { TitleEditDialog } from '@/components/chat/TitleEditDialog';
 import { getCounselorImage } from '@/constants/counselorImages';
-import { colors, spacing } from '@/constants/theme';
-import { useCounselorDetail } from '@/hooks/useCounselors';
-import {
-  endSession,
-  getSessionMessages,
-  rateSession,
-  sendMessage,
-  toggleSessionBookmark,
-  updateSessionTitle,
-} from '@/services/sessions';
-import useAuthStore from '@/store/authStore';
+import { useSessionActions } from '@/hooks/useSessionActions';
+import { useSessionMessages } from '@/hooks/useSessionMessages';
+import { sendMessage } from '@/services/sessions';
+import { useToast } from '@/store/toastStore';
 
-export default function ChatScreen() {
+export default function SessionScreen() {
   const params = useLocalSearchParams<{
     id: string;
     counselorId?: string;
     counselorName?: string;
     title?: string;
     avatarUrl?: string;
-    isBookmarked?: string; // "true" or "false" as string
+    isBookmarked?: string;
   }>();
-  const insets = useSafeAreaInsets();
-  const { user } = useAuthStore();
+  const toast = useToast();
+
   const sessionId = Number(params.id);
-  const queryClient = useQueryClient();
-
-  const [messages, setMessages] = useState<IMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
-  const [counselorId, _setCounselorId] = useState<number | null>(
-    params.counselorId ? Number(params.counselorId) : null,
+  const initialCounselorInfo = useMemo(
+    () =>
+      params.counselorName
+        ? {
+            counselorId: params.counselorId ? Number(params.counselorId) : undefined,
+            counselorName: params.counselorName,
+            avatarUrl: params.avatarUrl || undefined,
+          }
+        : undefined,
+    [params.counselorId, params.counselorName, params.avatarUrl],
   );
-  const [sessionTitle, setSessionTitle] = useState<string>(params.title || '상담 중');
-  const [isBookmarked, setIsBookmarked] = useState(params.isBookmarked === 'true');
-  const [showRatingDialog, setShowRatingDialog] = useState(false);
-  const [rating, setRating] = useState(5);
-  const [feedback, setFeedback] = useState('');
-  const [showTitleEditDialog, setShowTitleEditDialog] = useState(false);
-  const [editingTitle, setEditingTitle] = useState('');
 
-  // 상담사 정보 조회 (counselorId가 설정된 후)
-  const { data: counselor } = useCounselorDetail(counselorId || 0, {
-    enabled: !!counselorId,
+  const { messages, addMessage, counselorInfo, sessionInfo, isLoading } = useSessionMessages(
+    sessionId,
+    initialCounselorInfo,
+  );
+
+  const [isBookmarked, setIsBookmarked] = useState(params.isBookmarked === 'true');
+  const [isSending, setIsSending] = useState(false);
+  const [sessionTitle, setSessionTitle] = useState(params.title || '새 상담');
+
+  // Use custom hook for session actions
+  const {
+    showRatingDialog,
+    showTitleDialog,
+    rating,
+    feedback,
+    newTitle,
+    setShowRatingDialog,
+    setShowTitleDialog,
+    setRating,
+    setFeedback,
+    setNewTitle,
+    handleBookmarkToggle: handleBookmarkToggleAction,
+    confirmEndSession,
+    handleRatingSubmit: handleRatingSubmitAction,
+    handleTitleEdit: handleTitleEditAction,
+    handleTitleUpdate,
+    isSubmittingRating,
+    isUpdatingTitle,
+  } = useSessionActions({
+    sessionId,
+    sessionInfo,
+    counselorId: counselorInfo?.counselorId || Number(params.counselorId),
   });
 
-  const loadMessages = useCallback(async () => {
-    try {
-      setIsLoading(true);
-
-      const response = await getSessionMessages(sessionId);
-
-      // 아바타 이미지 가져오기
-      const avatarUrl = counselor?.avatarUrl || params.avatarUrl;
-      const avatarImage = getCounselorImage(avatarUrl);
-
-      // 메시지를 GiftedChat 형식으로 변환
-      const formattedMessages = response.content
-        .map((msg) => ({
-          _id: msg.id,
-          text: msg.content,
-          createdAt: new Date(msg.createdAt),
-          user:
-            msg.role === 'USER'
-              ? {
-                  _id: user?.userId || 1,
-                  name: user?.name || user?.nickname || '나',
-                  avatar: undefined, // 사용자는 아바타 없음
-                }
-              : {
-                  _id: 2,
-                  name: counselor?.name || params.counselorName || '상담사',
-                  avatar: avatarImage || avatarUrl || undefined,
-                },
-        }))
-        .reverse(); // GiftedChat은 최신 메시지가 첫번째
-
-      setMessages(formattedMessages);
-    } catch (_error) {
-      Alert.alert('오류', '메시지를 불러올 수 없습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [sessionId, counselor, user, params.avatarUrl, params.counselorName]);
-
-  // 초기 메시지 로드
   useEffect(() => {
-    if (!sessionId) return;
+    if (sessionInfo) {
+      setIsBookmarked(sessionInfo.isBookmarked);
+      setSessionTitle(sessionInfo.title);
+      setNewTitle(sessionInfo.title);
+    }
+  }, [sessionInfo, setNewTitle]);
 
-    loadMessages();
-  }, [sessionId, loadMessages]);
+  const giftedChatMessages = useMemo<IMessage[]>(() => {
+    return messages.map((msg, index) => {
+      const isAI = msg.senderType === 'AI';
+      const counselorAvatar = counselorInfo?.avatarUrl
+        ? getCounselorImage(counselorInfo.avatarUrl)
+        : undefined;
+
+      return {
+        _id: index + 1, // GiftedChat용 임시 ID
+        text: msg.content,
+        createdAt: new Date(), // GiftedChat용 임시 시간
+        user: {
+          _id: isAI ? 2 : 1,
+          name: isAI ? counselorInfo?.counselorName || 'AI' : '나',
+          avatar: isAI ? counselorAvatar : undefined,
+        },
+      };
+    });
+  }, [messages, counselorInfo]);
+
+  // Wrapper functions to integrate with custom hook
+  const handleBookmarkToggle = useCallback(async () => {
+    await handleBookmarkToggleAction();
+    setIsBookmarked((prev) => !prev);
+  }, [handleBookmarkToggleAction]);
+
+  const handleEndSession = useCallback(() => {
+    Alert.alert('상담 종료', '상담을 종료하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '종료',
+        style: 'destructive',
+        onPress: confirmEndSession, // 바로 endSessionMutation 실행
+      },
+    ]);
+  }, [confirmEndSession]);
+
+  const handleTitleEdit = useCallback(() => {
+    setNewTitle(sessionTitle);
+    handleTitleEditAction();
+  }, [sessionTitle, setNewTitle, handleTitleEditAction]);
+
+  const handleTitleSave = useCallback(async () => {
+    if (newTitle.trim() && newTitle !== sessionTitle) {
+      await handleTitleUpdate();
+      setSessionTitle(newTitle);
+    } else {
+      setShowTitleDialog(false);
+    }
+  }, [newTitle, sessionTitle, handleTitleUpdate, setShowTitleDialog]);
+
+  // Convert backend rating (1-10) to frontend rating (0.5-5)
+  const handleRatingSubmit = useCallback(() => {
+    handleRatingSubmitAction();
+  }, [handleRatingSubmitAction]);
 
   const onSend = useCallback(
     async (newMessages: IMessage[] = []) => {
@@ -113,315 +143,112 @@ export default function ChatScreen() {
       const userMessage = newMessages[0];
       setIsSending(true);
 
-      // 사용자 메시지 즉시 추가
-      setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages));
+      // 사용자 메시지 추가 (백엔드 타입 그대로)
+      addMessage({
+        content: userMessage.text,
+        senderType: 'USER',
+      });
 
       try {
-        // API 호출
         const response = await sendMessage(sessionId, userMessage.text);
 
-        // AI 응답 추가
-        const avatarUrl = counselor?.avatarUrl || params.avatarUrl;
-        const avatarImage = getCounselorImage(avatarUrl);
-
-        const aiMessage: IMessage = {
-          _id: Date.now(),
-          text: response.aiMessage,
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: counselor?.name || params.counselorName || '상담사',
-            avatar: avatarImage || avatarUrl || undefined,
-          },
-        };
-
-        setMessages((previousMessages) => GiftedChat.append(previousMessages, [aiMessage]));
-
-        // 세션 제목이 업데이트되었으면 처리
+        // 백엔드는 첫 메시지에만 sessionTitle을 보내줌
         if (response.sessionTitle) {
           setSessionTitle(response.sessionTitle);
+          setNewTitle(response.sessionTitle);
         }
-      } catch (_error) {
-        Alert.alert('오류', '메시지 전송에 실패했습니다.');
-        // 실패한 메시지 롤백
-        setMessages((previousMessages) =>
-          previousMessages.filter((msg) => msg._id !== userMessage._id),
-        );
+
+        // AI 메시지 추가 (백엔드 타입 그대로)
+        addMessage({
+          content: response.aiMessage,
+          senderType: 'AI',
+        });
+      } catch (_error: unknown) {
+        toast.show('메시지 전송에 실패했습니다', 'error');
       } finally {
         setIsSending(false);
       }
     },
-    [sessionId, counselor, isSending, params.avatarUrl, params.counselorName],
+    [sessionId, isSending, addMessage, toast, setNewTitle],
   );
-
-  const handleBack = () => {
-    router.back();
-  };
-
-  const handleToggleBookmark = async () => {
-    try {
-      const result = await toggleSessionBookmark(sessionId);
-      setIsBookmarked(result.isBookmarked);
-    } catch (_error) {
-      Alert.alert('오류', '북마크 설정에 실패했습니다.');
-    }
-  };
-
-  const handleEditTitle = () => {
-    setEditingTitle(sessionTitle);
-    setShowTitleEditDialog(true);
-  };
-
-  const handleSaveTitle = async () => {
-    try {
-      await updateSessionTitle(sessionId, editingTitle);
-      setSessionTitle(editingTitle);
-      setShowTitleEditDialog(false);
-    } catch (_error) {
-      Alert.alert('오류', '제목 수정에 실패했습니다.');
-    }
-  };
-
-  const handleEndSession = () => {
-    Alert.alert('세션 종료', '상담을 종료하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '종료',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await endSession(sessionId);
-            // 세션 종료 후 평가 다이얼로그 표시
-            setShowRatingDialog(true);
-          } catch (_error) {
-            Alert.alert('오류', '세션 종료에 실패했습니다.');
-          }
-        },
-      },
-    ]);
-  };
-
-  const handleRateSession = async () => {
-    try {
-      await rateSession(sessionId, rating, feedback);
-
-      // 상담사 데이터 캐시 무효화 (통계 업데이트 반영)
-      if (counselorId) {
-        await queryClient.invalidateQueries({ queryKey: ['counselor', counselorId] });
-        await queryClient.invalidateQueries({ queryKey: ['counselors'] });
-      }
-
-      setShowRatingDialog(false);
-      router.replace('/(tabs)');
-    } catch (_error) {
-      Alert.alert('오류', '평가 제출에 실패했습니다.');
-      setShowRatingDialog(false);
-      router.replace('/(tabs)');
-    }
-  };
-
-  const handleSkipRating = () => {
-    setShowRatingDialog(false);
-    router.replace('/(tabs)');
-  };
-
-  // 커스텀 아바타 렌더링
-  const renderAvatar = (props: any) => {
-    const { currentMessage } = props;
-    if (currentMessage?.user?._id === 2) {
-      // 상담사 메시지인 경우
-      const avatarSource = currentMessage.user.avatar;
-      if (avatarSource) {
-        return <Image source={avatarSource} style={styles.customAvatar} />;
-      }
-    }
-    return null;
-  };
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={colors.primary[600]} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={handleBack} />
-        <Appbar.Content
-          title={
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText} numberOfLines={1}>
-                {sessionTitle || counselor?.name || '상담 중'}
-              </Text>
-              <IconButton
-                icon="pencil"
-                size={16}
-                iconColor="#6B7280"
-                onPress={handleEditTitle}
-                style={styles.editButton}
-              />
-            </View>
-          }
-        />
-        <Appbar.Action
-          icon={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-          onPress={handleToggleBookmark}
-        />
-        <Appbar.Action icon="close" onPress={handleEndSession} />
-      </Appbar.Header>
+    <PaperProvider>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <ChatHeader
+            title={sessionTitle}
+            onTitleEdit={handleTitleEdit}
+            onBookmarkToggle={handleBookmarkToggle}
+            onEndSession={handleEndSession}
+            isBookmarked={isBookmarked}
+          />
 
-      <KeyboardAvoidingView
-        style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={insets.top}
-      >
-        <GiftedChat
-          messages={messages}
-          onSend={onSend}
-          user={{
-            _id: user?.userId || 1,
-            name: user?.name || user?.nickname || '나',
-          }}
-          placeholder="메시지를 입력하세요..."
-          alwaysShowSend
-          scrollToBottom
-          renderLoading={() => <ActivityIndicator size="large" color={colors.primary[600]} />}
-          isTyping={isSending}
-          messagesContainerStyle={styles.messagesContainer}
-          locale="ko"
-          renderTime={() => null} // 시간 표시 제거
-          renderDay={() => null} // 날짜 표시 제거
-          showUserAvatar={false} // 사용자 아바타 숨김
-          showAvatarForEveryMessage={false} // 연속 메시지는 아바타 한 번만
-          renderAvatar={renderAvatar} // 커스텀 아바타 렌더링
-          textInputProps={{
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            autoComplete: 'off',
-            keyboardType: 'default',
-            returnKeyType: 'send',
-            blurOnSubmit: false,
-            multiline: true,
-            enablesReturnKeyAutomatically: true,
-            // Android 한글 입력 지원
-            autoCompleteType: 'off',
-            textContentType: 'none',
-            importantForAutofill: 'no',
-          }}
-        />
-      </KeyboardAvoidingView>
+          <GiftedChat
+            messages={giftedChatMessages}
+            onSend={onSend}
+            user={{ _id: 1, name: '나' }}
+            placeholder="메시지를 입력하세요..."
+            alwaysShowSend
+            showUserAvatar={false}
+            renderAvatar={(props) => <CustomAvatar {...props} />}
+            renderUsernameOnMessage={false}
+            renderTime={() => null}
+            inverted={false}
+            isTyping={isSending}
+            scrollToBottom
+            infiniteScroll
+          />
 
-      {/* 평가 다이얼로그 */}
-      <Portal>
-        <Dialog visible={showRatingDialog} onDismiss={handleSkipRating}>
-          <Dialog.Title>상담 평가</Dialog.Title>
-          <Dialog.Content>
-            <Text style={{ marginBottom: 16 }}>상담은 어떠셨나요?</Text>
+          <RatingDialog
+            visible={showRatingDialog}
+            selectedRating={rating}
+            feedback={feedback}
+            onRatingSelect={setRating}
+            onFeedbackChange={setFeedback}
+            onSubmit={handleRatingSubmit}
+            onDismiss={() => setShowRatingDialog(false)}
+            isSubmitting={isSubmittingRating}
+          />
 
-            {/* 별점 선택 */}
-            <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <IconButton
-                  key={star}
-                  icon={rating >= star ? 'star' : 'star-outline'}
-                  size={32}
-                  iconColor={rating >= star ? '#FFB800' : '#9CA3AF'}
-                  onPress={() => setRating(star)}
-                />
-              ))}
-            </View>
-
-            {/* 피드백 입력 */}
-            <TextInput
-              mode="outlined"
-              label="추가 의견 (선택사항)"
-              value={feedback}
-              onChangeText={setFeedback}
-              multiline
-              numberOfLines={3}
-              placeholder="상담에 대한 의견을 남겨주세요"
-            />
-          </Dialog.Content>
-
-          <Dialog.Actions>
-            <Button onPress={handleSkipRating}>건너뛰기</Button>
-            <Button mode="contained" onPress={handleRateSession}>
-              평가 제출
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-
-        {/* 제목 수정 다이얼로그 */}
-        <Dialog visible={showTitleEditDialog} onDismiss={() => setShowTitleEditDialog(false)}>
-          <Dialog.Title>세션 제목 수정</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              mode="outlined"
-              label="새로운 제목"
-              value={editingTitle}
-              onChangeText={setEditingTitle}
-              placeholder="세션 제목을 입력하세요"
-              autoFocus
-              maxLength={50}
-            />
-          </Dialog.Content>
-
-          <Dialog.Actions>
-            <Button onPress={() => setShowTitleEditDialog(false)}>취소</Button>
-            <Button mode="contained" onPress={handleSaveTitle} disabled={!editingTitle.trim()}>
-              저장
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-    </View>
+          <TitleEditDialog
+            visible={showTitleDialog}
+            title={newTitle}
+            onTitleChange={setNewTitle}
+            onSave={handleTitleSave}
+            onDismiss={() => setShowTitleDialog(false)}
+            isSaving={isUpdatingTitle}
+          />
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
+  },
+  keyboardView: {
+    flex: 1,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    elevation: 2,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  titleText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#000',
-    flex: 1,
-  },
-  editButton: {
-    margin: 0,
-    marginLeft: 4,
-  },
-  chatContainer: {
-    flex: 1,
-  },
-  messagesContainer: {
-    paddingBottom: spacing.sm,
-  },
-  customAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 8,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
   },
 });

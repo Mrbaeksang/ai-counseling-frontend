@@ -1,11 +1,50 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React from 'react';
 import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { IconButton, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '@/constants/theme';
 import { useDeleteSession, useSessions } from '@/hooks/useSessions';
 import type { Session } from '@/services/sessions/types';
+
+// 컴포넌트 외부로 이동하여 재생성 방지
+interface SessionItemProps {
+  item: Session;
+  onPress: (session: Session) => void;
+  onDelete: (sessionId: number) => void;
+  formatDate: (dateString: string) => string;
+}
+
+const SessionItem = React.memo(({ item, onPress, onDelete, formatDate }: SessionItemProps) => (
+  <Surface style={styles.sessionCard}>
+    <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.7}>
+      <View style={styles.sessionHeader}>
+        <View style={styles.counselorInfo}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{item.counselorName?.substring(0, 2) || '상담'}</Text>
+          </View>
+          <View style={styles.sessionDetails}>
+            <Text style={styles.counselorName}>{item.counselorName || '철학자'}</Text>
+            <Text style={styles.sessionDate}>{formatDate(item.lastMessageAt)}</Text>
+          </View>
+        </View>
+        <View style={styles.sessionActions}>
+          {/* <Text style={styles.messageCount}>{item.messageCount || 0}개 메시지</Text> */}
+          <IconButton icon="delete-outline" size={20} onPress={() => onDelete(item.sessionId)} />
+        </View>
+      </View>
+      {/* {item.lastMessage && (
+        <>
+          <Divider style={styles.divider} />
+          <Text style={styles.lastMessage} numberOfLines={2}>
+            {item.lastMessage}
+          </Text>
+        </>
+      )} */}
+    </TouchableOpacity>
+  </Surface>
+));
 
 export default function SessionsScreen() {
   const insets = useSafeAreaInsets();
@@ -32,7 +71,16 @@ export default function SessionsScreen() {
   };
 
   const handleSessionPress = (session: Session) => {
-    router.push(`/session/${session.sessionId}`);
+    router.push({
+      pathname: `/session/${session.sessionId}`,
+      params: {
+        counselorId: session.counselorId.toString(),
+        counselorName: session.counselorName,
+        title: session.title,
+        avatarUrl: session.avatarUrl || '',
+        isBookmarked: session.isBookmarked ? 'true' : 'false',
+      },
+    });
   };
 
   const handleDeleteSession = (sessionId: number) => {
@@ -40,37 +88,12 @@ export default function SessionsScreen() {
   };
 
   const renderSession = ({ item }: { item: Session }) => (
-    <Surface style={styles.sessionCard}>
-      <TouchableOpacity onPress={() => handleSessionPress(item)} activeOpacity={0.7}>
-        <View style={styles.sessionHeader}>
-          <View style={styles.counselorInfo}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.counselorName?.substring(0, 2) || '상담'}</Text>
-            </View>
-            <View style={styles.sessionDetails}>
-              <Text style={styles.counselorName}>{item.counselorName || '철학자'}</Text>
-              <Text style={styles.sessionDate}>{formatDate(item.lastMessageAt)}</Text>
-            </View>
-          </View>
-          <View style={styles.sessionActions}>
-            {/* <Text style={styles.messageCount}>{item.messageCount || 0}개 메시지</Text> */}
-            <IconButton
-              icon="delete-outline"
-              size={20}
-              onPress={() => handleDeleteSession(item.sessionId)}
-            />
-          </View>
-        </View>
-        {/* {item.lastMessage && (
-          <>
-            <Divider style={styles.divider} />
-            <Text style={styles.lastMessage} numberOfLines={2}>
-              {item.lastMessage}
-            </Text>
-          </>
-        )} */}
-      </TouchableOpacity>
-    </Surface>
+    <SessionItem
+      item={item}
+      onPress={handleSessionPress}
+      onDelete={handleDeleteSession}
+      formatDate={formatDate}
+    />
   );
 
   return (
