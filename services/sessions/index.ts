@@ -10,7 +10,12 @@ import type {
 
 // 새 세션 시작
 export const startSession = async (counselorId: number): Promise<StartSessionResponse> => {
-  const response = await api.post(`/sessions`, { counselorId });
+  const response = await api.post<StartSessionResponse>(`/sessions`, { counselorId });
+
+  if (!response.data) {
+    throw new Error('Failed to start session');
+  }
+
   return response.data;
 };
 
@@ -19,7 +24,14 @@ export const sendMessage = async (
   sessionId: number,
   content: string,
 ): Promise<SendMessageResponse> => {
-  const response = await api.post(`/sessions/${sessionId}/messages`, { content });
+  const response = await api.post<SendMessageResponse>(`/sessions/${sessionId}/messages`, {
+    content,
+  });
+
+  if (!response.data) {
+    throw new Error('Failed to send message');
+  }
+
   return response.data;
 };
 
@@ -29,9 +41,14 @@ export const getSessionMessages = async (
   page = 0,
   size = 20,
 ): Promise<PageResponse<MessageItem>> => {
-  const response = await api.get(`/sessions/${sessionId}/messages`, {
+  const response = await api.get<PageResponse<MessageItem>>(`/sessions/${sessionId}/messages`, {
     params: { page, size },
   });
+
+  if (!response.data) {
+    throw new Error(`No messages found for session ${sessionId}`);
+  }
+
   return response.data;
 };
 
@@ -41,22 +58,31 @@ export const getSessions = async (
   size = 20,
   bookmarked?: boolean,
 ): Promise<PageResponse<Session>> => {
-  const response = await api.get('/sessions', {
+  const response = await api.get<PageResponse<Session>>('/sessions', {
     params: {
       page: page - 1, // 백엔드는 0부터 시작
       size,
       ...(bookmarked !== undefined && { bookmarked }),
     },
   });
+
+  if (!response.data) {
+    throw new Error('No data received from sessions list');
+  }
+
   return response.data;
 };
 
 // 단일 세션 정보 조회 (세션 목록에서 특정 세션 찾기)
 export const getSessionDetail = async (sessionId: number): Promise<Session | null> => {
   // 세션 목록에서 특정 세션 찾기 (북마크 상태 관계없이)
-  const response = await api.get('/sessions', {
+  const response = await api.get<PageResponse<Session>>('/sessions', {
     params: { page: 0, size: 100 }, // 충분한 크기로 조회
   });
+
+  if (!response.data || !response.data.content) {
+    return null;
+  }
 
   const sessions = response.data.content as Session[];
   return sessions.find((s) => s.sessionId === sessionId) || null;
@@ -64,7 +90,12 @@ export const getSessionDetail = async (sessionId: number): Promise<Session | nul
 
 // 세션 북마크 토글
 export const toggleSessionBookmark = async (sessionId: number): Promise<ToggleBookmarkResponse> => {
-  const response = await api.patch(`/sessions/${sessionId}/bookmark`);
+  const response = await api.patch<ToggleBookmarkResponse>(`/sessions/${sessionId}/bookmark`);
+
+  if (!response.data) {
+    throw new Error('Failed to toggle bookmark');
+  }
+
   return response.data;
 };
 
@@ -76,11 +107,21 @@ export const endSession = async (sessionId: number): Promise<void> => {
 // 세션 평가
 export const rateSession = async (sessionId: number, rating: number, feedback?: string) => {
   const response = await api.post(`/sessions/${sessionId}/rate`, { rating, feedback });
+
+  if (!response.data) {
+    throw new Error('Failed to rate session');
+  }
+
   return response.data;
 };
 
 // 세션 제목 업데이트
 export const updateSessionTitle = async (sessionId: number, title: string) => {
   const response = await api.patch(`/sessions/${sessionId}/title`, { title });
+
+  if (!response.data) {
+    throw new Error('Failed to update session title');
+  }
+
   return response.data;
 };

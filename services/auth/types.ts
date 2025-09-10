@@ -17,5 +17,11 @@ export interface AuthResponse {
   nickname: string;
 }
 
-// OAuth 제공자 타입
-export type OAuthProvider = 'GOOGLE' | 'KAKAO' | 'NAVER';
+// OAuth 제공자 타입 (union type으로 엄격하게 정의)
+export const AUTH_PROVIDERS = {
+  GOOGLE: 'GOOGLE',
+  KAKAO: 'KAKAO',
+  NAVER: 'NAVER',
+} as const;
+
+export type OAuthProvider = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS];

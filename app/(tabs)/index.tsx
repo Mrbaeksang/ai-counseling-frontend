@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
@@ -6,6 +6,7 @@ import { CounselorList } from '@/components/home/CounselorList';
 import { FilterChips } from '@/components/home/FilterChips';
 import { WelcomeSection } from '@/components/home/WelcomeSection';
 import { useCounselors, useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
+import type { FavoriteCounselor } from '@/services/counselors/types';
 import useAuthStore from '@/store/authStore';
 
 export default function HomeScreen() {
@@ -31,33 +32,43 @@ export default function HomeScreen() {
     refetch: refetchCounselors,
   } = useCounselors(1, 20, sortMap[sortBy]);
 
-  const { data: favoritesData, refetch: refetchFavorites } = useFavoriteCounselors(1, 10);
+  const { data: favoritesData, refetch: refetchFavorites } = useFavoriteCounselors();
 
-  const { toggle: toggleFavorite } = useToggleFavorite();
+  const toggleFavoriteMutation = useToggleFavorite();
+  const toggleFavorite = useCallback(
+    (counselorId: number, isFavorite: boolean) => {
+      toggleFavoriteMutation.mutate({ counselorId, isFavorite });
+    },
+    [toggleFavoriteMutation],
+  );
 
-  // 상담사 필터링
+  // 상담사 필터링 (useMemo로 최적화)
   const allCounselors = counselorsData?.content || [];
-  const filteredCounselors =
-    selectedCategories.size > 0
-      ? allCounselors.filter((counselor) => {
-          if (!counselor.categories) return false;
-          const counselorCategories = counselor.categories.split(',').map((cat) => cat.trim());
-          return counselorCategories.some((cat) => selectedCategories.has(cat));
-        })
-      : allCounselors;
+  const filteredCounselors = useMemo(() => {
+    if (selectedCategories.size === 0) return allCounselors;
 
-  // 즐겨찾기 데이터
-  const favoriteCounselors = favoritesData?.content || [];
-  const favoriteIds = new Set(favoriteCounselors.map((c) => c.id));
+    return allCounselors.filter((counselor) => {
+      if (!counselor.categories) return false;
+      const counselorCategories = counselor.categories.split(',').map((cat) => cat.trim());
+      return counselorCategories.some((cat) => selectedCategories.has(cat));
+    });
+  }, [allCounselors, selectedCategories]);
 
-  // 이벤트 핸들러
-  const handleRefresh = async () => {
+  // 즐겨찾기 데이터 (useMemo로 최적화)
+  const favoriteCounselors = favoritesData || [];
+  const favoriteIds = useMemo(
+    () => new Set<number>(favoriteCounselors.map((c: FavoriteCounselor) => c.id)),
+    [favoriteCounselors],
+  );
+
+  // 이벤트 핸들러 (useCallback으로 최적화)
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.all([refetchCounselors(), refetchFavorites()]);
     setIsRefreshing(false);
-  };
+  }, [refetchCounselors, refetchFavorites]);
 
-  const handleCategoryPress = (categoryId: string) => {
+  const handleCategoryPress = useCallback((categoryId: string) => {
     setSelectedCategories((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(categoryId)) {
@@ -67,35 +78,50 @@ export default function HomeScreen() {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleRemoveCategory = (categoryId: string) => {
+  const handleRemoveCategory = useCallback((categoryId: string) => {
     setSelectedCategories((prev) => {
       const newSet = new Set(prev);
       newSet.delete(categoryId);
       return newSet;
     });
-  };
+  }, []);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSelectedCategories(new Set());
-  };
+  }, []);
 
-  const handleFavoriteToggle = (counselorId: number, isFavorite: boolean) => {
-    toggleFavorite(counselorId, isFavorite);
-  };
+  const handleFavoriteToggle = useCallback(
+    (counselorId: number, isFavorite: boolean) => {
+      toggleFavorite(counselorId, isFavorite);
+    },
+    [toggleFavorite],
+  );
 
-  // 헤더 컴포넌트
-  const ListHeader = (
-    <>
-      <WelcomeSection userName={user?.nickname} />
-      <CategoryGrid selectedCategories={selectedCategories} onCategoryPress={handleCategoryPress} />
-      <FilterChips
-        selectedCategories={selectedCategories}
-        onRemoveCategory={handleRemoveCategory}
-        onClearAll={handleClearFilters}
-      />
-    </>
+  // 헤더 컴포넌트 (useMemo로 최적화)
+  const ListHeader = useMemo(
+    () => (
+      <>
+        <WelcomeSection userName={user?.nickname} />
+        <CategoryGrid
+          selectedCategories={selectedCategories}
+          onCategoryPress={handleCategoryPress}
+        />
+        <FilterChips
+          selectedCategories={selectedCategories}
+          onRemoveCategory={handleRemoveCategory}
+          onClearAll={handleClearFilters}
+        />
+      </>
+    ),
+    [
+      user?.nickname,
+      selectedCategories,
+      handleCategoryPress,
+      handleRemoveCategory,
+      handleClearFilters,
+    ],
   );
 
   return (

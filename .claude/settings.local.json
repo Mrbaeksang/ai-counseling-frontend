@@ -17,7 +17,10 @@
       "Bash(grep:*)",
       "Bash(done)",
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/counselor/dto/**)",
-      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/counselor/controller/**)"
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/counselor/controller/**)",
+      "Bash(npm run lint)",
+      "Bash(npx biome check:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
