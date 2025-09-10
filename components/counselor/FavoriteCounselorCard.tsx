@@ -5,10 +5,10 @@ import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
-import type { FavoriteCounselor } from '@/services/counselors/types';
+import type { FavoriteCounselorResponse } from '@/services/counselors/types';
 
 interface FavoriteCounselorCardProps {
-  counselor: FavoriteCounselor;
+  counselor: FavoriteCounselorResponse;
 }
 
 export function FavoriteCounselorCard({ counselor }: FavoriteCounselorCardProps) {

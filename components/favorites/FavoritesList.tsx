@@ -3,8 +3,8 @@ import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { CounselorCard } from '@/components/counselor/CounselorCard';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
+import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselorResponse } from '@/services/counselors/types';
 
@@ -31,26 +31,18 @@ export const FavoritesList = React.memo(
     }, []);
 
     const renderCounselor = useCallback(
-      ({ item }: { item: FavoriteCounselorResponse }) => {
-        const counselorData = {
-          id: item.id,
-          name: item.name,
-          title: item.title,
-          avatarUrl: item.avatarUrl,
-          averageRating: item.averageRating,
-          totalSessions: 0,
-          categories: undefined,
-          isFavorite: true,
-        };
-
-        return (
-          <CounselorCard
-            counselor={counselorData}
-            isFavorite={true}
-            onFavoriteToggle={() => onFavoriteToggle(item.id)}
-          />
-        );
-      },
+      ({ item }: { item: FavoriteCounselorResponse }) => (
+        <View style={styles.cardWrapper}>
+          <FavoriteCounselorCard counselor={item} />
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => onFavoriteToggle(item.id)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialCommunityIcons name="close-circle" size={24} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
+      ),
       [onFavoriteToggle],
     );
 
@@ -116,6 +108,15 @@ export const FavoritesList = React.memo(
 );
 
 const styles = StyleSheet.create({
+  cardWrapper: {
+    position: 'relative',
+  },
+  removeButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.lg,
+    zIndex: 1,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
