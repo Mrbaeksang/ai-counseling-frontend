@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   endSession,
   rateSession,
@@ -101,38 +101,39 @@ export const useSessionActions = ({
     },
   });
 
-  const handleBookmarkToggle = () => {
+  const handleBookmarkToggle = useCallback(() => {
     bookmarkMutation.mutate();
-  };
+  }, [bookmarkMutation]);
 
-  const handleEndSession = () => {
+  const handleEndSession = useCallback(() => {
     setShowEndDialog(true);
-  };
+  }, []);
 
-  const confirmEndSession = () => {
+  const confirmEndSession = useCallback(() => {
     endSessionMutation.mutate();
-  };
+  }, [endSessionMutation]);
 
-  const handleRatingSubmit = () => {
+  const handleRatingSubmit = useCallback(() => {
     if (rating === 0) {
       toast.show('별점을 선택해주세요', 'error');
       return;
     }
     rateMutation.mutate();
-  };
+  }, [rating, rateMutation, toast]);
 
-  const handleTitleEdit = () => {
-    setNewTitle(sessionInfo?.title || '');
+  const handleTitleEdit = useCallback(() => {
+    // 현재 세션 제목을 가져오되, null이면 "새 상담" 사용
+    setNewTitle(sessionInfo?.title || '새 상담');
     setShowTitleDialog(true);
-  };
+  }, [sessionInfo?.title]);
 
-  const handleTitleUpdate = () => {
+  const handleTitleUpdate = useCallback(() => {
     if (!newTitle.trim()) {
       toast.show('제목을 입력해주세요', 'error');
       return;
     }
     updateTitleMutation.mutate(newTitle);
-  };
+  }, [newTitle, updateTitleMutation, toast]);
 
   return {
     // States

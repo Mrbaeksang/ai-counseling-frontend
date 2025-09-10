@@ -58,7 +58,7 @@ export const useSessionMessages = (sessionId: number, initialCounselorInfo?: Cou
       loadMessages();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [sessionId, initialCounselorInfo]);
 
   const addMessage = (message: MessageItem) => {
     setMessages((prev) => [...prev, message]);
