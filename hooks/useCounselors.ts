@@ -46,11 +46,13 @@ export const useToggleFavorite = () => {
   const toast = useToast();
 
   return useMutation({
-    mutationFn: ({ counselorId }: { counselorId: number; isFavorite: boolean }) =>
-      toggleCounselorFavorite(counselorId),
+    mutationFn: ({ counselorId, isFavorite }: { counselorId: number; isFavorite: boolean }) =>
+      toggleCounselorFavorite(counselorId, isFavorite),
     onSuccess: (_, { counselorId, isFavorite }) => {
       // 즐겨찾기 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      // 상담사 목록 새로고침 (isFavorite 상태 반영)
+      queryClient.invalidateQueries({ queryKey: ['counselors'] });
       // 해당 상담사 상세 정보 업데이트
       queryClient.setQueryData(['counselor', counselorId], (old: CounselorDetail | undefined) => {
         if (!old) return old;

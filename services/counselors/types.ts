@@ -7,6 +7,7 @@ export interface CounselorListResponse {
   averageRating: number; // 1-10
   totalSessions: number;
   categories?: string; // 카테고리 (콤마로 구분된 문자열)
+  isFavorite: boolean; // 즐겨찾기 여부
 }
 
 // 상담사 상세 응답 (백엔드 CounselorDetailResponse와 일치)
