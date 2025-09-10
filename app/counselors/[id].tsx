@@ -32,11 +32,11 @@ export default function CounselorDetailScreen() {
     try {
       setStarting(true);
       const response = await startSession(counselorId);
-      // 세션 화면으로 이동 (counselorId와 제목 전달)
+      // 세션 화면으로 이동 (백엔드 응답의 counselorId 사용)
       router.replace({
         pathname: `/session/${response.sessionId}`,
         params: {
-          counselorId: counselorId.toString(),
+          counselorId: response.counselorId.toString(),
           counselorName: response.counselorName,
           title: response.title,
           avatarUrl: response.avatarUrl || '',

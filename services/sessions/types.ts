@@ -1,6 +1,7 @@
 // 세션 목록 아이템 (백엔드 SessionListResponse와 일치)
 export interface Session {
   sessionId: number;
+  counselorId: number;
   title: string;
   counselorName: string;
   lastMessageAt: string;
@@ -47,6 +48,7 @@ export interface MessageItem {
 // 세션 시작 응답 (백엔드 CreateSessionResponse와 일치)
 export interface StartSessionResponse {
   sessionId: number;
+  counselorId: number;
   counselorName: string;
   title: string;
   avatarUrl?: string;

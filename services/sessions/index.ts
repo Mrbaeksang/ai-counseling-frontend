@@ -43,6 +43,17 @@ export const getSessions = async (page = 1, size = 20): Promise<PageResponse<Ses
   return response.data;
 };
 
+// 단일 세션 정보 조회 (세션 목록에서 특정 세션 찾기)
+export const getSessionDetail = async (sessionId: number): Promise<Session | null> => {
+  // 세션 목록에서 특정 세션 찾기 (북마크 상태 관계없이)
+  const response = await api.get('/sessions', {
+    params: { page: 0, size: 100 }, // 충분한 크기로 조회
+  });
+
+  const sessions = response.data.content as Session[];
+  return sessions.find((s) => s.sessionId === sessionId) || null;
+};
+
 // 세션 북마크 토글
 export const toggleSessionBookmark = async (sessionId: number): Promise<ToggleBookmarkResponse> => {
   const response = await api.patch(`/sessions/${sessionId}/bookmark`);

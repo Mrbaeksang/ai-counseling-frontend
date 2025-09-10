@@ -71,7 +71,16 @@ export default function SessionsScreen() {
   };
 
   const handleSessionPress = (session: Session) => {
-    router.push(`/session/${session.sessionId}`);
+    router.push({
+      pathname: `/session/${session.sessionId}`,
+      params: {
+        counselorId: session.counselorId.toString(),
+        counselorName: session.counselorName,
+        title: session.title,
+        avatarUrl: session.avatarUrl || '',
+        isBookmarked: session.isBookmarked ? 'true' : 'false',
+      },
+    });
   };
 
   const handleDeleteSession = (sessionId: number) => {

@@ -3,8 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { GiftedChat, type IMessage } from 'react-native-gifted-chat';
-import { ActivityIndicator, Provider as PaperProvider, Snackbar } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, Provider as PaperProvider } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { CustomAvatar } from '@/components/chat/CustomAvatar';
 import { RatingDialog } from '@/components/chat/RatingDialog';
@@ -21,26 +21,42 @@ import {
 import { useToast } from '@/store/toastStore';
 
 export default function SessionScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{
+    id: string;
+    counselorId?: string;
+    counselorName?: string;
+    title?: string;
+    avatarUrl?: string;
+    isBookmarked?: string;
+  }>();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const sessionId = Number(id);
-  const { messages, addMessage, counselorInfo, sessionInfo, isLoading } =
-    useSessionMessages(sessionId);
+  const sessionId = Number(params.id);
+  const initialCounselorInfo = params.counselorName
+    ? {
+        counselorId: params.counselorId ? Number(params.counselorId) : undefined,
+        counselorName: params.counselorName,
+        avatarUrl: params.avatarUrl || undefined,
+      }
+    : undefined;
 
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const { messages, addMessage, counselorInfo, sessionInfo, isLoading } = useSessionMessages(
+    sessionId,
+    initialCounselorInfo,
+  );
+
+  const [isBookmarked, setIsBookmarked] = useState(params.isBookmarked === 'true');
   const [isSending, setIsSending] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(5); // 기본값 5개 별 (만점)
   const [feedback, setFeedback] = useState('');
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [showTitleEditDialog, setShowTitleEditDialog] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [isSavingTitle, setIsSavingTitle] = useState(false);
-  const [sessionTitle, setSessionTitle] = useState('새 상담');
+  const [sessionTitle, setSessionTitle] = useState(params.title || '새 상담');
 
   useEffect(() => {
     if (sessionInfo) {
@@ -87,7 +103,7 @@ export default function SessionScreen() {
       setSessionTitle(editedTitle);
       toast.show('제목이 수정되었습니다', 'success');
       setShowTitleEditDialog(false);
-    } catch (_error) {
+    } catch (_error: unknown) {
       toast.show('제목 수정에 실패했습니다', 'error');
     } finally {
       setIsSavingTitle(false);
@@ -99,7 +115,7 @@ export default function SessionScreen() {
       await toggleSessionBookmark(sessionId);
       setIsBookmarked((prev) => !prev);
       toast.show(isBookmarked ? '북마크가 해제되었습니다' : '북마크에 추가되었습니다', 'success');
-    } catch (_error) {
+    } catch (_error: unknown) {
       toast.show('북마크 변경에 실패했습니다', 'error');
     }
   }, [sessionId, isBookmarked, toast]);
@@ -125,18 +141,22 @@ export default function SessionScreen() {
       // 1. 먼저 세션을 종료
       await endSession(sessionId);
 
-      // 2. 그 다음 평가 제출
-      await rateSession(sessionId, rating, feedback);
+      // 2. 그 다음 평가 제출 (별점 * 2 = 1-10점으로 변환)
+      const backendRating = Math.round(rating * 2); // 0.5-5 → 1-10
+      await rateSession(sessionId, backendRating, feedback);
 
-      const counselorId = counselorInfo?.counselorId;
+      // 캐시 무효화 - 상담사 정보 갱신
+      const counselorId = counselorInfo?.counselorId || Number(params.counselorId);
       if (counselorId) {
+        // 특정 상담사 상세 정보 무효화
         await queryClient.invalidateQueries({ queryKey: ['counselor', counselorId] });
-        await queryClient.invalidateQueries({ queryKey: ['counselors'] });
       }
+      // 전체 상담사 목록 무효화 (평점, 상담 횟수 갱신)
+      await queryClient.invalidateQueries({ queryKey: ['counselors'] });
 
       toast.show('상담이 종료되었습니다. 소중한 평가 감사합니다!', 'success');
       router.replace('/(tabs)');
-    } catch (_error) {
+    } catch (_error: unknown) {
       toast.show('처리 중 오류가 발생했습니다', 'error');
     } finally {
       setIsSubmittingRating(false);
@@ -181,7 +201,7 @@ export default function SessionScreen() {
           createdAt: new Date().toISOString(),
         };
         addMessage(aiMessageData);
-      } catch (_error) {
+      } catch (_error: unknown) {
         toast.show('메시지 전송에 실패했습니다', 'error');
       } finally {
         setIsSending(false);
@@ -200,67 +220,57 @@ export default function SessionScreen() {
 
   return (
     <PaperProvider>
-      <KeyboardAvoidingView
-        style={[styles.container, { paddingTop: insets.top }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <ChatHeader
-          title={sessionTitle}
-          onTitleEdit={handleTitleEdit}
-          onBookmarkToggle={handleBookmarkToggle}
-          onEndSession={handleEndSession}
-          isBookmarked={isBookmarked}
-        />
-
-        <GiftedChat
-          messages={giftedChatMessages}
-          onSend={onSend}
-          user={{ _id: 1, name: '나' }}
-          placeholder="메시지를 입력하세요..."
-          alwaysShowSend
-          showUserAvatar={false}
-          renderAvatar={(props) => <CustomAvatar {...props} />}
-          renderUsernameOnMessage={false}
-          renderTime={() => null}
-          inverted={false}
-          isTyping={isSending}
-          scrollToBottom
-          infiniteScroll
-        />
-
-        <RatingDialog
-          visible={showRatingDialog}
-          selectedRating={rating}
-          feedback={feedback}
-          onRatingSelect={setRating}
-          onFeedbackChange={setFeedback}
-          onSubmit={handleRatingSubmit}
-          onDismiss={() => setShowRatingDialog(false)}
-          isSubmitting={isSubmittingRating}
-        />
-
-        <TitleEditDialog
-          visible={showTitleEditDialog}
-          title={editedTitle}
-          onTitleChange={setEditedTitle}
-          onSave={handleTitleSave}
-          onDismiss={() => setShowTitleEditDialog(false)}
-          isSaving={isSavingTitle}
-        />
-
-        <Snackbar
-          visible={toast.visible}
-          onDismiss={toast.hide}
-          duration={3000}
-          action={{
-            label: '닫기',
-            onPress: toast.hide,
-          }}
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          {toast.message}
-        </Snackbar>
-      </KeyboardAvoidingView>
+          <ChatHeader
+            title={sessionTitle}
+            onTitleEdit={handleTitleEdit}
+            onBookmarkToggle={handleBookmarkToggle}
+            onEndSession={handleEndSession}
+            isBookmarked={isBookmarked}
+          />
+
+          <GiftedChat
+            messages={giftedChatMessages}
+            onSend={onSend}
+            user={{ _id: 1, name: '나' }}
+            placeholder="메시지를 입력하세요..."
+            alwaysShowSend
+            showUserAvatar={false}
+            renderAvatar={(props) => <CustomAvatar {...props} />}
+            renderUsernameOnMessage={false}
+            renderTime={() => null}
+            inverted={false}
+            isTyping={isSending}
+            scrollToBottom
+            infiniteScroll
+          />
+
+          <RatingDialog
+            visible={showRatingDialog}
+            selectedRating={rating}
+            feedback={feedback}
+            onRatingSelect={setRating}
+            onFeedbackChange={setFeedback}
+            onSubmit={handleRatingSubmit}
+            onDismiss={() => setShowRatingDialog(false)}
+            isSubmitting={isSubmittingRating}
+          />
+
+          <TitleEditDialog
+            visible={showTitleEditDialog}
+            title={editedTitle}
+            onTitleChange={setEditedTitle}
+            onSave={handleTitleSave}
+            onDismiss={() => setShowTitleEditDialog(false)}
+            isSaving={isSavingTitle}
+          />
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </PaperProvider>
   );
 }
@@ -269,6 +279,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  keyboardView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
