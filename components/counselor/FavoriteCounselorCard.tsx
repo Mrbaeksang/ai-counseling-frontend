@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import React, { useCallback } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
@@ -16,68 +17,70 @@ interface FavoriteCounselorCardProps {
   onFavoriteToggle?: () => void;
 }
 
-export function FavoriteCounselorCard({ counselor, onFavoriteToggle }: FavoriteCounselorCardProps) {
-  const handlePress = () => {
-    // 상담사 상세 페이지로 이동 (홈과 동일)
-    router.push(`/counselors/${counselor.id}`);
-  };
+export const FavoriteCounselorCard = React.memo(
+  ({ counselor, onFavoriteToggle }: FavoriteCounselorCardProps) => {
+    const handlePress = useCallback(() => {
+      // 상담사 상세 페이지로 이동 (홈과 동일)
+      router.push(`/counselors/${counselor.id}`);
+    }, [counselor.id]);
 
-  const imageSource = getCounselorImage(counselor.avatarUrl);
+    const imageSource = getCounselorImage(counselor.avatarUrl);
 
-  return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-      <View style={styles.card}>
-        {/* 이미지가 카드 전체를 차지 */}
-        {imageSource ? (
-          <Image source={imageSource} style={styles.fullImage} resizeMode="cover" />
-        ) : (
-          <LinearGradient
-            colors={['#EC4899', '#F472B6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fullImage}
+    return (
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View style={styles.card}>
+          {/* 이미지가 카드 전체를 차지 */}
+          {imageSource ? (
+            <Image source={imageSource} style={styles.fullImage} resizeMode="cover" />
+          ) : (
+            <LinearGradient
+              colors={['#EC4899', '#F472B6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.fullImage}
+            >
+              <Text style={styles.avatarPlaceholder}>{counselor.name.substring(0, 2)}</Text>
+            </LinearGradient>
+          )}
+
+          {/* 그라데이션 오버레이 (하단 어둡게) */}
+          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.overlay} />
+
+          {/* 하트 아이콘 - 클릭시 즐겨찾기 해제 */}
+          <TouchableOpacity
+            style={styles.heartBadge}
+            onPress={(e) => {
+              e.stopPropagation(); // 카드 클릭 이벤트와 분리
+              onFavoriteToggle?.();
+            }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={styles.avatarPlaceholder}>{counselor.name.substring(0, 2)}</Text>
-          </LinearGradient>
-        )}
+            <MaterialCommunityIcons name="heart" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
 
-        {/* 그라데이션 오버레이 (하단 어둡게) */}
-        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.overlay} />
-
-        {/* 하트 아이콘 - 클릭시 즐겨찾기 해제 */}
-        <TouchableOpacity
-          style={styles.heartBadge}
-          onPress={(e) => {
-            e.stopPropagation(); // 카드 클릭 이벤트와 분리
-            onFavoriteToggle?.();
-          }}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <MaterialCommunityIcons name="heart" size={16} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* 하단 정보 영역 */}
-        <View style={styles.infoContainer}>
-          <Text style={styles.name} numberOfLines={1}>
-            {counselor.name}
-          </Text>
-          <View style={styles.bottomRow}>
-            <Text style={styles.title} numberOfLines={1}>
-              {counselor.title || '철학자'}
+          {/* 하단 정보 영역 */}
+          <View style={styles.infoContainer}>
+            <Text style={styles.name} numberOfLines={1}>
+              {counselor.name}
             </Text>
-            {counselor.averageRating > 0 && (
-              <View style={styles.rating}>
-                <MaterialCommunityIcons name="star" size={12} color="#FFC107" />
-                <Text style={styles.ratingText}>{(counselor.averageRating / 10).toFixed(1)}</Text>
-              </View>
-            )}
+            <View style={styles.bottomRow}>
+              <Text style={styles.title} numberOfLines={1}>
+                {counselor.title || '철학자'}
+              </Text>
+              {counselor.averageRating > 0 && (
+                <View style={styles.rating}>
+                  <MaterialCommunityIcons name="star" size={12} color="#FFC107" />
+                  <Text style={styles.ratingText}>{(counselor.averageRating / 10).toFixed(1)}</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
+      </TouchableOpacity>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   card: {
