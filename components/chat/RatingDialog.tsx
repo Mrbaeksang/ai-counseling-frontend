@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
+import { StarRating } from '@/components/common/StarRating';
 import { spacing } from '@/constants/theme';
 
 interface RatingDialogProps {
@@ -25,53 +26,6 @@ export const RatingDialog = React.memo(
     onDismiss,
     isSubmitting = false,
   }: RatingDialogProps) => {
-    const renderStars = () => {
-      const stars = [];
-
-      for (let i = 1; i <= 5; i++) {
-        const isFullFilled = selectedRating >= i;
-        const isHalfFilled = selectedRating === i - 0.5;
-
-        stars.push(
-          <View key={i} style={styles.starWrapper}>
-            {/* 빈 별 (배경) */}
-            <Text style={[styles.starBase, styles.starEmpty]}>★</Text>
-
-            {/* 채워진 부분 (오버레이) */}
-            <View style={styles.starOverlay}>
-              {/* 왼쪽 반개 */}
-              <TouchableOpacity
-                style={styles.halfStarTouchLeft}
-                onPress={() => onRatingSelect(i - 0.5)}
-                activeOpacity={0.7}
-              >
-                {(isHalfFilled || isFullFilled) && (
-                  <View style={styles.halfStarLeftFill}>
-                    <Text style={[styles.star, styles.starFilled]}>★</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* 오른쪽 반개 */}
-              <TouchableOpacity
-                style={styles.halfStarTouchRight}
-                onPress={() => onRatingSelect(i)}
-                activeOpacity={0.7}
-              >
-                {isFullFilled && (
-                  <View style={styles.halfStarRightFill}>
-                    <Text style={[styles.star, styles.starFilled, styles.starRightAlign]}>★</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>,
-        );
-      }
-
-      return stars;
-    };
-
     const getRatingText = () => {
       if (selectedRating === 0) return '별점을 선택해주세요';
       if (selectedRating <= 1) return '아쉬웠어요';
@@ -86,7 +40,9 @@ export const RatingDialog = React.memo(
         <Dialog visible={visible} onDismiss={onDismiss}>
           <Dialog.Title>상담은 어떠셨나요?</Dialog.Title>
           <Dialog.Content>
-            <View style={styles.starsContainer}>{renderStars()}</View>
+            <View style={styles.starsContainer}>
+              <StarRating rating={selectedRating} onRatingChange={onRatingSelect} />
+            </View>
 
             <Text style={styles.ratingText}>{getRatingText()}</Text>
 
@@ -125,65 +81,8 @@ export const RatingDialog = React.memo(
 
 const styles = StyleSheet.create({
   starsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
-    paddingVertical: spacing.sm, // 터치 영역 확보
-  },
-  starWrapper: {
-    position: 'relative',
-    width: 48,
-    height: 48,
-    marginHorizontal: spacing.xs / 2,
-  },
-  starBase: {
-    position: 'absolute',
-    fontSize: 48,
-    width: 48,
-    textAlign: 'center',
-    lineHeight: 48,
-  },
-  starOverlay: {
-    position: 'absolute',
-    flexDirection: 'row',
-    width: 48,
-    height: 48,
-  },
-  halfStarTouchLeft: {
-    width: 24,
-    height: 48,
-  },
-  halfStarTouchRight: {
-    width: 24,
-    height: 48,
-  },
-  halfStarLeftFill: {
-    position: 'absolute',
-    width: 24,
-    height: 48,
-    overflow: 'hidden',
-  },
-  halfStarRightFill: {
-    position: 'absolute',
-    width: 24,
-    height: 48,
-    overflow: 'hidden',
-  },
-  star: {
-    fontSize: 48,
-    width: 48,
-    textAlign: 'center',
-    lineHeight: 48,
-  },
-  starRightAlign: {
-    marginLeft: -24,
-  },
-  starEmpty: {
-    color: '#E5E7EB',
-  },
-  starFilled: {
-    color: '#F59E0B',
   },
   ratingText: {
     textAlign: 'center',

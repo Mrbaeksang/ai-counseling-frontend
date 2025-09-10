@@ -1,5 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { GiftedChat, type IMessage } from 'react-native-gifted-chat';
@@ -10,14 +9,9 @@ import { CustomAvatar } from '@/components/chat/CustomAvatar';
 import { RatingDialog } from '@/components/chat/RatingDialog';
 import { TitleEditDialog } from '@/components/chat/TitleEditDialog';
 import { getCounselorImage } from '@/constants/counselorImages';
+import { useSessionActions } from '@/hooks/useSessionActions';
 import { useSessionMessages } from '@/hooks/useSessionMessages';
-import {
-  endSession,
-  rateSession,
-  sendMessage,
-  toggleSessionBookmark,
-  updateSessionTitle,
-} from '@/services/sessions';
+import { sendMessage } from '@/services/sessions';
 import { useToast } from '@/store/toastStore';
 
 export default function SessionScreen() {
@@ -29,18 +23,20 @@ export default function SessionScreen() {
     avatarUrl?: string;
     isBookmarked?: string;
   }>();
-  const router = useRouter();
   const toast = useToast();
-  const queryClient = useQueryClient();
 
   const sessionId = Number(params.id);
-  const initialCounselorInfo = params.counselorName
-    ? {
-        counselorId: params.counselorId ? Number(params.counselorId) : undefined,
-        counselorName: params.counselorName,
-        avatarUrl: params.avatarUrl || undefined,
-      }
-    : undefined;
+  const initialCounselorInfo = useMemo(
+    () =>
+      params.counselorName
+        ? {
+            counselorId: params.counselorId ? Number(params.counselorId) : undefined,
+            counselorName: params.counselorName,
+            avatarUrl: params.avatarUrl || undefined,
+          }
+        : undefined,
+    [params.counselorId, params.counselorName, params.avatarUrl],
+  );
 
   const { messages, addMessage, counselorInfo, sessionInfo, isLoading } = useSessionMessages(
     sessionId,
@@ -49,34 +45,52 @@ export default function SessionScreen() {
 
   const [isBookmarked, setIsBookmarked] = useState(params.isBookmarked === 'true');
   const [isSending, setIsSending] = useState(false);
-  const [showRatingDialog, setShowRatingDialog] = useState(false);
-  const [rating, setRating] = useState(5); // 기본값 5개 별 (만점)
-  const [feedback, setFeedback] = useState('');
-  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
-  const [showTitleEditDialog, setShowTitleEditDialog] = useState(false);
-  const [editedTitle, setEditedTitle] = useState('');
-  const [isSavingTitle, setIsSavingTitle] = useState(false);
   const [sessionTitle, setSessionTitle] = useState(params.title || '새 상담');
+
+  // Use custom hook for session actions
+  const {
+    showRatingDialog,
+    showTitleDialog,
+    rating,
+    feedback,
+    newTitle,
+    setShowRatingDialog,
+    setShowTitleDialog,
+    setRating,
+    setFeedback,
+    setNewTitle,
+    handleBookmarkToggle: handleBookmarkToggleAction,
+    confirmEndSession,
+    handleRatingSubmit: handleRatingSubmitAction,
+    handleTitleEdit: handleTitleEditAction,
+    handleTitleUpdate,
+    isSubmittingRating,
+    isUpdatingTitle,
+  } = useSessionActions({
+    sessionId,
+    sessionInfo,
+    counselorId: counselorInfo?.counselorId || Number(params.counselorId),
+  });
 
   useEffect(() => {
     if (sessionInfo) {
       setIsBookmarked(sessionInfo.isBookmarked);
       setSessionTitle(sessionInfo.title);
-      setEditedTitle(sessionInfo.title);
+      setNewTitle(sessionInfo.title);
     }
-  }, [sessionInfo]);
+  }, [sessionInfo, setNewTitle]);
 
   const giftedChatMessages = useMemo<IMessage[]>(() => {
-    return messages.map((msg) => {
-      const isAI = msg.role === 'AI';
+    return messages.map((msg, index) => {
+      const isAI = msg.senderType === 'AI';
       const counselorAvatar = counselorInfo?.avatarUrl
         ? getCounselorImage(counselorInfo.avatarUrl)
         : undefined;
 
       return {
-        _id: msg.id,
+        _id: index + 1, // GiftedChat용 임시 ID
         text: msg.content,
-        createdAt: new Date(msg.createdAt),
+        createdAt: new Date(), // GiftedChat용 임시 시간
         user: {
           _id: isAI ? 2 : 1,
           name: isAI ? counselorInfo?.counselorName || 'AI' : '나',
@@ -86,39 +100,11 @@ export default function SessionScreen() {
     });
   }, [messages, counselorInfo]);
 
-  const handleTitleEdit = useCallback(() => {
-    setEditedTitle(sessionTitle);
-    setShowTitleEditDialog(true);
-  }, [sessionTitle]);
-
-  const handleTitleSave = useCallback(async () => {
-    if (!editedTitle.trim() || editedTitle === sessionTitle) {
-      setShowTitleEditDialog(false);
-      return;
-    }
-
-    setIsSavingTitle(true);
-    try {
-      await updateSessionTitle(sessionId, editedTitle);
-      setSessionTitle(editedTitle);
-      toast.show('제목이 수정되었습니다', 'success');
-      setShowTitleEditDialog(false);
-    } catch (_error: unknown) {
-      toast.show('제목 수정에 실패했습니다', 'error');
-    } finally {
-      setIsSavingTitle(false);
-    }
-  }, [editedTitle, sessionTitle, sessionId, toast]);
-
+  // Wrapper functions to integrate with custom hook
   const handleBookmarkToggle = useCallback(async () => {
-    try {
-      await toggleSessionBookmark(sessionId);
-      setIsBookmarked((prev) => !prev);
-      toast.show(isBookmarked ? '북마크가 해제되었습니다' : '북마크에 추가되었습니다', 'success');
-    } catch (_error: unknown) {
-      toast.show('북마크 변경에 실패했습니다', 'error');
-    }
-  }, [sessionId, isBookmarked, toast]);
+    await handleBookmarkToggleAction();
+    setIsBookmarked((prev) => !prev);
+  }, [handleBookmarkToggleAction]);
 
   const handleEndSession = useCallback(() => {
     Alert.alert('상담 종료', '상담을 종료하시겠습니까?', [
@@ -126,43 +112,29 @@ export default function SessionScreen() {
       {
         text: '종료',
         style: 'destructive',
-        onPress: async () => {
-          setShowRatingDialog(true);
-        },
+        onPress: confirmEndSession, // 바로 endSessionMutation 실행
       },
     ]);
-  }, []);
+  }, [confirmEndSession]);
 
-  const handleRatingSubmit = useCallback(async () => {
-    if (rating === 0) return;
+  const handleTitleEdit = useCallback(() => {
+    setNewTitle(sessionTitle);
+    handleTitleEditAction();
+  }, [sessionTitle, setNewTitle, handleTitleEditAction]);
 
-    setIsSubmittingRating(true);
-    try {
-      // 1. 먼저 세션을 종료
-      await endSession(sessionId);
-
-      // 2. 그 다음 평가 제출 (별점 * 2 = 1-10점으로 변환)
-      const backendRating = Math.round(rating * 2); // 0.5-5 → 1-10
-      await rateSession(sessionId, backendRating, feedback);
-
-      // 캐시 무효화 - 상담사 정보 갱신
-      const counselorId = counselorInfo?.counselorId || Number(params.counselorId);
-      if (counselorId) {
-        // 특정 상담사 상세 정보 무효화
-        await queryClient.invalidateQueries({ queryKey: ['counselor', counselorId] });
-      }
-      // 전체 상담사 목록 무효화 (평점, 상담 횟수 갱신)
-      await queryClient.invalidateQueries({ queryKey: ['counselors'] });
-
-      toast.show('상담이 종료되었습니다. 소중한 평가 감사합니다!', 'success');
-      router.replace('/(tabs)');
-    } catch (_error: unknown) {
-      toast.show('처리 중 오류가 발생했습니다', 'error');
-    } finally {
-      setIsSubmittingRating(false);
-      setShowRatingDialog(false);
+  const handleTitleSave = useCallback(async () => {
+    if (newTitle.trim() && newTitle !== sessionTitle) {
+      await handleTitleUpdate();
+      setSessionTitle(newTitle);
+    } else {
+      setShowTitleDialog(false);
     }
-  }, [rating, feedback, sessionId, counselorInfo, queryClient, toast, router]);
+  }, [newTitle, sessionTitle, handleTitleUpdate, setShowTitleDialog]);
+
+  // Convert backend rating (1-10) to frontend rating (0.5-5)
+  const handleRatingSubmit = useCallback(() => {
+    handleRatingSubmitAction();
+  }, [handleRatingSubmitAction]);
 
   const onSend = useCallback(
     async (newMessages: IMessage[] = []) => {
@@ -171,18 +143,10 @@ export default function SessionScreen() {
       const userMessage = newMessages[0];
       setIsSending(true);
 
-      // 임시 ID를 숫자로 생성
-      const tempId = Date.now();
-      const tempUserMessage: IMessage = {
-        ...userMessage,
-        _id: tempId,
-        user: { _id: 1, name: '나' },
-      };
+      // 사용자 메시지 추가 (백엔드 타입 그대로)
       addMessage({
-        id: tempId,
-        content: tempUserMessage.text,
-        role: 'USER',
-        createdAt: new Date().toISOString(),
+        content: userMessage.text,
+        senderType: 'USER',
       });
 
       try {
@@ -191,23 +155,21 @@ export default function SessionScreen() {
         // 백엔드는 첫 메시지에만 sessionTitle을 보내줌
         if (response.sessionTitle) {
           setSessionTitle(response.sessionTitle);
-          setEditedTitle(response.sessionTitle);
+          setNewTitle(response.sessionTitle);
         }
 
-        const aiMessageData = {
-          id: Date.now() + 1,
+        // AI 메시지 추가 (백엔드 타입 그대로)
+        addMessage({
           content: response.aiMessage,
-          role: 'AI' as const,
-          createdAt: new Date().toISOString(),
-        };
-        addMessage(aiMessageData);
+          senderType: 'AI',
+        });
       } catch (_error: unknown) {
         toast.show('메시지 전송에 실패했습니다', 'error');
       } finally {
         setIsSending(false);
       }
     },
-    [sessionId, isSending, addMessage, toast],
+    [sessionId, isSending, addMessage, toast, setNewTitle],
   );
 
   if (isLoading) {
@@ -262,12 +224,12 @@ export default function SessionScreen() {
           />
 
           <TitleEditDialog
-            visible={showTitleEditDialog}
-            title={editedTitle}
-            onTitleChange={setEditedTitle}
+            visible={showTitleDialog}
+            title={newTitle}
+            onTitleChange={setNewTitle}
             onSave={handleTitleSave}
-            onDismiss={() => setShowTitleEditDialog(false)}
-            isSaving={isSavingTitle}
+            onDismiss={() => setShowTitleDialog(false)}
+            isSaving={isUpdatingTitle}
           />
         </KeyboardAvoidingView>
       </SafeAreaView>

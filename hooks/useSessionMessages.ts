@@ -46,7 +46,6 @@ export const useSessionMessages = (sessionId: number, initialCounselorInfo?: Cou
         }
       } catch (_error: unknown) {
         // 에러 발생 시 초기 정보 유지
-        console.error('Failed to load session data:', _error);
         if (initialCounselorInfo) {
           setCounselorInfo(initialCounselorInfo);
         }
@@ -58,9 +57,8 @@ export const useSessionMessages = (sessionId: number, initialCounselorInfo?: Cou
     if (sessionId) {
       loadMessages();
     }
-    // initialCounselorInfo는 객체이므로 JSON.stringify로 비교
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, JSON.stringify(initialCounselorInfo)]);
+  }, [sessionId]);
 
   const addMessage = (message: MessageItem) => {
     setMessages((prev) => [...prev, message]);
