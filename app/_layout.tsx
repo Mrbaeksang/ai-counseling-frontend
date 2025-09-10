@@ -104,8 +104,10 @@ export default function RootLayout() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: 5 * 60 * 1000, // 5분 (hooks에서 사용하는 기본값)
+            gcTime: 10 * 60 * 1000, // 10분 (이전 cacheTime)
             retry: 1,
+            refetchOnWindowFocus: false, // 포커스 시 자동 refetch 비활성화
           },
         },
       }),
