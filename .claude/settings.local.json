@@ -11,7 +11,13 @@
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/controller/**)",
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/dto/**)",
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/service/**)",
-      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/**)"
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/**)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/**)",
+      "Bash(for f in C:/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/dto/*.kt)",
+      "Bash(grep:*)",
+      "Bash(done)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/counselor/dto/**)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/counselor/controller/**)"
     ],
     "deny": [],
     "ask": []

@@ -1,23 +1,35 @@
 import api from '../api';
-import type { CounselorDetail, CounselorsResponse, FavoritesResponse } from './types';
+import type {
+  CounselorDetailResponse,
+  CounselorListResponse,
+  FavoriteCounselorResponse,
+  PageResponse,
+} from './types';
 
 // 상담사 목록 조회 (백엔드는 페이지가 1부터 시작)
-export const getCounselors = async (page = 1, size = 20, sort = 'popular') => {
-  const response = await api.get<CounselorsResponse>('/counselors', {
+export const getCounselors = async (
+  page = 1,
+  size = 20,
+  sort = 'popular',
+): Promise<PageResponse<CounselorListResponse>> => {
+  const response = await api.get('/counselors', {
     params: { page, size, sort },
   });
   return response.data;
 };
 
 // 상담사 상세 조회
-export const getCounselorDetail = async (id: number) => {
-  const response = await api.get<CounselorDetail>(`/counselors/${id}`);
+export const getCounselorDetail = async (id: number): Promise<CounselorDetailResponse> => {
+  const response = await api.get(`/counselors/${id}`);
   return response.data;
 };
 
 // 즐겨찾기 목록 조회 (백엔드는 페이지가 1부터 시작)
-export const getFavoriteCounselors = async (page = 1, size = 20) => {
-  const response = await api.get<FavoritesResponse>('/counselors/favorites', {
+export const getFavoriteCounselors = async (
+  page = 1,
+  size = 20,
+): Promise<PageResponse<FavoriteCounselorResponse>> => {
+  const response = await api.get('/counselors/favorites', {
     params: { page, size },
   });
   return response.data;

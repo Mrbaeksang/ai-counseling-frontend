@@ -35,10 +35,18 @@ export const getSessionMessages = async (
   return response.data;
 };
 
-// 세션 목록 조회 (페이지네이션 지원)
-export const getSessions = async (page = 1, size = 20): Promise<PageResponse<Session>> => {
+// 세션 목록 조회 (페이지네이션 및 북마크 필터 지원)
+export const getSessions = async (
+  page = 1,
+  size = 20,
+  bookmarked?: boolean,
+): Promise<PageResponse<Session>> => {
   const response = await api.get('/sessions', {
-    params: { page: page - 1, size }, // 백엔드는 0부터 시작
+    params: {
+      page: page - 1, // 백엔드는 0부터 시작
+      size,
+      ...(bookmarked !== undefined && { bookmarked }),
+    },
   });
   return response.data;
 };

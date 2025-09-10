@@ -122,7 +122,8 @@ export const useSessionActions = ({
   };
 
   const handleTitleEdit = () => {
-    setNewTitle(sessionInfo?.title || '');
+    // 현재 세션 제목을 가져오되, null이면 "새 상담" 사용
+    setNewTitle(sessionInfo?.title || '새 상담');
     setShowTitleDialog(true);
   };
 
