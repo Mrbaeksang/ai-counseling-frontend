@@ -5,6 +5,7 @@ import type {
   SendMessageResponse,
   Session,
   StartSessionResponse,
+  ToggleBookmarkResponse,
 } from './types';
 
 // 새 세션 시작
@@ -43,7 +44,7 @@ export const getSessions = async (page = 1, size = 20): Promise<PageResponse<Ses
 };
 
 // 세션 북마크 토글
-export const toggleSessionBookmark = async (sessionId: number) => {
+export const toggleSessionBookmark = async (sessionId: number): Promise<ToggleBookmarkResponse> => {
   const response = await api.patch(`/sessions/${sessionId}/bookmark`);
   return response.data;
 };

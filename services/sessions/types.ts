@@ -52,6 +52,12 @@ export interface StartSessionResponse {
   avatarUrl?: string;
 }
 
+// 북마크 토글 응답
+export interface ToggleBookmarkResponse {
+  sessionId: number;
+  isBookmarked: boolean;
+}
+
 // 페이지네이션 응답
 export interface PageResponse<T> {
   content: T[];

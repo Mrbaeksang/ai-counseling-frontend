@@ -10,7 +10,8 @@
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/docs/**)",
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/controller/**)",
       "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/dto/**)",
-      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/service/**)"
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/src/main/kotlin/com/aicounseling/app/domain/session/service/**)",
+      "Read(//c/Users/qortk/IdeaProjects/ai_counseling_app/backend/**)"
     ],
     "deny": [],
     "ask": []
