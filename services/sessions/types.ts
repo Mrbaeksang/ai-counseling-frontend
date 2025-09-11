@@ -35,6 +35,7 @@ export interface SendMessageResponse {
   userMessage: string;
   aiMessage: string;
   sessionTitle?: string;
+  isSessionEnded?: boolean; // 세션 자동 종료 여부
 }
 
 // 메시지 목록 아이템 (백엔드 MessageItem과 일치)

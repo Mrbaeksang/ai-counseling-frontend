@@ -46,6 +46,7 @@ export default function SessionScreen() {
   const [isBookmarked, setIsBookmarked] = useState(params.isBookmarked === 'true');
   const [isSending, setIsSending] = useState(false);
   const [sessionTitle, setSessionTitle] = useState(params.title || '새 상담');
+  const [isSessionClosed, setIsSessionClosed] = useState(false); // 세션 종료 상태 추적
 
   // Use custom hook for session actions
   const {
@@ -107,6 +108,12 @@ export default function SessionScreen() {
   }, [handleBookmarkToggleAction]);
 
   const handleEndSession = useCallback(() => {
+    // 이미 세션이 종료된 경우 중복 요청 방지
+    if (isSessionClosed) {
+      toast.show('이미 종료된 상담입니다.', 'info');
+      return;
+    }
+
     Alert.alert('상담 종료', '상담을 종료하시겠습니까?', [
       { text: '취소', style: 'cancel' },
       {
@@ -115,7 +122,7 @@ export default function SessionScreen() {
         onPress: confirmEndSession, // 바로 endSessionMutation 실행
       },
     ]);
-  }, [confirmEndSession]);
+  }, [confirmEndSession, isSessionClosed, toast]);
 
   const handleTitleEdit = useCallback(() => {
     setNewTitle(sessionTitle);
@@ -163,13 +170,26 @@ export default function SessionScreen() {
           content: response.aiMessage,
           senderType: 'AI',
         });
+
+        // 세션이 자동 종료되었는지 확인 (AI가 CLOSING 단계에서 종료)
+        if (response.isSessionEnded) {
+          // 세션 종료 상태 설정 (메시지 입력 비활성화)
+          setIsSessionClosed(true);
+
+          // 평가 다이얼로그 표시
+          setShowRatingDialog(true);
+          toast.show('상담이 종료되었습니다. 평가를 남겨주세요.', 'info');
+
+          // 백엔드에서 이미 closedAt이 설정되어 세션이 종료된 상태
+          // 수동 종료 버튼 클릭 시 중복 방지 필요
+        }
       } catch (_error: unknown) {
         toast.show('메시지 전송에 실패했습니다', 'error');
       } finally {
         setIsSending(false);
       }
     },
-    [sessionId, isSending, addMessage, toast, setNewTitle],
+    [sessionId, isSending, addMessage, toast, setNewTitle, setShowRatingDialog],
   );
 
   if (isLoading) {
@@ -200,8 +220,8 @@ export default function SessionScreen() {
             messages={giftedChatMessages}
             onSend={onSend}
             user={{ _id: 1, name: '나' }}
-            placeholder="메시지를 입력하세요..."
-            alwaysShowSend
+            placeholder={isSessionClosed ? '상담이 종료되었습니다' : '메시지를 입력하세요...'}
+            alwaysShowSend={!isSessionClosed}
             showUserAvatar={false}
             renderAvatar={(props) => <CustomAvatar {...props} />}
             renderUsernameOnMessage={false}
@@ -210,6 +230,7 @@ export default function SessionScreen() {
             isTyping={isSending}
             scrollToBottom
             infiniteScroll
+            renderInputToolbar={isSessionClosed ? () => null : undefined} // 세션 종료 시 입력창 숨김
           />
 
           <RatingDialog
