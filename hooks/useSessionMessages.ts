@@ -65,9 +65,14 @@ export const useSessionMessages = (sessionId: number, initialCounselorInfo?: Cou
     setMessages((prev) => [...prev, message]);
   };
 
+  const removeLastMessage = () => {
+    setMessages((prev) => prev.slice(0, -1));
+  };
+
   return {
     messages,
     addMessage,
+    removeLastMessage,
     counselorInfo,
     sessionInfo,
     isLoading,

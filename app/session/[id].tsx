@@ -13,6 +13,7 @@ import { useSessionActions } from '@/hooks/useSessionActions';
 import { useSessionMessages } from '@/hooks/useSessionMessages';
 import { sendMessage } from '@/services/sessions';
 import { useToast } from '@/store/toastStore';
+import { formatAIMessage } from '@/utils/textFormatting';
 
 export default function SessionScreen() {
   const params = useLocalSearchParams<{
@@ -38,10 +39,8 @@ export default function SessionScreen() {
     [params.counselorId, params.counselorName, params.avatarUrl],
   );
 
-  const { messages, addMessage, counselorInfo, sessionInfo, isLoading } = useSessionMessages(
-    sessionId,
-    initialCounselorInfo,
-  );
+  const { messages, addMessage, removeLastMessage, counselorInfo, sessionInfo, isLoading } =
+    useSessionMessages(sessionId, initialCounselorInfo);
 
   const [isBookmarked, setIsBookmarked] = useState(params.isBookmarked === 'true');
   const [isSending, setIsSending] = useState(false);
@@ -88,9 +87,12 @@ export default function SessionScreen() {
         ? getCounselorImage(counselorInfo.avatarUrl)
         : undefined;
 
+      // AI 메시지는 포맷팅 적용, 사용자 메시지는 그대로
+      const formattedContent = isAI ? formatAIMessage(msg.content) : msg.content;
+
       return {
         _id: index + 1, // GiftedChat용 임시 ID
-        text: msg.content,
+        text: formattedContent,
         createdAt: new Date(), // GiftedChat용 임시 시간
         user: {
           _id: isAI ? 2 : 1,
@@ -159,6 +161,8 @@ export default function SessionScreen() {
       try {
         const response = await sendMessage(sessionId, userMessage.text);
 
+        // AI 메시지에 줄바꿈이 포함되어 있음
+
         // 백엔드는 첫 메시지에만 sessionTitle을 보내줌
         if (response.sessionTitle) {
           setSessionTitle(response.sessionTitle);
@@ -184,13 +188,22 @@ export default function SessionScreen() {
           // 수동 종료 버튼 클릭 시 중복 방지 필요
         }
       } catch (error: unknown) {
-        void error; // 명시적 무시
-        toast.show('메시지 전송에 실패했습니다', 'error');
+        // 타임아웃 에러인지 확인
+        const isTimeout = error instanceof Error && error.message.includes('timeout');
+
+        if (isTimeout) {
+          toast.show('응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.', 'warning');
+        } else {
+          toast.show('메시지 전송에 실패했습니다', 'error');
+        }
+
+        // 실패한 사용자 메시지 제거 (중복 방지)
+        removeLastMessage();
       } finally {
         setIsSending(false);
       }
     },
-    [sessionId, isSending, addMessage, toast, setNewTitle, setShowRatingDialog],
+    [sessionId, isSending, addMessage, removeLastMessage, toast, setNewTitle, setShowRatingDialog],
   );
 
   if (isLoading) {
@@ -211,6 +224,8 @@ export default function SessionScreen() {
         >
           <ChatHeader
             title={sessionTitle}
+            counselorName={counselorInfo?.counselorName}
+            counselorAvatar={counselorInfo?.avatarUrl}
             onTitleEdit={handleTitleEdit}
             onBookmarkToggle={handleBookmarkToggle}
             onEndSession={handleEndSession}
@@ -225,13 +240,23 @@ export default function SessionScreen() {
             alwaysShowSend={!isSessionClosed}
             showUserAvatar={false}
             renderAvatar={(props) => <CustomAvatar {...props} />}
+            // renderBubble 제거 - 기본 버블 사용
             renderUsernameOnMessage={false}
             renderTime={() => null}
             inverted={false}
             isTyping={isSending}
             scrollToBottom
             infiniteScroll
-            renderInputToolbar={isSessionClosed ? () => null : undefined} // 세션 종료 시 입력창 숨김
+            renderInputToolbar={isSessionClosed ? () => null : undefined}
+            listViewProps={{
+              style: {
+                backgroundColor: '#FAFAFA',
+              },
+              contentContainerStyle: {
+                paddingTop: 16,
+                paddingBottom: 16,
+              },
+            }}
           />
 
           <RatingDialog

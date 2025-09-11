@@ -1,123 +1,180 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
-import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { IconButton, Surface, Text } from 'react-native-paper';
+import { useCallback, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { SegmentedButtons, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SessionCard from '@/components/session/SessionCard';
+import SessionListContainer from '@/components/session/SessionListContainer';
 import { spacing } from '@/constants/theme';
-import { useDeleteSession, useSessions } from '@/hooks/useSessions';
+import { useSessions } from '@/hooks/useSessions';
+import { toggleSessionBookmark } from '@/services/sessions';
 import type { Session } from '@/services/sessions/types';
-
-// 컴포넌트 외부로 이동하여 재생성 방지
-interface SessionItemProps {
-  item: Session;
-  onPress: (session: Session) => void;
-  onDelete: (sessionId: number) => void;
-  formatDate: (dateString: string) => string;
-}
-
-const SessionItem = React.memo(({ item, onPress, onDelete, formatDate }: SessionItemProps) => (
-  <Surface style={styles.sessionCard}>
-    <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.7}>
-      <View style={styles.sessionHeader}>
-        <View style={styles.counselorInfo}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{item.counselorName?.substring(0, 2) || '상담'}</Text>
-          </View>
-          <View style={styles.sessionDetails}>
-            <Text style={styles.counselorName}>{item.counselorName || '철학자'}</Text>
-            <Text style={styles.sessionDate}>{formatDate(item.lastMessageAt)}</Text>
-          </View>
-        </View>
-        <View style={styles.sessionActions}>
-          {/* <Text style={styles.messageCount}>{item.messageCount || 0}개 메시지</Text> */}
-          <IconButton icon="delete-outline" size={20} onPress={() => onDelete(item.sessionId)} />
-        </View>
-      </View>
-      {/* {item.lastMessage && (
-        <>
-          <Divider style={styles.divider} />
-          <Text style={styles.lastMessage} numberOfLines={2}>
-            {item.lastMessage}
-          </Text>
-        </>
-      )} */}
-    </TouchableOpacity>
-  </Surface>
-));
+import { useToast } from '@/store/toastStore';
 
 export default function SessionsScreen() {
   const insets = useSafeAreaInsets();
-  const { data: sessionsData, isLoading, refetch } = useSessions();
-  const { mutate: deleteSession } = useDeleteSession();
+  const toast = useToast();
+  const [tabIndex, setTabIndex] = useState('0');
 
-  const sessions = sessionsData?.content || [];
+  // 진행중 세션
+  const {
+    data: activeData,
+    isLoading: activeLoading,
+    refetch: refetchActive,
+  } = useSessions(1, 20, undefined, false);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  // 종료된 세션
+  const {
+    data: closedData,
+    isLoading: closedLoading,
+    refetch: refetchClosed,
+  } = useSessions(1, 20, undefined, true);
 
-    if (diffDays === 0) {
-      return '오늘';
-    } else if (diffDays === 1) {
-      return '어제';
-    } else if (diffDays < 7) {
-      return `${diffDays}일 전`;
-    } else {
-      return date.toLocaleDateString('ko-KR');
-    }
-  };
+  // 북마크된 세션
+  const {
+    data: bookmarkedData,
+    isLoading: bookmarkedLoading,
+    refetch: refetchBookmarked,
+  } = useSessions(1, 20, true, undefined);
 
-  const handleSessionPress = (session: Session) => {
-    router.push({
-      pathname: `/session/${session.sessionId}`,
-      params: {
-        counselorId: session.counselorId.toString(),
-        counselorName: session.counselorName,
-        title: session.title,
-        avatarUrl: session.avatarUrl || '',
-        isBookmarked: session.isBookmarked ? 'true' : 'false',
-      },
-    });
-  };
+  const activeSessions = activeData?.content || [];
+  const closedSessions = closedData?.content || [];
+  const bookmarkedSessions = bookmarkedData?.content || [];
 
-  const handleDeleteSession = (sessionId: number) => {
-    deleteSession(sessionId);
-  };
+  const handleBookmarkToggle = useCallback(
+    async (sessionId: number) => {
+      try {
+        const result = await toggleSessionBookmark(sessionId);
+        toast.show(
+          result.isBookmarked ? '북마크에 추가되었습니다' : '북마크가 제거되었습니다',
+          'success',
+        );
 
-  const renderSession = ({ item }: { item: Session }) => (
-    <SessionItem
-      item={item}
-      onPress={handleSessionPress}
-      onDelete={handleDeleteSession}
-      formatDate={formatDate}
-    />
+        // 모든 탭 데이터 새로고침
+        refetchActive();
+        refetchClosed();
+        refetchBookmarked();
+      } catch (error: unknown) {
+        void error;
+        toast.show('북마크 변경에 실패했습니다', 'error');
+      }
+    },
+    [refetchActive, refetchClosed, refetchBookmarked, toast],
+  );
+
+  const handleNewSession = useCallback(() => {
+    router.push('/(tabs)/');
+  }, []);
+
+  const renderActiveSession = useCallback(
+    (session: Session) => (
+      <SessionCard
+        key={session.sessionId}
+        session={session}
+        variant="active"
+        onBookmarkToggle={() => handleBookmarkToggle(session.sessionId)}
+      />
+    ),
+    [handleBookmarkToggle],
+  );
+
+  const renderClosedSession = useCallback(
+    (session: Session) => (
+      <SessionCard
+        key={session.sessionId}
+        session={session}
+        variant="closed"
+        onBookmarkToggle={() => handleBookmarkToggle(session.sessionId)}
+      />
+    ),
+    [handleBookmarkToggle],
+  );
+
+  const renderBookmarkedSession = useCallback(
+    (session: Session) => (
+      <SessionCard
+        key={session.sessionId}
+        session={session}
+        variant="bookmarked"
+        onBookmarkToggle={() => handleBookmarkToggle(session.sessionId)}
+      />
+    ),
+    [handleBookmarkToggle],
   );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>대화 내역</Text>
-        <Text style={styles.subtitle}>지난 상담 기록을 확인하세요</Text>
+        <Text style={styles.title}>상담 내역</Text>
+        <Text style={styles.subtitle}>나의 상담 기록을 확인하세요</Text>
       </View>
 
-      <FlatList
-        data={sessions}
-        keyExtractor={(item) => item.sessionId.toString()}
-        renderItem={renderSession}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
-        ListEmptyComponent={() => (
-          <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="chat-processing-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>아직 대화 내역이 없습니다</Text>
-            <Text style={styles.emptyDescription}>상담사를 선택하고 대화를 시작해보세요</Text>
-          </View>
+      <View style={styles.tabContainer}>
+        <SegmentedButtons
+          value={tabIndex}
+          onValueChange={setTabIndex}
+          buttons={[
+            {
+              value: '0',
+              label: '진행중',
+              icon: 'chat-processing',
+            },
+            {
+              value: '1',
+              label: '종료됨',
+              icon: 'check-circle',
+            },
+            {
+              value: '2',
+              label: '북마크',
+              icon: 'star',
+            },
+          ]}
+          style={styles.segmentedButtons}
+        />
+      </View>
+
+      <View style={styles.content}>
+        {tabIndex === '0' && (
+          <SessionListContainer
+            sessions={activeSessions}
+            isLoading={activeLoading}
+            onRefresh={refetchActive}
+            emptyIcon="chat-processing"
+            emptyTitle="진행 중인 상담이 없습니다"
+            emptySubtitle="새로운 상담을 시작해보세요!"
+            emptyAction={{
+              label: '상담 시작하기',
+              onPress: handleNewSession,
+            }}
+            renderItem={renderActiveSession}
+          />
         )}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-      />
+
+        {tabIndex === '1' && (
+          <SessionListContainer
+            sessions={closedSessions}
+            isLoading={closedLoading}
+            onRefresh={refetchClosed}
+            emptyIcon="check-circle"
+            emptyTitle="종료된 상담이 없습니다"
+            emptySubtitle="상담을 완료하면 여기에 표시됩니다"
+            renderItem={renderClosedSession}
+          />
+        )}
+
+        {tabIndex === '2' && (
+          <SessionListContainer
+            sessions={bookmarkedSessions}
+            isLoading={bookmarkedLoading}
+            onRefresh={refetchBookmarked}
+            emptyIcon="star"
+            emptyTitle="북마크한 상담이 없습니다"
+            emptySubtitle="중요한 상담은 ⭐을 눌러 저장하세요"
+            renderItem={renderBookmarkedSession}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -146,89 +203,17 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
-  listContent: {
-    padding: spacing.lg,
-    flexGrow: 1,
-  },
-  sessionCard: {
+  tabContainer: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: spacing.md,
-    elevation: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
-  sessionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  segmentedButtons: {
+    backgroundColor: 'transparent',
   },
-  counselorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  content: {
     flex: 1,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#6B46C1',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: 'Pretendard-SemiBold',
-  },
-  sessionDetails: {
-    marginLeft: spacing.sm,
-    flex: 1,
-  },
-  counselorName: {
-    fontSize: 16,
-    fontFamily: 'Pretendard-SemiBold',
-    color: '#111827',
-  },
-  sessionDate: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-Regular',
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  sessionActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  messageCount: {
-    fontSize: 12,
-    fontFamily: 'Pretendard-Regular',
-    color: '#9CA3AF',
-  },
-  divider: {
-    marginVertical: spacing.sm,
-    backgroundColor: '#F3F4F6',
-  },
-  lastMessage: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    color: '#4B5563',
-    lineHeight: 20,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing.xxl * 3,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: 'Pretendard-SemiBold',
-    color: '#111827',
-    marginTop: spacing.md,
-  },
-  emptyDescription: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    color: '#6B7280',
-    marginTop: spacing.xs,
   },
 });

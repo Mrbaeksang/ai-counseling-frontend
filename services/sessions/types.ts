@@ -7,6 +7,7 @@ export interface Session {
   lastMessageAt: string;
   isBookmarked: boolean;
   avatarUrl?: string;
+  closedAt?: string;
 }
 
 // 세션 시작 요청 (백엔드 CreateSessionRequest와 일치)
@@ -59,7 +60,25 @@ export interface ToggleBookmarkResponse {
   isBookmarked: boolean;
 }
 
-// 페이지네이션 응답
+// 페이지 정보 (백엔드 PageInfo와 일치)
+export interface PageInfo {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalElements: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+// 페이지네이션 응답 (백엔드 PagedResponse와 일치)
+export interface PagedResponse<T> {
+  content: T[];
+  pageInfo: PageInfo;
+}
+
+// 기존 PageResponse는 호환성을 위해 유지 (deprecated)
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;

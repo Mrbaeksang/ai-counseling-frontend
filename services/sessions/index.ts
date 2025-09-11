@@ -1,7 +1,7 @@
 import api from '../api';
 import type {
   MessageItem,
-  PageResponse,
+  PagedResponse,
   SendMessageResponse,
   Session,
   StartSessionResponse,
@@ -24,9 +24,12 @@ export const sendMessage = async (
   sessionId: number,
   content: string,
 ): Promise<SendMessageResponse> => {
-  const response = await api.post<SendMessageResponse>(`/sessions/${sessionId}/messages`, {
-    content,
-  });
+  // AI 응답을 위해 더 긴 타임아웃 설정 (30초)
+  const response = await api.post<SendMessageResponse>(
+    `/sessions/${sessionId}/messages`,
+    { content },
+    { timeout: 30000 },
+  );
 
   if (!response.data) {
     throw new Error('Failed to send message');
@@ -40,8 +43,8 @@ export const getSessionMessages = async (
   sessionId: number,
   page = 0,
   size = 20,
-): Promise<PageResponse<MessageItem>> => {
-  const response = await api.get<PageResponse<MessageItem>>(`/sessions/${sessionId}/messages`, {
+): Promise<PagedResponse<MessageItem>> => {
+  const response = await api.get<PagedResponse<MessageItem>>(`/sessions/${sessionId}/messages`, {
     params: { page, size },
   });
 
@@ -52,17 +55,19 @@ export const getSessionMessages = async (
   return response.data;
 };
 
-// 세션 목록 조회 (페이지네이션 및 북마크 필터 지원)
+// 세션 목록 조회 (페이지네이션 및 북마크/종료 필터 지원)
 export const getSessions = async (
   page = 1,
   size = 20,
   bookmarked?: boolean,
-): Promise<PageResponse<Session>> => {
-  const response = await api.get<PageResponse<Session>>('/sessions', {
+  isClosed?: boolean,
+): Promise<PagedResponse<Session>> => {
+  const response = await api.get<PagedResponse<Session>>('/sessions', {
     params: {
       page: page - 1, // 백엔드는 0부터 시작
       size,
       ...(bookmarked !== undefined && { bookmarked }),
+      ...(isClosed !== undefined && { isClosed }),
     },
   });
 
@@ -76,7 +81,7 @@ export const getSessions = async (
 // 단일 세션 정보 조회 (세션 목록에서 특정 세션 찾기)
 export const getSessionDetail = async (sessionId: number): Promise<Session | null> => {
   // 세션 목록에서 특정 세션 찾기 (북마크 상태 관계없이)
-  const response = await api.get<PageResponse<Session>>('/sessions', {
+  const response = await api.get<PagedResponse<Session>>('/sessions', {
     params: { page: 0, size: 100 }, // 충분한 크기로 조회
   });
 
