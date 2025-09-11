@@ -1,9 +1,18 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useCallback, useMemo } from 'react';
-import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Text } from 'react-native-paper';
 import { CounselorCard } from '@/components/counselor/CounselorCard';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
+import { CounselorGridCard } from '@/components/counselor/CounselorGridCard';
+import { CounselorGridCardSkeleton } from '@/components/counselor/CounselorGridCardSkeleton';
 import { spacing } from '@/constants/theme';
 import type { Counselor } from '@/services/counselors/types';
 import type { IconName } from '@/types/icons';
@@ -17,6 +26,9 @@ interface CounselorListProps {
   onSortChange: (sort: 'latest' | 'popular' | 'rating') => void;
   onFavoriteToggle: (counselorId: number, isFavorite: boolean) => void;
   ListHeaderComponent?: React.ReactElement;
+  viewMode?: 'list' | 'grid';
+  onEndReached?: () => void;
+  isLoadingMore?: boolean;
 }
 
 export const CounselorList = React.memo(
@@ -29,6 +41,9 @@ export const CounselorList = React.memo(
     onSortChange,
     onFavoriteToggle,
     ListHeaderComponent,
+    viewMode = 'grid',
+    onEndReached,
+    isLoadingMore = false,
   }: CounselorListProps) => {
     // 정렬 옵션 - useMemo로 최적화
     const sortOptions = useMemo(
@@ -41,19 +56,40 @@ export const CounselorList = React.memo(
     );
 
     const renderCounselor = useCallback(
-      ({ item }: { item: Counselor }) => (
-        <CounselorCard
-          counselor={item}
-          isFavorite={item.isFavorite}
-          onFavoriteToggle={() => onFavoriteToggle(item.id, item.isFavorite)}
-        />
-      ),
-      [onFavoriteToggle],
+      ({ item }: { item: Counselor }) => {
+        if (viewMode === 'grid') {
+          return (
+            <View style={styles.gridItem}>
+              <CounselorGridCard
+                counselor={item}
+                onFavoriteToggle={() => onFavoriteToggle(item.id, item.isFavorite)}
+              />
+            </View>
+          );
+        }
+        return (
+          <CounselorCard
+            counselor={item}
+            isFavorite={item.isFavorite}
+            onFavoriteToggle={() => onFavoriteToggle(item.id, item.isFavorite)}
+          />
+        );
+      },
+      [onFavoriteToggle, viewMode],
     );
 
     const renderSkeleton = useCallback(
-      ({ index }: { index: number }) => <CounselorCardSkeleton key={`skeleton-${index}`} />,
-      [],
+      ({ index }: { index: number }) => {
+        if (viewMode === 'grid') {
+          return (
+            <View style={styles.gridItem}>
+              <CounselorGridCardSkeleton key={`skeleton-${index}`} />
+            </View>
+          );
+        }
+        return <CounselorCardSkeleton key={`skeleton-${index}`} />;
+      },
+      [viewMode],
     );
 
     const ListHeader = useCallback(
@@ -110,6 +146,17 @@ export const CounselorList = React.memo(
       [counselors.length, isLoading],
     );
 
+    const ListFooter = useCallback(() => {
+      if (!isLoadingMore) return null;
+
+      return (
+        <View style={styles.loadingFooter}>
+          <ActivityIndicator size="small" color="#6B46C1" />
+          <Text style={styles.loadingText}>더 많은 상담사를 불러오는 중...</Text>
+        </View>
+      );
+    }, [isLoadingMore]);
+
     return (
       <FlatList
         data={isLoading ? Array(6).fill({}) : counselors}
@@ -117,9 +164,20 @@ export const CounselorList = React.memo(
         keyExtractor={(item, index) => (isLoading ? `skeleton-${index}` : `counselor-${item.id}`)}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={!isLoading ? ListEmpty : null}
+        ListFooterComponent={ListFooter}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        // 그리드 설정
+        numColumns={viewMode === 'grid' ? 3 : 1}
+        columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : undefined}
+        // 무한 스크롤
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.8}
+        // 성능 최적화
+        windowSize={10}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
       />
     );
   },
@@ -129,6 +187,15 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: spacing.xxl,
+  },
+  gridRow: {
+    justifyContent: 'flex-start', // 왼쪽 정렬로 변경
+    gap: spacing.sm, // 카드 간 간격
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xs,
+  },
+  gridItem: {
+    flex: 1 / 3, // 3열에 맞게 조정
   },
   sortSection: {
     flexDirection: 'row',
@@ -182,6 +249,16 @@ const styles = StyleSheet.create({
   },
   emptyDescription: {
     fontSize: 14,
+    fontFamily: 'Pretendard-Regular',
+    color: '#6B7280',
+    marginTop: spacing.xs,
+  },
+  loadingFooter: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 13,
     fontFamily: 'Pretendard-Regular',
     color: '#6B7280',
     marginTop: spacing.xs,

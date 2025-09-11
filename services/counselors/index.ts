@@ -8,7 +8,7 @@ import type {
 
 // 상담사 목록 조회
 export const getCounselors = async (
-  page = 1,
+  page = 1, // 백엔드 API는 1부터 시작
   size = 20,
   sort = 'popular',
 ): Promise<PageResponse<CounselorListResponse>> => {

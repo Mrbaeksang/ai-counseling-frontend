@@ -1,11 +1,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { CATEGORIES } from '@/constants/categories';
 import { spacing } from '@/constants/theme';
 import type { IconName } from '@/types/icons';
+
+// New Architecture에서는 LayoutAnimation 비활성화 (no-op 경고 방지)
+// 대신 Animated API만 사용
 
 interface CategoryGridProps {
   selectedCategories: Set<string>;
@@ -15,10 +18,29 @@ interface CategoryGridProps {
 export const CategoryGrid = React.memo(
   ({ selectedCategories, onCategoryPress }: CategoryGridProps) => {
     const [showAllCategories, setShowAllCategories] = useState(false);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const rotateAnim = useRef(new Animated.Value(0)).current;
 
     // 메인 카테고리 (처음 6개)와 전체 카테고리 - useMemo로 최적화
     const MAIN_CATEGORIES = useMemo(() => CATEGORIES.slice(0, 6), []);
     const ADDITIONAL_CATEGORIES = useMemo(() => CATEGORIES.slice(6), []);
+
+    // 확장/축소 애니메이션 (Animated API만 사용)
+    useEffect(() => {
+      // Fade 애니메이션
+      Animated.timing(fadeAnim, {
+        toValue: showAllCategories ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // 화살표 회전 애니메이션
+      Animated.timing(rotateAnim, {
+        toValue: showAllCategories ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }, [showAllCategories, fadeAnim, rotateAnim]);
 
     return (
       <View style={styles.container}>
@@ -64,13 +86,30 @@ export const CategoryGrid = React.memo(
               onPress={() => setShowAllCategories(true)}
             >
               <Text style={styles.moreButtonText}>더 많은 카테고리 보기</Text>
-              <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '180deg'],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
+              </Animated.View>
             </TouchableOpacity>
           )}
 
           {/* 추가 카테고리 (12개) - 확장 시 표시 */}
           {showAllCategories && (
-            <>
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+              }}
+            >
               <View style={styles.categoryGrid}>
                 {ADDITIONAL_CATEGORIES.map((category) => {
                   const isSelected = selectedCategories.has(category.id);
@@ -110,7 +149,7 @@ export const CategoryGrid = React.memo(
                 <Text style={styles.collapseButtonText}>접기</Text>
                 <MaterialCommunityIcons name="chevron-up" size={20} color="#6B7280" />
               </TouchableOpacity>
-            </>
+            </Animated.View>
           )}
         </View>
       </View>

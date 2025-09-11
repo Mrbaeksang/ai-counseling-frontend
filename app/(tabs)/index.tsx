@@ -3,9 +3,11 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
 import { CounselorList } from '@/components/home/CounselorList';
+import { DailyQuote } from '@/components/home/DailyQuote';
 import { FilterChips } from '@/components/home/FilterChips';
 import { WelcomeSection } from '@/components/home/WelcomeSection';
-import { useCounselors, useToggleFavorite } from '@/hooks/useCounselors';
+import { useToggleFavorite } from '@/hooks/useCounselors';
+import { useInfiniteCounselors } from '@/hooks/useInfiniteCounselors';
 import useAuthStore from '@/store/authStore';
 
 export default function HomeScreen() {
@@ -18,18 +20,21 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 정렬 옵션 매핑
-  const sortMap = {
+  const sortMap: Record<'latest' | 'popular' | 'rating', 'recent' | 'popular' | 'rating'> = {
     latest: 'recent',
     popular: 'popular',
     rating: 'rating',
   };
 
-  // API 호출 훅
+  // 무한 스크롤 API 호출 훅
   const {
-    data: counselorsData,
+    data,
     isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     refetch: refetchCounselors,
-  } = useCounselors(1, 20, sortMap[sortBy]);
+  } = useInfiniteCounselors(20, sortMap[sortBy]);
 
   const toggleFavoriteMutation = useToggleFavorite();
   const toggleFavorite = useCallback(
@@ -39,15 +44,20 @@ export default function HomeScreen() {
     [toggleFavoriteMutation],
   );
 
+  // 모든 페이지의 상담사 데이터 합치기
+  const allCounselors = useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => page.content || []);
+  }, [data]);
+
   // 상담사 필터링 (useMemo로 최적화)
-  const allCounselors = counselorsData?.content || [];
   const filteredCounselors = useMemo(() => {
     if (selectedCategories.size === 0) return allCounselors;
 
     return allCounselors.filter((counselor) => {
       if (!counselor.categories) return false;
-      const counselorCategories = counselor.categories.split(',').map((cat) => cat.trim());
-      return counselorCategories.some((cat) => selectedCategories.has(cat));
+      const counselorCategories = counselor.categories.split(',').map((cat: string) => cat.trim());
+      return counselorCategories.some((cat: string) => selectedCategories.has(cat));
     });
   }, [allCounselors, selectedCategories]);
 
@@ -89,11 +99,19 @@ export default function HomeScreen() {
     [toggleFavorite],
   );
 
+  // 무한 스크롤 핸들러
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   // 헤더 컴포넌트 (useMemo로 최적화)
   const ListHeader = useMemo(
     () => (
       <>
         <WelcomeSection userName={user?.nickname} />
+        <DailyQuote />
         <CategoryGrid
           selectedCategories={selectedCategories}
           onCategoryPress={handleCategoryPress}
@@ -125,6 +143,9 @@ export default function HomeScreen() {
         onSortChange={setSortBy}
         onFavoriteToggle={handleFavoriteToggle}
         ListHeaderComponent={ListHeader}
+        viewMode="grid"
+        onEndReached={handleLoadMore}
+        isLoadingMore={isFetchingNextPage}
       />
     </View>
   );
