@@ -1,3 +1,14 @@
+// 페이지네이션 응답
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number; // 현재 페이지 번호 (0-based)
+  size: number;
+  first: boolean;
+  last: boolean;
+}
+
 // 상담사 목록 응답 (백엔드 CounselorListResponse와 일치)
 export interface CounselorListResponse {
   id: number;
@@ -32,9 +43,6 @@ export interface FavoriteCounselorResponse {
   avatarUrl?: string;
   averageRating: number; // 1-10
 }
-
-// 페이지네이션 응답 (sessions/types.ts의 PageResponse 재사용)
-export type { PageResponse } from '../sessions/types';
 
 // 별칭 타입 (하위 호환성 유지)
 export type Counselor = CounselorListResponse;
