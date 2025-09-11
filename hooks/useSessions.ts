@@ -3,10 +3,10 @@ import { endSession, getSessions } from '@/services/sessions';
 import { useToast } from '@/store/toastStore';
 
 // 세션 목록 조회
-export const useSessions = (page = 1, size = 20) => {
+export const useSessions = (page = 1, size = 20, bookmarked?: boolean, isClosed?: boolean) => {
   return useQuery({
-    queryKey: ['sessions', page, size],
-    queryFn: () => getSessions(page, size),
+    queryKey: ['sessions', page, size, bookmarked, isClosed],
+    queryFn: () => getSessions(page, size, bookmarked, isClosed),
     staleTime: 2 * 60 * 1000, // 2분
     gcTime: 5 * 60 * 1000,
   });
