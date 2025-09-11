@@ -1,12 +1,19 @@
-// 페이지네이션 응답
+// 페이지 정보 (백엔드 PageInfo와 일치)
+export interface PageInfo {
+  currentPage: number; // 0-based
+  totalPages: number;
+  pageSize: number;
+  totalElements: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+// 페이지네이션 응답 (백엔드 PagedResponse와 일치)
 export interface PageResponse<T> {
   content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number; // 현재 페이지 번호 (0-based)
-  size: number;
-  first: boolean;
-  last: boolean;
+  pageInfo: PageInfo;
 }
 
 // 상담사 목록 응답 (백엔드 CounselorListResponse와 일치)
