@@ -21,7 +21,10 @@ try {
       webClientId: '470745173996-2m81qutdnesqnqprc55n8cce7lrr7hm5.apps.googleusercontent.com',
     });
   }
-} catch (_error) {}
+} catch (error: unknown) {
+  void error; // 명시적 무시
+  // WebBrowser 초기화 실패 무시
+}
 
 export const useSimpleGoogleAuth = () => {
   const [isLoading, setIsLoading] = useState(false);

@@ -44,7 +44,8 @@ export const useSessionMessages = (sessionId: number, initialCounselorInfo?: Cou
           // 세션 정보를 못 가져왔지만 초기 정보가 있는 경우
           setCounselorInfo(initialCounselorInfo);
         }
-      } catch (_error: unknown) {
+      } catch (error: unknown) {
+        void error; // 명시적 무시
         // 에러 발생 시 초기 정보 유지
         if (initialCounselorInfo) {
           setCounselorInfo(initialCounselorInfo);
