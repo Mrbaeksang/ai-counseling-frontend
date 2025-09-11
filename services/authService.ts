@@ -74,7 +74,8 @@ class AuthService {
     try {
       // 백엔드 로그아웃은 따로 없음 (JWT 방식)
       await useAuthStore.getState().logout();
-    } catch (_error) {
+    } catch (error: unknown) {
+      void error; // 명시적 무시
       // 실패해도 로컬 로그아웃 진행
       await useAuthStore.getState().logout();
     }
@@ -85,7 +86,8 @@ class AuthService {
     try {
       const response = await api.get('/users/me');
       return response.data;
-    } catch (_error) {
+    } catch (error: unknown) {
+      void error; // 명시적 무시
       throw new Error('프로필 조회에 실패했습니다.');
     }
   }
@@ -95,7 +97,8 @@ class AuthService {
     try {
       const response = await api.patch('/users/nickname', { nickname });
       return response.data;
-    } catch (_error) {
+    } catch (error: unknown) {
+      void error; // 명시적 무시
       throw new Error('닉네임 변경에 실패했습니다.');
     }
   }

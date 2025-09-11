@@ -183,7 +183,8 @@ export default function SessionScreen() {
           // 백엔드에서 이미 closedAt이 설정되어 세션이 종료된 상태
           // 수동 종료 버튼 클릭 시 중복 방지 필요
         }
-      } catch (_error: unknown) {
+      } catch (error: unknown) {
+        void error; // 명시적 무시
         toast.show('메시지 전송에 실패했습니다', 'error');
       } finally {
         setIsSending(false);
