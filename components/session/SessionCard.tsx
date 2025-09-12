@@ -1,5 +1,3 @@
-import { format, formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
@@ -22,12 +20,21 @@ export const SessionCard = React.memo(
     const formatTime = (dateString: string) => {
       const date = new Date(dateString);
       const now = new Date();
-      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+      const diffInMillis = now.getTime() - date.getTime();
+      const diffInHours = diffInMillis / (1000 * 60 * 60);
+      const diffInMinutes = diffInMillis / (1000 * 60);
 
-      if (diffInHours < 24) {
-        return formatDistanceToNow(date, { addSuffix: true, locale: ko });
+      if (diffInMinutes < 1) {
+        return '방금 전';
+      } else if (diffInMinutes < 60) {
+        return `${Math.floor(diffInMinutes)}분 전`;
+      } else if (diffInHours < 24) {
+        return `${Math.floor(diffInHours)}시간 전`;
+      } else {
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        return `${month}월 ${day}일`;
       }
-      return format(date, 'MM월 dd일', { locale: ko });
     };
 
     const isActive = !session.closedAt;
