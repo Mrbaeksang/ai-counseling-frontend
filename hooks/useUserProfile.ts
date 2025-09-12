@@ -43,8 +43,7 @@ export const useUserProfile = () => {
 
       return { previousProfile };
     },
-    onError: (error: unknown, _variables, context) => {
-      console.error('Nickname mutation error:', error);
+    onError: (_error: unknown, _variables, context) => {
       // 롤백
       if (context?.previousProfile) {
         queryClient.setQueryData(['userProfile'], context.previousProfile);

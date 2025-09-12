@@ -44,9 +44,8 @@ export const NicknameEditDialog = React.memo(
       try {
         await onConfirm(nickname);
         onDismiss();
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         setError('닉네임 변경에 실패했습니다');
-        console.error('Nickname update error:', error);
       } finally {
         setLoading(false);
       }

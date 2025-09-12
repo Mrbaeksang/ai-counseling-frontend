@@ -16,9 +16,8 @@ export const AccountDeleteDialog = React.memo(
       setLoading(true);
       try {
         await onConfirm();
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         // 에러는 상위에서 처리
-        console.error('Account deletion error:', error);
       } finally {
         setLoading(false);
       }
