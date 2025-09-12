@@ -1,55 +1,143 @@
-import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
-import { Avatar, Button, Text } from 'react-native-paper';
+import { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Avatar, Button, Card, Divider, List, Text } from 'react-native-paper';
+import { AccountDeleteDialog } from '@/components/profile/AccountDeleteDialog';
+import { NicknameEditDialog } from '@/components/profile/NicknameEditDialog';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import useAuthStore from '@/store/authStore';
+import { useToast } from '@/store/toastStore';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { show: showToast } = useToast();
+  const { profile, isLoading, updateNickname, deleteAccount } = useUserProfile();
 
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/(auth)/login');
-  };
+  const [showNicknameDialog, setShowNicknameDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleNicknameUpdate = useCallback(
+    async (nickname: string) => {
+      updateNickname(nickname);
+      setShowNicknameDialog(false);
+    },
+    [updateNickname],
+  );
+
+  const handleAccountDelete = useCallback(async () => {
+    deleteAccount();
+    setShowDeleteDialog(false);
+  }, [deleteAccount]);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <Avatar.Icon size={80} icon="account" />
+        {profile?.profileImageUrl ? (
+          <Avatar.Image size={80} source={{ uri: profile.profileImageUrl }} style={styles.avatar} />
+        ) : (
+          <Avatar.Icon size={80} icon="account" style={styles.avatar} />
+        )}
         <Text variant="headlineMedium" style={styles.name}>
-          {user?.nickname || '사용자'}
-        </Text>
-        <Text variant="bodyLarge" style={styles.email}>
-          {user?.email || ''}
+          {profile?.nickname || user?.nickname || '사용자'}
         </Text>
       </View>
 
-      <Button mode="outlined" onPress={handleLogout} style={styles.logoutButton}>
-        로그아웃
-      </Button>
-    </View>
+      <Card style={styles.section}>
+        <List.Item
+          title="닉네임 변경"
+          description="다른 사용자에게 보여질 이름을 변경합니다"
+          left={(props) => <List.Icon {...props} icon="account-edit" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => setShowNicknameDialog(true)}
+        />
+      </Card>
+
+      <Card style={styles.section}>
+        <List.Item
+          title="이용 약관"
+          left={(props) => <List.Icon {...props} icon="file-document" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => showToast('준비 중입니다', 'info')}
+        />
+        <Divider />
+        <List.Item
+          title="개인정보 처리방침"
+          left={(props) => <List.Icon {...props} icon="shield-lock" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => showToast('준비 중입니다', 'info')}
+        />
+      </Card>
+
+      <NicknameEditDialog
+        visible={showNicknameDialog}
+        currentNickname={profile?.nickname || user?.nickname || ''}
+        onDismiss={() => setShowNicknameDialog(false)}
+        onConfirm={handleNicknameUpdate}
+      />
+
+      <AccountDeleteDialog
+        visible={showDeleteDialog}
+        onDismiss={() => setShowDeleteDialog(false)}
+        onConfirm={handleAccountDelete}
+      />
+
+      <View style={styles.deleteButtonContainer}>
+        <Button
+          mode="text"
+          onPress={() => setShowDeleteDialog(true)}
+          textColor="#9CA3AF"
+          labelStyle={styles.deleteButtonText}
+          compact
+        >
+          회원 탈퇴
+        </Button>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F3F4F6',
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 32,
+    paddingVertical: 32,
+    backgroundColor: '#FFFFFF',
+  },
+  avatar: {
+    backgroundColor: '#6B46C1',
   },
   name: {
     marginTop: 16,
     fontWeight: 'bold',
   },
-  email: {
-    marginTop: 8,
-    color: '#6B7280',
+  section: {
+    marginHorizontal: 16,
+    marginTop: 16,
   },
-  logoutButton: {
-    marginTop: 32,
+  deleteButtonContainer: {
+    marginTop: 40,
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  deleteButtonText: {
+    fontSize: 12,
+    textDecorationLine: 'underline',
   },
 });
