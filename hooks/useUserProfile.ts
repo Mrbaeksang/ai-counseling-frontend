@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { deleteAccount, getMyProfile, updateNickname } from '@/services/users';
+import type { UserProfileResponse } from '@/services/users/types';
 import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
@@ -27,19 +28,23 @@ export const useUserProfile = () => {
     onMutate: async (newNickname: string) => {
       // 낙관적 업데이트
       await queryClient.cancelQueries({ queryKey: ['userProfile'] });
-      const previousProfile = queryClient.getQueryData(['userProfile']);
+      const previousProfile = queryClient.getQueryData<UserProfileResponse>(['userProfile']);
 
-      queryClient.setQueryData(['userProfile'], (old: unknown) => ({
-        ...(old as Record<string, unknown>),
-        nickname: newNickname,
-      }));
+      queryClient.setQueryData(['userProfile'], (old: UserProfileResponse | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          nickname: newNickname,
+        };
+      });
 
       // Zustand store도 업데이트
       updateUser({ nickname: newNickname });
 
       return { previousProfile };
     },
-    onError: (_error: unknown, _variables, context) => {
+    onError: (error: unknown, _variables, context) => {
+      console.error('Nickname mutation error:', error);
       // 롤백
       if (context?.previousProfile) {
         queryClient.setQueryData(['userProfile'], context.previousProfile);
