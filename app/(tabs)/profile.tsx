@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Avatar, Button, Card, Divider, List, Text } from 'react-native-paper';
@@ -8,7 +9,7 @@ import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
 export default function ProfileScreen() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { show: showToast } = useToast();
   const { profile, isLoading, updateNickname, deleteAccount } = useUserProfile();
 
@@ -27,6 +28,13 @@ export default function ProfileScreen() {
     deleteAccount();
     setShowDeleteDialog(false);
   }, [deleteAccount]);
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+    showToast('로그아웃되었습니다', 'success');
+    // 로그인 화면으로 즉시 이동
+    router.replace('/(auth)/login');
+  }, [logout, showToast]);
 
   if (isLoading) {
     return (
@@ -72,6 +80,15 @@ export default function ProfileScreen() {
           left={(props) => <List.Icon {...props} icon="shield-lock" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
           onPress={() => showToast('준비 중입니다', 'info')}
+        />
+      </Card>
+
+      <Card style={styles.section}>
+        <List.Item
+          title="로그아웃"
+          left={(props) => <List.Icon {...props} icon="logout" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={handleLogout}
         />
       </Card>
 

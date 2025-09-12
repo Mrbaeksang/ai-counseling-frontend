@@ -1,7 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { spacing } from '@/constants/theme';
 
 interface PremiumButtonProps {
@@ -13,79 +14,60 @@ interface PremiumButtonProps {
   textColor?: string;
 }
 
-export const PremiumButton = ({
-  onPress,
-  disabled,
-  icon,
-  text,
-  gradientColors,
-  textColor = '#FFFFFF',
-}: PremiumButtonProps) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
+export const PremiumButton = React.memo(
+  ({
+    onPress,
+    disabled,
+    icon,
+    text,
+    gradientColors,
+    textColor = '#FFFFFF',
+  }: PremiumButtonProps) => {
+    const scale = useSharedValue(1);
+    const opacity = useSharedValue(1);
 
-  const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0.8,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+    const handlePressIn = useCallback(() => {
+      if (!disabled) {
+        scale.value = withSpring(0.95, { damping: 15, stiffness: 200 });
+        opacity.value = withSpring(0.85, { damping: 15, stiffness: 200 });
+      }
+    }, [disabled, scale, opacity]);
 
-  const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 3,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+    const handlePressOut = useCallback(() => {
+      scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+      opacity.value = withSpring(1, { damping: 15, stiffness: 200 });
+    }, [scale, opacity]);
 
-  return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled}
-      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
-    >
-      <Animated.View
-        style={[
-          styles.animatedView,
-          {
-            transform: [{ scale: scaleAnim }],
-            opacity: opacityAnim,
-          },
-        ]}
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+      opacity: opacity.value,
+    }));
+
+    return (
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        style={styles.container}
       >
-        <LinearGradient
-          colors={gradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
-        >
-          <View style={styles.content}>
-            {icon}
-            <Text style={[styles.text, { color: textColor }]}>{text}</Text>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-    </Pressable>
-  );
-};
+        <Animated.View style={[styles.animatedView, animatedStyle]}>
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradient}
+          >
+            <View style={styles.content}>
+              {icon}
+              <Text style={[styles.text, { color: textColor }]}>{text}</Text>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </Pressable>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -113,8 +95,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Pretendard-SemiBold',
     letterSpacing: -0.3,
-  },
-  pressed: {
-    opacity: 0.8,
   },
 });

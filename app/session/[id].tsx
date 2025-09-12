@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { GiftedChat, type IMessage } from 'react-native-gifted-chat';
+import { Bubble, type BubbleProps, GiftedChat, type IMessage } from 'react-native-gifted-chat';
 import { ActivityIndicator, Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatHeader } from '@/components/chat/ChatHeader';
@@ -140,6 +140,33 @@ export default function SessionScreen() {
     }
   }, [newTitle, sessionTitle, handleTitleUpdate, setShowTitleDialog]);
 
+  // Custom bubble renderer with spacing
+  const renderBubble = useCallback((props: BubbleProps<IMessage>) => {
+    return (
+      <View style={{ marginBottom: 8 }}>
+        <Bubble
+          {...props}
+          wrapperStyle={{
+            left: {
+              backgroundColor: '#F3F4F6',
+            },
+            right: {
+              backgroundColor: '#6B46C1',
+            },
+          }}
+          textStyle={{
+            left: {
+              color: '#1F2937',
+            },
+            right: {
+              color: '#FFFFFF',
+            },
+          }}
+        />
+      </View>
+    );
+  }, []);
+
   // Convert backend rating (1-10) to frontend rating (0.5-5)
   const handleRatingSubmit = useCallback(() => {
     handleRatingSubmitAction();
@@ -240,7 +267,7 @@ export default function SessionScreen() {
             alwaysShowSend={!isSessionClosed}
             showUserAvatar={false}
             renderAvatar={(props) => <CustomAvatar {...props} />}
-            // renderBubble 제거 - 기본 버블 사용
+            renderBubble={renderBubble}
             renderUsernameOnMessage={false}
             renderTime={() => null}
             inverted={false}
