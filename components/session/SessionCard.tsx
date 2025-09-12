@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, IconButton, Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import type { Session } from '@/services/sessions/types';
 
@@ -14,7 +15,10 @@ interface SessionCardProps {
 export const SessionCard = React.memo(
   ({ session, variant = 'active', onBookmarkToggle }: SessionCardProps) => {
     const handlePress = useCallback(() => {
-      router.push(`/session/${session.sessionId}`);
+      // 애니메이션이 보이도록 약간 지연 후 이동
+      setTimeout(() => {
+        router.push(`/session/${session.sessionId}`);
+      }, 200);
     }, [session.sessionId]);
 
     const formatTime = (dateString: string) => {
@@ -41,89 +45,108 @@ export const SessionCard = React.memo(
     const showStatusBadge = variant === 'bookmarked';
 
     return (
-      <Card style={styles.card} onPress={handlePress}>
-        <Card.Content style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.counselorInfo}>
-              <View style={styles.avatar}>
-                {session.avatarUrl ? (
-                  <Image source={getCounselorImage(session.avatarUrl)} style={styles.avatarImage} />
-                ) : (
-                  <Text style={styles.avatarText}>
-                    {session.counselorName?.substring(0, 2) || '철학'}
-                  </Text>
-                )}
-              </View>
-              <View style={styles.textContainer}>
-                <Text variant="titleMedium" style={styles.title}>
-                  {session.title}
-                </Text>
-                <Text
-                  variant="bodyMedium"
-                  style={[
-                    styles.counselorName,
-                    session.counselorName === '붓다' && styles.buddhaName,
-                  ]}
-                >
-                  {session.counselorName === '붓다' ? (
-                    <Text style={styles.buddhaEmphasis}>붓다</Text>
+      <AnimatedButton
+        onPress={handlePress}
+        scaleTo={0.92}
+        springConfig={{ damping: 10, stiffness: 150 }}
+        style={styles.cardWrapper}
+      >
+        <Card style={styles.card}>
+          <Card.Content style={styles.content}>
+            <View style={styles.header}>
+              <View style={styles.counselorInfo}>
+                <View style={styles.avatar}>
+                  {session.avatarUrl ? (
+                    <Image
+                      source={getCounselorImage(session.avatarUrl)}
+                      style={styles.avatarImage}
+                    />
                   ) : (
-                    session.counselorName
+                    <Text style={styles.avatarText}>
+                      {session.counselorName?.substring(0, 2) || '철학'}
+                    </Text>
                   )}
-                  {' 상담사'}
-                </Text>
-                <Text variant="bodySmall" style={styles.time}>
-                  {session.closedAt
-                    ? `종료: ${formatTime(session.closedAt)}`
-                    : `최근 대화: ${formatTime(session.lastMessageAt)}`}
-                </Text>
+                </View>
+                <View style={styles.textContainer}>
+                  <Text variant="titleMedium" style={styles.title}>
+                    {session.title}
+                  </Text>
+                  <Text
+                    variant="bodyMedium"
+                    style={[
+                      styles.counselorName,
+                      session.counselorName === '붓다' && styles.buddhaName,
+                    ]}
+                  >
+                    {session.counselorName === '붓다' ? (
+                      <Text style={styles.buddhaEmphasis}>붓다</Text>
+                    ) : (
+                      session.counselorName
+                    )}
+                    {' 상담사'}
+                  </Text>
+                  <Text variant="bodySmall" style={styles.time}>
+                    {session.closedAt
+                      ? `종료: ${formatTime(session.closedAt)}`
+                      : `최근 대화: ${formatTime(session.lastMessageAt)}`}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.actions}>
+                {showStatusBadge && (
+                  <Chip
+                    mode="flat"
+                    compact
+                    style={[styles.statusChip, isActive ? styles.activeChip : styles.closedChip]}
+                  >
+                    {isActive ? '진행중' : '종료됨'}
+                  </Chip>
+                )}
+                <AnimatedButton
+                  onPress={onBookmarkToggle}
+                  scaleTo={0.85}
+                  springConfig={{ damping: 10, stiffness: 300 }}
+                  style={styles.bookmarkButton}
+                >
+                  <IconButton
+                    icon={session.isBookmarked ? 'star' : 'star-outline'}
+                    iconColor={session.isBookmarked ? '#FFD700' : '#666'}
+                    size={24}
+                    disabled
+                  />
+                </AnimatedButton>
               </View>
             </View>
 
-            <View style={styles.actions}>
-              {showStatusBadge && (
-                <Chip
-                  mode="flat"
-                  compact
-                  style={[styles.statusChip, isActive ? styles.activeChip : styles.closedChip]}
-                >
-                  {isActive ? '진행중' : '종료됨'}
-                </Chip>
-              )}
-              <IconButton
-                icon={session.isBookmarked ? 'star' : 'star-outline'}
-                iconColor={session.isBookmarked ? '#FFD700' : '#666'}
-                size={24}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  onBookmarkToggle?.();
-                }}
-              />
-            </View>
-          </View>
+            {variant === 'active' && (
+              <Button mode="contained" style={styles.actionButton} onPress={handlePress}>
+                계속 대화하기
+              </Button>
+            )}
 
-          {variant === 'active' && (
-            <Button mode="contained" style={styles.actionButton} onPress={handlePress}>
-              계속 대화하기
-            </Button>
-          )}
-
-          {variant === 'closed' && (
-            <Button mode="outlined" style={styles.actionButton} onPress={handlePress}>
-              대화 내역 보기
-            </Button>
-          )}
-        </Card.Content>
-      </Card>
+            {variant === 'closed' && (
+              <Button mode="outlined" style={styles.actionButton} onPress={handlePress}>
+                대화 내역 보기
+              </Button>
+            )}
+          </Card.Content>
+        </Card>
+      </AnimatedButton>
     );
   },
 );
 
 const styles = StyleSheet.create({
-  card: {
+  cardWrapper: {
     marginHorizontal: 16,
     marginVertical: 8,
+  },
+  card: {
     elevation: 2,
+  },
+  bookmarkButton: {
+    marginRight: -8,
   },
   content: {
     padding: 16,
