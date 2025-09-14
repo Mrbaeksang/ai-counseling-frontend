@@ -171,20 +171,10 @@ export const CounselorList = React.memo(
         // 그리드 설정
         numColumns={viewMode === 'grid' ? 3 : 1}
         // FlashList 최적화
-        estimatedItemSize={viewMode === 'grid' ? 120 : 140}
+        drawDistance={200}
         // 무한 스크롤
         onEndReached={onEndReached}
         onEndReachedThreshold={0.8}
-        // 성능 최적화 (FlashList는 자동 최적화)
-        drawDistance={200}
-        overrideItemLayout={
-          viewMode === 'grid'
-            ? undefined
-            : (layout, _item, _index, _maxColumns) => {
-                layout.size = 140; // 리스트 모드 아이템 높이
-                layout.span = 1;
-              }
-        }
       />
     );
   },

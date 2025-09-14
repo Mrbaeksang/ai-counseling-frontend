@@ -79,7 +79,6 @@ export const SessionListContainer = React.memo(
         }
         contentContainerStyle={sessions.length === 0 ? styles.emptyContainer : undefined}
         // FlashList 최적화
-        estimatedItemSize={120}
         drawDistance={200}
       />
     );
