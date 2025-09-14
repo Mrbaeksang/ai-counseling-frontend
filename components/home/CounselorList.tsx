@@ -172,6 +172,8 @@ export const CounselorList = React.memo(
         numColumns={viewMode === 'grid' ? 3 : 1}
         // FlashList 최적화
         drawDistance={200}
+        // @ts-expect-error - FlashList 타입 정의에 estimatedItemSize가 누락됨
+        estimatedItemSize={viewMode === 'grid' ? 120 : 140}
         // 무한 스크롤
         onEndReached={onEndReached}
         onEndReachedThreshold={0.8}

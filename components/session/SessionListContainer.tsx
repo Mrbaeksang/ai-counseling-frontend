@@ -80,6 +80,8 @@ export const SessionListContainer = React.memo(
         contentContainerStyle={sessions.length === 0 ? styles.emptyContainer : undefined}
         // FlashList 최적화
         drawDistance={200}
+        // @ts-expect-error - FlashList 타입 정의에 estimatedItemSize가 누락됨
+        estimatedItemSize={120}
       />
     );
   },
