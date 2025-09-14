@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Dimensions, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
 import type { Counselor } from '@/services/counselors/types';
@@ -34,7 +35,12 @@ export const CounselorGridCard = React.memo(
     );
 
     return (
-      <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.9}>
+      <AnimatedButton
+        style={styles.container}
+        onPress={handlePress}
+        scaleTo={0.94}
+        springConfig={{ damping: 10, stiffness: 150 }}
+      >
         <View style={styles.imageContainer}>
           {imageSource ? (
             <Image source={imageSource} style={styles.image} resizeMode="cover" />
@@ -95,7 +101,7 @@ export const CounselorGridCard = React.memo(
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </AnimatedButton>
     );
   },
 );
@@ -107,6 +113,8 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     marginBottom: spacing.sm,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
   },
   imageContainer: {
     flex: 1,

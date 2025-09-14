@@ -2,8 +2,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
 import { useThrottle } from '@/hooks/useDebounce';
@@ -18,8 +19,10 @@ interface CounselorCardProps {
 export const CounselorCard = React.memo(
   ({ counselor, isFavorite, onFavoriteToggle }: CounselorCardProps) => {
     const handlePressRaw = () => {
-      // 상담사 상세 페이지로 이동
-      router.push(`/counselors/${counselor.id}`);
+      // 애니메이션이 보이도록 약간 지연 후 이동
+      setTimeout(() => {
+        router.push(`/counselors/${counselor.id}`);
+      }, 200);
     };
 
     // 쓰로틀 적용 - 1초 동안 중복 클릭 방지
@@ -28,7 +31,13 @@ export const CounselorCard = React.memo(
     const imageSource = getCounselorImage(counselor.avatarUrl);
 
     return (
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.95} disabled={!canClick}>
+      <AnimatedButton
+        onPress={handlePress}
+        disabled={!canClick}
+        scaleTo={0.92}
+        springConfig={{ damping: 10, stiffness: 150 }}
+        style={styles.cardWrapper}
+      >
         <Surface style={styles.card}>
           <LinearGradient
             colors={['#FFFFFF', '#FAFBFF']}
@@ -37,9 +46,11 @@ export const CounselorCard = React.memo(
             style={styles.gradientBackground}
           >
             {/* 즐겨찾기 버튼 */}
-            <TouchableOpacity
+            <AnimatedButton
               onPress={onFavoriteToggle}
               style={styles.favoriteButton}
+              scaleTo={0.85}
+              springConfig={{ damping: 10, stiffness: 300 }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <MaterialCommunityIcons
@@ -47,7 +58,7 @@ export const CounselorCard = React.memo(
                 size={20}
                 color={isFavorite ? '#EF4444' : '#9CA3AF'}
               />
-            </TouchableOpacity>
+            </AnimatedButton>
 
             {/* 프로필 이미지 */}
             <View style={styles.imageContainer}>
@@ -104,15 +115,17 @@ export const CounselorCard = React.memo(
             </View>
           </LinearGradient>
         </Surface>
-      </TouchableOpacity>
+      </AnimatedButton>
     );
   },
 );
 
 const styles = StyleSheet.create({
-  card: {
+  cardWrapper: {
     marginHorizontal: spacing.md,
     marginVertical: spacing.xs,
+  },
+  card: {
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 2,
