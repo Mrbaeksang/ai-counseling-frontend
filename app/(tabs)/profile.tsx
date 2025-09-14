@@ -6,10 +6,12 @@ import { AccountDeleteDialog } from '@/components/profile/AccountDeleteDialog';
 import { NicknameEditDialog } from '@/components/profile/NicknameEditDialog';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import useAuthStore from '@/store/authStore';
+import useOnboardingStore from '@/store/onboardingStore';
 import { useToast } from '@/store/toastStore';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
+  const { resetOnboarding } = useOnboardingStore();
   const { show: showToast } = useToast();
   const { profile, isLoading, updateNickname, deleteAccount } = useUserProfile();
 
@@ -35,6 +37,12 @@ export default function ProfileScreen() {
     // 로그인 화면으로 즉시 이동
     router.replace('/(auth)/login');
   }, [logout, showToast]);
+
+  // 개발용: 온보딩 리셋
+  const handleResetOnboarding = useCallback(async () => {
+    await resetOnboarding();
+    showToast('온보딩이 초기화되었습니다. 앱을 재시작하세요.', 'success');
+  }, [resetOnboarding, showToast]);
 
   if (isLoading) {
     return (
@@ -91,6 +99,19 @@ export default function ProfileScreen() {
           onPress={handleLogout}
         />
       </Card>
+
+      {/* 개발용 온보딩 리셋 버튼 */}
+      {__DEV__ && (
+        <Card style={styles.section}>
+          <List.Item
+            title="온보딩 초기화 (개발용)"
+            description="다음 앱 시작시 온보딩이 다시 표시됩니다"
+            left={(props) => <List.Icon {...props} icon="restart" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={handleResetOnboarding}
+          />
+        </Card>
+      )}
 
       <NicknameEditDialog
         visible={showNicknameDialog}

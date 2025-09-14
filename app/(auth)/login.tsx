@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -15,53 +15,67 @@ import { FooterSection } from '@/components/auth/FooterSection';
 import { LoadingOverlay } from '@/components/auth/LoadingOverlay';
 import { LogoSection } from '@/components/auth/LogoSection';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 import { spacing } from '@/constants/theme';
 import { useKakaoAuth } from '@/hooks/useKakaoAuth';
 import { useSimpleGoogleAuth } from '@/hooks/useSimpleGoogleAuth';
 import useAuthStore from '@/store/authStore';
+import useOnboardingStore from '@/store/onboardingStore';
 
 export default function PremiumLoginScreen() {
   const { isAuthenticated } = useAuthStore();
+  const { hasSeenOnboarding, completeOnboarding } = useOnboardingStore();
   const { signIn: googleSignIn, isLoading: isGoogleLoading } = useSimpleGoogleAuth();
   const { signIn: kakaoSignIn, isLoading: isKakaoLoading } = useKakaoAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // 애니메이션 값들
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // 온보딩 체크
+  useEffect(() => {
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, [hasSeenOnboarding]);
+
   // 진입 애니메이션
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // 펄스 애니메이션
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
+    // 온보딩이 보이지 않을 때만 애니메이션 실행
+    if (!showOnboarding) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 2000,
+          duration: 1000,
           useNativeDriver: true,
         }),
-      ]),
-    ).start();
-  }, [fadeAnim, slideAnim, pulseAnim]);
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // 펄스 애니메이션
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    }
+  }, [fadeAnim, slideAnim, pulseAnim, showOnboarding]);
 
   // 이미 로그인되어 있으면 메인으로
   useEffect(() => {
@@ -86,6 +100,30 @@ export default function PremiumLoginScreen() {
       Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   }, [kakaoSignIn]);
+
+  const handleOnboardingComplete = useCallback(async () => {
+    await completeOnboarding();
+    setShowOnboarding(false);
+    // 로그인 화면 애니메이션 시작
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [completeOnboarding, fadeAnim, slideAnim]);
+
+  // 온보딩 표시
+  if (showOnboarding) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>

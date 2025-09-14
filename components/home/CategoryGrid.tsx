@@ -71,108 +71,125 @@ const CategoryItem = React.memo(
 
 interface CategoryGridProps {
   onCategoryPress: (categoryId: string) => void;
+  selectedCategories?: Set<string>;
 }
 
-export const CategoryGrid = React.memo(({ onCategoryPress }: CategoryGridProps) => {
-  const [showAllCategories, setShowAllCategories] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+export const CategoryGrid = React.memo(
+  ({ onCategoryPress, selectedCategories }: CategoryGridProps) => {
+    // 선택된 카테고리가 6개 이상의 카테고리에 있으면 자동으로 확장
+    const hasAdditionalCategorySelected = useMemo(() => {
+      if (!selectedCategories || selectedCategories.size === 0) return false;
+      const additionalIds = CATEGORIES.slice(6).map((c) => c.id);
+      return Array.from(selectedCategories).some((id) => additionalIds.includes(id));
+    }, [selectedCategories]);
 
-  // 메인 카테고리 (처음 6개)와 전체 카테고리 - useMemo로 최적화
-  const MAIN_CATEGORIES = useMemo(() => CATEGORIES.slice(0, 6), []);
-  const ADDITIONAL_CATEGORIES = useMemo(() => CATEGORIES.slice(6), []);
+    const [showAllCategories, setShowAllCategories] = useState(hasAdditionalCategorySelected);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const rotateAnim = useRef(new Animated.Value(0)).current;
 
-  // 확장/축소 애니메이션 (Animated API만 사용)
-  useEffect(() => {
-    // Fade 애니메이션
-    Animated.timing(fadeAnim, {
-      toValue: showAllCategories ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    // 메인 카테고리 (처음 6개)와 전체 카테고리 - useMemo로 최적화
+    const MAIN_CATEGORIES = useMemo(() => CATEGORIES.slice(0, 6), []);
+    const ADDITIONAL_CATEGORIES = useMemo(() => CATEGORIES.slice(6), []);
 
-    // 화살표 회전 애니메이션
-    Animated.timing(rotateAnim, {
-      toValue: showAllCategories ? 1 : 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, [showAllCategories, fadeAnim, rotateAnim]);
+    // 선택된 카테고리가 추가 카테고리에 있을 때 자동 확장
+    useEffect(() => {
+      if (hasAdditionalCategorySelected && !showAllCategories) {
+        setShowAllCategories(true);
+      }
+    }, [hasAdditionalCategorySelected, showAllCategories]);
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>무엇이 가장 힘드신가요?</Text>
-        <Text style={styles.subtitle}>고민에 맞는 철학자를 찾아드려요</Text>
-      </View>
+    // 확장/축소 애니메이션 (Animated API만 사용)
+    useEffect(() => {
+      // Fade 애니메이션
+      Animated.timing(fadeAnim, {
+        toValue: showAllCategories ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
 
-      <View style={styles.categoryContainer}>
-        {/* 메인 카테고리 그리드 (6개) */}
-        <View style={styles.categoryGrid}>
-          {MAIN_CATEGORIES.map((category) => (
-            <CategoryItem
-              key={category.id}
-              category={category}
-              onPress={() => onCategoryPress(category.id)}
-            />
-          ))}
+      // 화살표 회전 애니메이션
+      Animated.timing(rotateAnim, {
+        toValue: showAllCategories ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }, [showAllCategories, fadeAnim, rotateAnim]);
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>무엇이 가장 힘드신가요?</Text>
+          <Text style={styles.subtitle}>고민에 맞는 철학자를 찾아드려요</Text>
         </View>
 
-        {/* 더보기 버튼 - 전체 너비로 */}
-        {!showAllCategories && (
-          <TouchableOpacity
-            style={styles.moreButtonFull}
-            onPress={() => setShowAllCategories(true)}
-          >
-            <Text style={styles.moreButtonText}>더 많은 카테고리 보기</Text>
+        <View style={styles.categoryContainer}>
+          {/* 메인 카테고리 그리드 (6개) */}
+          <View style={styles.categoryGrid}>
+            {MAIN_CATEGORIES.map((category) => (
+              <CategoryItem
+                key={category.id}
+                category={category}
+                onPress={() => onCategoryPress(category.id)}
+              />
+            ))}
+          </View>
+
+          {/* 더보기 버튼 - 전체 너비로 */}
+          {!showAllCategories && (
+            <TouchableOpacity
+              style={styles.moreButtonFull}
+              onPress={() => setShowAllCategories(true)}
+            >
+              <Text style={styles.moreButtonText}>더 많은 카테고리 보기</Text>
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '180deg'],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
+              </Animated.View>
+            </TouchableOpacity>
+          )}
+
+          {/* 추가 카테고리 (12개) - 확장 시 표시 */}
+          {showAllCategories && (
             <Animated.View
               style={{
-                transform: [
-                  {
-                    rotate: rotateAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0deg', '180deg'],
-                    }),
-                  },
-                ],
+                opacity: fadeAnim,
               }}
             >
-              <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
+              <View style={styles.categoryGrid}>
+                {ADDITIONAL_CATEGORIES.map((category) => (
+                  <CategoryItem
+                    key={category.id}
+                    category={category}
+                    onPress={() => onCategoryPress(category.id)}
+                  />
+                ))}
+              </View>
+
+              {/* 접기 버튼 */}
+              <TouchableOpacity
+                style={styles.collapseButton}
+                onPress={() => setShowAllCategories(false)}
+              >
+                <Text style={styles.collapseButtonText}>접기</Text>
+                <MaterialCommunityIcons name="chevron-up" size={20} color="#6B7280" />
+              </TouchableOpacity>
             </Animated.View>
-          </TouchableOpacity>
-        )}
-
-        {/* 추가 카테고리 (12개) - 확장 시 표시 */}
-        {showAllCategories && (
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-            }}
-          >
-            <View style={styles.categoryGrid}>
-              {ADDITIONAL_CATEGORIES.map((category) => (
-                <CategoryItem
-                  key={category.id}
-                  category={category}
-                  onPress={() => onCategoryPress(category.id)}
-                />
-              ))}
-            </View>
-
-            {/* 접기 버튼 */}
-            <TouchableOpacity
-              style={styles.collapseButton}
-              onPress={() => setShowAllCategories(false)}
-            >
-              <Text style={styles.collapseButtonText}>접기</Text>
-              <MaterialCommunityIcons name="chevron-up" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </Animated.View>
-        )}
+          )}
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {

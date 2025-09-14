@@ -1,59 +1,39 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Surface } from 'react-native-paper';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { spacing } from '@/constants/theme';
 
 export function CounselorCardSkeleton() {
-  const shimmerAnimation = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnimation, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnimation, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-  }, [shimmerAnimation]);
-
-  const opacity = shimmerAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
-
   return (
     <Surface style={styles.card}>
-      <View style={styles.container}>
-        <Animated.View style={[styles.avatar, { opacity }]}>
-          <LinearGradient
-            colors={['#E5E7EB', '#F3F4F6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.avatarGradient}
-          />
-        </Animated.View>
+      <SkeletonPlaceholder
+        backgroundColor="#F3F4F6"
+        highlightColor="#FFFFFF"
+        speed={1200}
+        borderRadius={8}
+      >
+        <View style={styles.container}>
+          {/* Avatar */}
+          <View style={styles.avatar} />
 
-        <View style={styles.content}>
-          <Animated.View style={[styles.titleBar, { opacity }]} />
-          <Animated.View style={[styles.subtitleBar, { opacity }]} />
-          <Animated.View style={[styles.descriptionBar, { opacity }]} />
+          <View style={styles.content}>
+            {/* Name */}
+            <View style={styles.titleBar} />
+            {/* Philosophy */}
+            <View style={styles.subtitleBar} />
+            {/* Description */}
+            <View style={styles.descriptionBar} />
 
-          <View style={styles.footer}>
-            <View style={styles.stats}>
-              <Animated.View style={[styles.chipSkeleton, { opacity }]} />
-              <Animated.View style={[styles.chipSkeleton, { opacity }]} />
+            {/* Stats */}
+            <View style={styles.footer}>
+              <View style={styles.stats}>
+                <View style={styles.chipSkeleton} />
+                <View style={styles.chipSkeleton} />
+              </View>
             </View>
           </View>
         </View>
-      </View>
+      </SkeletonPlaceholder>
     </Surface>
   );
 }

@@ -112,7 +112,10 @@ export default function HomeScreen() {
       <>
         <WelcomeSection userName={user?.nickname} />
         <DailyQuote />
-        <CategoryGrid onCategoryPress={handleCategoryPress} />
+        <CategoryGrid
+          onCategoryPress={handleCategoryPress}
+          selectedCategories={selectedCategories}
+        />
         <FilterChips
           selectedCategories={selectedCategories}
           onRemoveCategory={handleRemoveCategory}

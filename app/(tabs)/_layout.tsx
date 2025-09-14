@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
 import { useTheme } from 'react-native-paper';
 
@@ -11,6 +12,12 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: '#6B7280',
         headerShown: false,
+      }}
+      screenListeners={{
+        tabPress: () => {
+          // 탭 전환 시 가벼운 햅틱 피드백
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        },
       }}
     >
       <Tabs.Screen

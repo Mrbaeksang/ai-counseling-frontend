@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import React, { type ReactNode, useCallback } from 'react';
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
@@ -13,6 +14,8 @@ interface AnimatedButtonProps extends Omit<PressableProps, 'style'> {
   scaleTo?: number;
   springConfig?: WithSpringConfig;
   shouldAnimate?: boolean;
+  hapticFeedback?: boolean;
+  hapticStyle?: 'light' | 'medium' | 'heavy';
 }
 
 export const AnimatedButton = React.memo(
@@ -25,6 +28,8 @@ export const AnimatedButton = React.memo(
     scaleTo = 0.96,
     springConfig = { damping: 15, stiffness: 200 },
     shouldAnimate = true,
+    hapticFeedback = true,
+    hapticStyle = 'light',
     ...rest
   }: AnimatedButtonProps) => {
     const scale = useSharedValue(1);
@@ -35,7 +40,27 @@ export const AnimatedButton = React.memo(
         scale.value = withSpring(scaleTo, springConfig);
         opacity.value = withSpring(0.9, springConfig);
       }
-    }, [disabled, shouldAnimate, scaleTo, springConfig, scale, opacity]);
+
+      // 햅틱 피드백 추가
+      if (!disabled && hapticFeedback) {
+        const impactStyle =
+          hapticStyle === 'heavy'
+            ? Haptics.ImpactFeedbackStyle.Heavy
+            : hapticStyle === 'medium'
+              ? Haptics.ImpactFeedbackStyle.Medium
+              : Haptics.ImpactFeedbackStyle.Light;
+        Haptics.impactAsync(impactStyle);
+      }
+    }, [
+      disabled,
+      shouldAnimate,
+      scaleTo,
+      springConfig,
+      scale,
+      opacity,
+      hapticFeedback,
+      hapticStyle,
+    ]);
 
     const handlePressOut = useCallback(() => {
       scale.value = withSpring(1, springConfig);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
+import { Button, Dialog, Text, TextInput } from 'react-native-paper';
+import { BlurredDialog } from '@/components/common/BlurredDialog';
 import { StarRating } from '@/components/common/StarRating';
 import { spacing } from '@/constants/theme';
 
@@ -36,45 +37,43 @@ export const RatingDialog = React.memo(
     };
 
     return (
-      <Portal>
-        <Dialog visible={visible} onDismiss={onDismiss}>
-          <Dialog.Title>상담은 어떠셨나요?</Dialog.Title>
-          <Dialog.Content>
-            <View style={styles.starsContainer}>
-              <StarRating rating={selectedRating} onRatingChange={onRatingSelect} />
-            </View>
+      <BlurredDialog visible={visible} onDismiss={onDismiss} intensity={90} tint="dark">
+        <Dialog.Title>상담은 어떠셨나요?</Dialog.Title>
+        <Dialog.Content>
+          <View style={styles.starsContainer}>
+            <StarRating rating={selectedRating} onRatingChange={onRatingSelect} />
+          </View>
 
-            <Text style={styles.ratingText}>{getRatingText()}</Text>
+          <Text style={styles.ratingText}>{getRatingText()}</Text>
 
-            <TextInput
-              label="상담에 대한 의견 (선택사항)"
-              mode="outlined"
-              multiline
-              numberOfLines={3}
-              value={feedback}
-              onChangeText={onFeedbackChange}
-              style={styles.feedbackInput}
-              placeholder="어떤 점이 좋았는지, 개선할 점은 무엇인지 알려주세요"
-              outlineColor="#E5E7EB"
-              activeOutlineColor="#6B46C1"
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={onDismiss} textColor="#6B7280">
-              나중에
-            </Button>
-            <Button
-              onPress={onSubmit}
-              mode="contained"
-              disabled={isSubmitting}
-              loading={isSubmitting}
-              buttonColor="#6B46C1"
-            >
-              평가 완료
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+          <TextInput
+            label="상담에 대한 의견 (선택사항)"
+            mode="outlined"
+            multiline
+            numberOfLines={3}
+            value={feedback}
+            onChangeText={onFeedbackChange}
+            style={styles.feedbackInput}
+            placeholder="어떤 점이 좋았는지, 개선할 점은 무엇인지 알려주세요"
+            outlineColor="#E5E7EB"
+            activeOutlineColor="#6B46C1"
+          />
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={onDismiss} textColor="#6B7280">
+            나중에
+          </Button>
+          <Button
+            onPress={onSubmit}
+            mode="contained"
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            buttonColor="#6B46C1"
+          >
+            평가 완료
+          </Button>
+        </Dialog.Actions>
+      </BlurredDialog>
     );
   },
 );

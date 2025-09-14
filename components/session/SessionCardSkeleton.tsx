@@ -1,32 +1,51 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card } from 'react-native-paper';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { spacing } from '@/constants/theme';
 
 export const SessionCardSkeleton = React.memo(() => {
   return (
     <Card style={styles.card}>
       <Card.Content style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.avatar} />
-          <View style={styles.textContainer}>
-            <View style={styles.title} />
-            <View style={styles.subtitle} />
-            <View style={styles.time} />
+        <SkeletonPlaceholder
+          backgroundColor="#F3F4F6"
+          highlightColor="#FFFFFF"
+          speed={1200}
+          borderRadius={8}
+        >
+          <View style={styles.header}>
+            {/* Avatar */}
+            <View style={styles.avatar} />
+
+            <View style={styles.textContainer}>
+              {/* Session Title */}
+              <View style={styles.title} />
+              {/* Last Message */}
+              <View style={styles.subtitle} />
+              {/* Time & Message Count */}
+              <View style={styles.footer}>
+                <View style={styles.time} />
+                <View style={styles.count} />
+              </View>
+            </View>
           </View>
-        </View>
+        </SkeletonPlaceholder>
       </Card.Content>
     </Card>
   );
 });
 
+SessionCardSkeleton.displayName = 'SessionCardSkeleton';
+
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.xs,
     elevation: 2,
   },
   content: {
-    padding: 16,
+    padding: spacing.md,
   },
   header: {
     flexDirection: 'row',
@@ -35,30 +54,36 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E0E0E0',
   },
   textContainer: {
-    marginLeft: 12,
+    marginLeft: spacing.sm,
     flex: 1,
   },
   title: {
-    height: 20,
-    width: '70%',
-    backgroundColor: '#E0E0E0',
+    height: 18,
+    width: '60%',
     borderRadius: 4,
-    marginBottom: 8,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    height: 16,
-    width: '50%',
-    backgroundColor: '#E0E0E0',
+    height: 14,
+    width: '85%',
     borderRadius: 4,
-    marginBottom: 6,
+    marginBottom: spacing.xs,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
   },
   time: {
-    height: 14,
-    width: '40%',
-    backgroundColor: '#E0E0E0',
+    height: 12,
+    width: 60,
+    borderRadius: 4,
+  },
+  count: {
+    height: 12,
+    width: 40,
     borderRadius: 4,
   },
 });
