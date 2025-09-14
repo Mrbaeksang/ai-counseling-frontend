@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Dimensions, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
@@ -43,7 +44,7 @@ export const CounselorGridCard = React.memo(
       >
         <View style={styles.imageContainer}>
           {imageSource ? (
-            <Image source={imageSource} style={styles.image} resizeMode="cover" />
+            <Image source={imageSource} style={styles.image} contentFit="cover" transition={200} />
           ) : (
             <View style={styles.imagePlaceholder}>
               <Text style={styles.placeholderText}>{counselor.name.substring(0, 2)}</Text>

@@ -1,8 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   RefreshControl,
   StyleSheet,
   TouchableOpacity,
@@ -158,7 +158,7 @@ export const CounselorList = React.memo(
     }, [isLoadingMore]);
 
     return (
-      <FlatList
+      <FlashList
         data={isLoading ? Array(6).fill({}) : counselors}
         renderItem={isLoading ? renderSkeleton : renderCounselor}
         keyExtractor={(item, index) => (isLoading ? `skeleton-${index}` : `counselor-${item.id}`)}
@@ -170,14 +170,21 @@ export const CounselorList = React.memo(
         showsVerticalScrollIndicator={false}
         // 그리드 설정
         numColumns={viewMode === 'grid' ? 3 : 1}
-        columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : undefined}
+        // FlashList 최적화
+        estimatedItemSize={viewMode === 'grid' ? 120 : 140}
         // 무한 스크롤
         onEndReached={onEndReached}
         onEndReachedThreshold={0.8}
-        // 성능 최적화
-        windowSize={10}
-        initialNumToRender={8}
-        maxToRenderPerBatch={8}
+        // 성능 최적화 (FlashList는 자동 최적화)
+        drawDistance={200}
+        overrideItemLayout={
+          viewMode === 'grid'
+            ? undefined
+            : (layout, _item, _index, _maxColumns) => {
+                layout.size = 140; // 리스트 모드 아이템 높이
+                layout.span = 1;
+              }
+        }
       />
     );
   },

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { spacing } from '@/constants/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -9,9 +10,21 @@ const CARD_HEIGHT = CARD_WIDTH * 1.4;
 export const CounselorGridCardSkeleton = React.memo(() => {
   return (
     <View style={styles.container}>
-      <View style={styles.skeleton}>
-        <View style={styles.shimmer} />
-      </View>
+      <SkeletonPlaceholder
+        backgroundColor="#F3F4F6"
+        highlightColor="#FFFFFF"
+        speed={1200}
+        borderRadius={12}
+      >
+        <View style={styles.skeleton}>
+          {/* Avatar area */}
+          <View style={styles.avatarArea} />
+          {/* Name */}
+          <View style={styles.nameBar} />
+          {/* Philosophy */}
+          <View style={styles.philosophyBar} />
+        </View>
+      </SkeletonPlaceholder>
     </View>
   );
 });
@@ -25,18 +38,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   skeleton: {
-    flex: 1,
-    backgroundColor: '#E5E7EB',
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 12,
-    overflow: 'hidden',
+    alignItems: 'center',
+    paddingTop: spacing.md,
   },
-  shimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    opacity: 0.6,
+  avatarArea: {
+    width: CARD_WIDTH * 0.6,
+    height: CARD_WIDTH * 0.6,
+    borderRadius: (CARD_WIDTH * 0.6) / 2,
+    marginBottom: spacing.sm,
+  },
+  nameBar: {
+    width: CARD_WIDTH * 0.5,
+    height: 14,
+    marginBottom: spacing.xs,
+  },
+  philosophyBar: {
+    width: CARD_WIDTH * 0.7,
+    height: 10,
   },
 });

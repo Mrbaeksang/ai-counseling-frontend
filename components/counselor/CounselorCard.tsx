@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
@@ -52,6 +53,7 @@ export const CounselorCard = React.memo(
               scaleTo={0.85}
               springConfig={{ damping: 10, stiffness: 300 }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hapticStyle="medium"
             >
               <MaterialCommunityIcons
                 name={isFavorite ? 'heart' : 'heart-outline'}
@@ -63,7 +65,12 @@ export const CounselorCard = React.memo(
             {/* 프로필 이미지 */}
             <View style={styles.imageContainer}>
               {imageSource ? (
-                <Image source={imageSource} style={styles.profileImage} resizeMode="cover" />
+                <Image
+                  source={imageSource}
+                  style={styles.profileImage}
+                  contentFit="cover"
+                  transition={200}
+                />
               ) : (
                 <LinearGradient
                   colors={['#6B46C1', '#9333EA']}

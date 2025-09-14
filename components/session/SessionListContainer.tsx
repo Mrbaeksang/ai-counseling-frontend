@@ -1,5 +1,6 @@
+import { FlashList } from '@shopify/flash-list';
 import React, { type ReactElement } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import type { Session } from '@/services/sessions/types';
 import EmptySessionState from './EmptySessionState';
@@ -58,7 +59,7 @@ export const SessionListContainer = React.memo(
     }
 
     return (
-      <FlatList
+      <FlashList
         data={sessions}
         keyExtractor={(item) => item.sessionId.toString()}
         renderItem={({ item }) => renderItem(item)}
@@ -77,6 +78,9 @@ export const SessionListContainer = React.memo(
           ) : null
         }
         contentContainerStyle={sessions.length === 0 ? styles.emptyContainer : undefined}
+        // FlashList 최적화
+        estimatedItemSize={120}
+        drawDistance={200}
       />
     );
   },

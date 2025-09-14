@@ -17,6 +17,17 @@ export const counselorImages: { [key: string]: ReturnType<typeof require> } = {
   'kant.jpg': require('@/assets/counselors/kant.jpg'),
   'buddha.jpg': require('@/assets/counselors/buddha.jpg'),
   'laozi.jpg': require('@/assets/counselors/laozi.jpg'),
+  // 현대 상담사들 - .jpeg 확장자
+  'gottman.jpeg': require('@/assets/counselors/gottman.jpeg'),
+  'covey.jpeg': require('@/assets/counselors/covey.jpeg'),
+  'duhigg.jpeg': require('@/assets/counselors/duhigg.jpeg'),
+  'david.jpeg': require('@/assets/counselors/david.jpeg'),
+  'freudenberger.jpeg': require('@/assets/counselors/freudenberger.jpeg'),
+  'kabatzinn.jpeg': require('@/assets/counselors/kabatzinn.jpeg'),
+  'newport.jpeg': require('@/assets/counselors/newport.jpeg'),
+  'duckworth.jpeg': require('@/assets/counselors/duckworth.jpeg'),
+  'brown.jpeg': require('@/assets/counselors/brown.jpeg'),
+  'naeunying.jpeg': require('@/assets/counselors/naeunying.jpeg'),
 };
 
 // 상담사 이미지 가져오기 헬퍼 함수
