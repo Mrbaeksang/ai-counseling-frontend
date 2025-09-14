@@ -54,10 +54,9 @@ export const AnimatedButton = React.memo(
         onPress={onPress}
         onLongPress={onLongPress}
         disabled={disabled}
-        style={style}
         {...rest}
       >
-        <Animated.View style={animatedStyle}>{children}</Animated.View>
+        <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>
       </Pressable>
     );
   },

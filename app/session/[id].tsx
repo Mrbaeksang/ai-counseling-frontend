@@ -272,18 +272,8 @@ export default function SessionScreen() {
             renderTime={() => null}
             inverted={false}
             isTyping={isSending}
-            scrollToBottom
             infiniteScroll
             renderInputToolbar={isSessionClosed ? () => null : undefined}
-            listViewProps={{
-              style: {
-                backgroundColor: '#FAFAFA',
-              },
-              contentContainerStyle: {
-                paddingTop: 16,
-                paddingBottom: 16,
-              },
-            }}
           />
 
           <RatingDialog

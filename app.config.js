@@ -30,7 +30,14 @@ export default {
     },
     plugins: [
       'expo-router',
-      'expo-build-properties',
+      [
+        'expo-build-properties',
+        {
+          android: {
+            kotlinVersion: '2.0.0',
+          },
+        },
+      ],
       [
         '@react-native-seoul/kakao-login',
         {
