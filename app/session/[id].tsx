@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { Alert, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { Bubble, type BubbleProps, GiftedChat, type IMessage } from 'react-native-gifted-chat';
 import { ActivityIndicator, Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -140,8 +140,12 @@ export default function SessionScreen() {
     }
   }, [newTitle, sessionTitle, handleTitleUpdate, setShowTitleDialog]);
 
-  // Custom bubble renderer with spacing
+  // Custom bubble renderer with spacing and width fix
   const renderBubble = useCallback((props: BubbleProps<IMessage>) => {
+    const { width } = Dimensions.get('window');
+    // 아바타(48) + marginRight(10) + 좌우 패딩(32) = 90px
+    const maxBubbleWidth = width - 90;
+
     return (
       <View style={{ marginBottom: 8 }}>
         <Bubble
@@ -149,6 +153,7 @@ export default function SessionScreen() {
           wrapperStyle={{
             left: {
               backgroundColor: '#F3F4F6',
+              maxWidth: maxBubbleWidth,
             },
             right: {
               backgroundColor: '#6B46C1',

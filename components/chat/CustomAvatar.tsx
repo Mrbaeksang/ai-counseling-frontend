@@ -18,10 +18,10 @@ export const CustomAvatar = React.memo(({ currentMessage }: CustomAvatarProps) =
 
 const styles = StyleSheet.create({
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 10,
     borderWidth: 2,
     borderColor: '#6B46C1',
     backgroundColor: '#FFFFFF',
