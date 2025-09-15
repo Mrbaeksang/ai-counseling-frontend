@@ -125,18 +125,22 @@ export const FavoritesRow = React.memo(
         {/* Active Pagination Dots */}
         {data.length > 2 && (
           <View style={styles.scrollIndicator}>
-            {Array.from({ length: Math.ceil(data.length / 2) }).map((_, index) => (
-              <View
-                key={`dot-${rowKey}-${index}`}
-                style={[
-                  styles.scrollDot,
-                  {
-                    backgroundColor: index === activeIndex ? hintColor : `${hintColor}30`,
-                    transform: [{ scale: index === activeIndex ? 1.2 : 1 }],
-                  },
-                ]}
-              />
-            ))}
+            {Array.from({ length: Math.ceil(data.length / 2) }).map((_, index) => {
+              // 정적 페이지네이션 점이므로 고유 ID 생성
+              const dotId = `${rowKey}-page-${index + 1}`;
+              return (
+                <View
+                  key={dotId}
+                  style={[
+                    styles.scrollDot,
+                    {
+                      backgroundColor: index === activeIndex ? hintColor : `${hintColor}30`,
+                      transform: [{ scale: index === activeIndex ? 1.2 : 1 }],
+                    },
+                  ]}
+                />
+              );
+            })}
           </View>
         )}
       </View>

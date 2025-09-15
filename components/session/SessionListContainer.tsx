@@ -128,7 +128,7 @@ export const SessionListContainer = React.memo(
       <FlashList
         data={sessions}
         keyExtractor={(item) => item.sessionId.toString()}
-        renderItem={({ item }) => renderItem?.(item)}
+        renderItem={({ item }) => renderItem?.(item) ?? null}
         refreshControl={
           onRefresh ? (
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#6B46C1']} />

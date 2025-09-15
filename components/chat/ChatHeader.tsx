@@ -19,7 +19,7 @@ interface ChatHeaderProps {
 export const ChatHeader = React.memo(
   ({
     title,
-    counselorName,
+    counselorName: _counselorName, // 향후 사용 예정
     counselorAvatar,
     onTitleEdit,
     onBookmarkToggle,
