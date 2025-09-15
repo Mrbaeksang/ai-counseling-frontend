@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { spacing } from '@/constants/theme';
 
 interface FavoritesEmptyStateProps {
@@ -25,11 +26,11 @@ export const FavoritesEmptyState = React.memo(({ isAuthenticated }: FavoritesEmp
           ? '로그인하고 마음에 드는 상담사를 저장해보세요'
           : '마음에 드는 철학자를 즐겨찾기에 추가해보세요'}
       </Text>
-      <TouchableOpacity style={styles.browseButton} onPress={handleStartChat}>
+      <AnimatedButton style={styles.browseButton} onPress={handleStartChat} scaleTo={0.95} springConfig={{ damping: 12, stiffness: 160 }}>
         <Text style={styles.browseButtonText}>
           {!isAuthenticated ? '로그인하기' : '상담사 둘러보기'}
         </Text>
-      </TouchableOpacity>
+      </AnimatedButton>
     </View>
   );
 });

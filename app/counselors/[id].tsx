@@ -1,5 +1,4 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,7 +7,7 @@ import { CounselingMethod } from '@/components/counselor/CounselingMethod';
 import { ProfileHeader } from '@/components/counselor/ProfileHeader';
 import { spacing } from '@/constants/theme';
 import { useCounselorDetail } from '@/hooks/useCounselors';
-import { startSession } from '@/services/sessions';
+import { useStartSession } from '@/hooks/useStartSession';
 import useAuthStore from '@/store/authStore';
 
 export default function CounselorDetailScreen() {
@@ -17,10 +16,10 @@ export default function CounselorDetailScreen() {
   const { user } = useAuthStore();
 
   const counselorId = Number(params.id);
-  const [starting, setStarting] = useState(false);
 
   // React Query 훅 사용
   const { data: counselor, isLoading } = useCounselorDetail(counselorId);
+  const startSessionMutation = useStartSession();
 
   const handleStartSession = async () => {
     if (!user) {
@@ -30,8 +29,7 @@ export default function CounselorDetailScreen() {
     }
 
     try {
-      setStarting(true);
-      const response = await startSession(counselorId);
+      const response = await startSessionMutation.mutateAsync({ counselorId });
       // 세션 화면으로 이동 (백엔드 응답의 counselorId 사용)
       router.replace({
         pathname: `/session/${response.sessionId}`,
@@ -44,9 +42,8 @@ export default function CounselorDetailScreen() {
         },
       });
     } catch (error) {
-      alert(`세션 시작 실패: ${error}`);
-    } finally {
-      setStarting(false);
+      // 에러는 이미 mutation에서 처리됨
+      console.error('Session start error:', error);
     }
   };
 
@@ -95,8 +92,8 @@ export default function CounselorDetailScreen() {
         <Button
           mode="contained"
           onPress={handleStartSession}
-          loading={starting}
-          disabled={starting}
+          loading={startSessionMutation.isPending}
+          disabled={startSessionMutation.isPending}
           style={styles.startButton}
           contentStyle={styles.startButtonContent}
           labelStyle={styles.startButtonLabel}

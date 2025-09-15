@@ -51,13 +51,19 @@ export const useToggleFavorite = () => {
     onSuccess: (_, { counselorId, isFavorite }) => {
       // 즐겨찾기 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      // 상담사 목록 새로고침 (isFavorite 상태 반영)
+
+      // 무한 스크롤 상담사 목록 새로고침 (중요!)
+      queryClient.invalidateQueries({ queryKey: ['counselors', 'infinite'] });
+
+      // 일반 상담사 목록도 새로고침
       queryClient.invalidateQueries({ queryKey: ['counselors'] });
+
       // 해당 상담사 상세 정보 업데이트
       queryClient.setQueryData(['counselor', counselorId], (old: CounselorDetail | undefined) => {
         if (!old) return old;
         return { ...old, isFavorite: !isFavorite };
       });
+
       toast.show(
         isFavorite ? '즐겨찾기에서 제거되었습니다' : '즐겨찾기에 추가되었습니다',
         'success',

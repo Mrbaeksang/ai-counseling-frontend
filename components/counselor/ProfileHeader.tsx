@@ -2,8 +2,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
 import type { CounselorDetail } from '@/services/counselors/types';
@@ -23,9 +24,9 @@ export const ProfileHeader = React.memo(({ counselor }: ProfileHeaderProps) => {
       style={styles.header}
     >
       <View style={styles.headerTop}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <AnimatedButton onPress={() => router.back()} style={styles.backButton} scaleTo={0.88} springConfig={{ damping: 15, stiffness: 200 }}>
           <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
-        </TouchableOpacity>
+        </AnimatedButton>
       </View>
 
       <View style={styles.profileSection}>

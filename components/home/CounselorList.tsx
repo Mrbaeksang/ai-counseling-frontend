@@ -5,10 +5,10 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { CounselorCard } from '@/components/counselor/CounselorCard';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
 import { CounselorGridCard } from '@/components/counselor/CounselorGridCard';
@@ -102,10 +102,12 @@ export const CounselorList = React.memo(
             <Text style={styles.sortTitle}>전체 상담사</Text>
             <View style={styles.sortOptions}>
               {sortOptions.map((option) => (
-                <TouchableOpacity
+                <AnimatedButton
                   key={option.key}
                   onPress={() => onSortChange(option.key)}
                   style={[styles.sortOption, sortBy === option.key && styles.sortOptionActive]}
+                  scaleTo={0.92}
+                  springConfig={{ damping: 15, stiffness: 200 }}
                 >
                   <MaterialCommunityIcons
                     name={option.icon as IconName}
@@ -120,7 +122,7 @@ export const CounselorList = React.memo(
                   >
                     {option.label}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedButton>
               ))}
             </View>
           </View>

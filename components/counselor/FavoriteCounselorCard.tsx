@@ -1,16 +1,23 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselorResponse } from '@/services/counselors/types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-// 화면 너비에서 padding을 뺀 후 2로 나누고, 카드 간격 고려
-const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2;
-const CARD_HEIGHT = (screenHeight - 220) / 2; // 화면 높이에서 헤더, 탭바 등 제외하고 2행으로 나눔
+// 즐겨찾기 카드: 화면을 반응형으로 꽉 채움
+export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2; // 정확히 2개씩
+// 헤더와 탭바를 제외한 실제 콘텐츠 영역의 절반 크기로 설정
+const availableHeight = screenHeight - 180; // 헤더, 탭바, 여백 제외
+export const CARD_HEIGHT = Math.max(
+  CARD_WIDTH * 1.5, // 최소 비율
+  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8) // 최대 48% 또는 1.8 비율
+);
 
 interface FavoriteCounselorCardProps {
   counselor: FavoriteCounselorResponse;
@@ -27,11 +34,11 @@ export const FavoriteCounselorCard = React.memo(
     const imageSource = getCounselorImage(counselor.avatarUrl);
 
     return (
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+      <AnimatedButton onPress={handlePress} scaleTo={0.96} springConfig={{ damping: 12, stiffness: 160 }}>
         <View style={styles.card}>
           {/* 이미지가 카드 전체를 차지 */}
           {imageSource ? (
-            <Image source={imageSource} style={styles.fullImage} resizeMode="cover" />
+            <Image source={imageSource} style={styles.fullImage} contentFit="cover" transition={200} />
           ) : (
             <LinearGradient
               colors={['#EC4899', '#F472B6']}
@@ -44,20 +51,21 @@ export const FavoriteCounselorCard = React.memo(
           )}
 
           {/* 그라데이션 오버레이 (하단 어둡게) */}
-          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.overlay} />
+          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.overlay} />
 
           {/* 하트 아이콘 - 클릭시 즐겨찾기 해제 */}
-          <TouchableOpacity
+          <AnimatedButton
             style={styles.heartBadge}
             onPress={(e) => {
               e.stopPropagation(); // 카드 클릭 이벤트와 분리
               onFavoriteToggle?.();
             }}
-            activeOpacity={0.7}
+            scaleTo={0.85}
+            springConfig={{ damping: 15, stiffness: 200 }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <MaterialCommunityIcons name="heart" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
+          </AnimatedButton>
 
           {/* 하단 정보 영역 */}
           <View style={styles.infoContainer}>
@@ -77,7 +85,7 @@ export const FavoriteCounselorCard = React.memo(
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </AnimatedButton>
     );
   },
 );
@@ -89,7 +97,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: '#F3F4F6',
     elevation: 6,
     shadowColor: '#000',
     shadowOffset: {
@@ -106,7 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   avatarPlaceholder: {
-    fontSize: CARD_WIDTH * 0.3,
+    fontSize: CARD_WIDTH * 0.25,
     fontWeight: '700',
     fontFamily: 'Pretendard-Bold',
     color: '#FFFFFF',
@@ -118,7 +126,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: CARD_HEIGHT * 0.4,
+    height: '35%',
   },
   heartBadge: {
     position: 'absolute',

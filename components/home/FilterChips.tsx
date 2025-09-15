@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Chip, Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { CATEGORIES } from '@/constants/categories';
 import { spacing } from '@/constants/theme';
 
@@ -24,10 +25,15 @@ export const FilterChips = React.memo(
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>선택된 필터</Text>
-          <TouchableOpacity onPress={onClearAll} style={styles.clearButton}>
+          <AnimatedButton
+            onPress={onClearAll}
+            style={styles.clearButton}
+            scaleTo={0.92}
+            springConfig={{ damping: 15, stiffness: 200 }}
+          >
             <MaterialCommunityIcons name="close-circle" size={18} color="#6B7280" />
             <Text style={styles.clearText}>전체 해제</Text>
-          </TouchableOpacity>
+          </AnimatedButton>
         </View>
 
         <View style={styles.chipsContainer}>

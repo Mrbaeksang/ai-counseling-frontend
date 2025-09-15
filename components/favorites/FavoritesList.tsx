@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { CARD_WIDTH } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselorResponse } from '@/services/counselors/types';
 import { FavoritesEmptyState } from './FavoritesEmptyState';
@@ -27,6 +28,10 @@ export const FavoritesList = React.memo(
     // 스크롤 힌트 애니메이션
     const scrollHintAnim = useRef(new Animated.Value(1)).current;
     const [showScrollHint, setShowScrollHint] = useState(true);
+
+    // Active pagination dots state
+    const [activeIndex1, setActiveIndex1] = useState(0);
+    const [activeIndex2, setActiveIndex2] = useState(0);
 
     // 초기 진입시 스크롤 힌트 애니메이션
     useEffect(() => {
@@ -74,8 +79,22 @@ export const FavoritesList = React.memo(
       return [row1, row2];
     }, [favorites, isLoading]);
 
-    const handleScroll = () => {
+    const handleScrollRow1 = (event?: any) => {
       setShowScrollHint(false);
+      if (event?.nativeEvent) {
+        const { contentOffset } = event.nativeEvent;
+        const index = Math.round(contentOffset.x / (CARD_WIDTH + spacing.sm));
+        setActiveIndex1(Math.max(0, index));
+      }
+    };
+
+    const handleScrollRow2 = (event?: any) => {
+      setShowScrollHint(false);
+      if (event?.nativeEvent) {
+        const { contentOffset } = event.nativeEvent;
+        const index = Math.round(contentOffset.x / (CARD_WIDTH + spacing.sm));
+        setActiveIndex2(Math.max(0, index));
+      }
     };
 
     if (!isAuthenticated || (favorites.length === 0 && !isLoading)) {
@@ -103,9 +122,10 @@ export const FavoritesList = React.memo(
             showScrollHint={showScrollHint}
             scrollHintAnim={scrollHintAnim}
             onFavoriteToggle={onFavoriteToggle}
-            onScroll={handleScroll}
+            onScroll={handleScrollRow1}
             rowKey="row1"
             hintColor="#6B46C1"
+            activeIndex={activeIndex1}
           />
 
           {secondRow.length > 0 && (
@@ -115,9 +135,10 @@ export const FavoritesList = React.memo(
               showScrollHint={showScrollHint}
               scrollHintAnim={scrollHintAnim}
               onFavoriteToggle={onFavoriteToggle}
-              onScroll={handleScroll}
+              onScroll={handleScrollRow2}
               rowKey="row2"
               hintColor="#EC4899"
+              activeIndex={activeIndex2}
             />
           )}
         </View>
@@ -132,10 +153,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   contentContainer: {
-    flexGrow: 1,
+    flex: 1,
+    justifyContent: 'center',
   },
   rowsContainer: {
     flex: 1,
-    paddingVertical: spacing.sm,
+    justifyContent: 'center',
+    gap: spacing.lg, // 1행과 2행 사이 충분한 여백 (24px)
   },
 });

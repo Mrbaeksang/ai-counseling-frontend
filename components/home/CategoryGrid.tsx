@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { CATEGORIES } from '@/constants/categories';
 import { spacing } from '@/constants/theme';
@@ -136,9 +137,11 @@ export const CategoryGrid = React.memo(
 
           {/* 더보기 버튼 - 전체 너비로 */}
           {!showAllCategories && (
-            <TouchableOpacity
+            <AnimatedButton
               style={styles.moreButtonFull}
               onPress={() => setShowAllCategories(true)}
+              scaleTo={0.96}
+              springConfig={{ damping: 12, stiffness: 160 }}
             >
               <Text style={styles.moreButtonText}>더 많은 카테고리 보기</Text>
               <Animated.View
@@ -155,7 +158,7 @@ export const CategoryGrid = React.memo(
               >
                 <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
               </Animated.View>
-            </TouchableOpacity>
+            </AnimatedButton>
           )}
 
           {/* 추가 카테고리 (12개) - 확장 시 표시 */}
@@ -176,13 +179,15 @@ export const CategoryGrid = React.memo(
               </View>
 
               {/* 접기 버튼 */}
-              <TouchableOpacity
+              <AnimatedButton
                 style={styles.collapseButton}
                 onPress={() => setShowAllCategories(false)}
+                scaleTo={0.94}
+                springConfig={{ damping: 15, stiffness: 200 }}
               >
                 <Text style={styles.collapseButtonText}>접기</Text>
                 <MaterialCommunityIcons name="chevron-up" size={20} color="#6B7280" />
-              </TouchableOpacity>
+              </AnimatedButton>
             </Animated.View>
           )}
         </View>

@@ -1,11 +1,19 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useRef } from 'react';
-import { Animated, FlatList, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
-import { FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
+import { FavoriteCounselorCard, CARD_WIDTH } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselorResponse } from '@/services/counselors/types';
+
+const { height: screenHeight } = Dimensions.get('window');
+// 각 행의 높이를 카드 높이에 맞춤
+const availableHeight = screenHeight - 180;
+const MAX_ROW_HEIGHT = Math.max(
+  CARD_WIDTH * 1.5,
+  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8)
+); // 카드 높이와 동일
 
 interface FavoritesRowProps {
   data: FavoriteCounselorResponse[];
@@ -13,9 +21,10 @@ interface FavoritesRowProps {
   showScrollHint: boolean;
   scrollHintAnim: Animated.Value;
   onFavoriteToggle: (counselorId: number) => void;
-  onScroll: () => void;
+  onScroll: (event?: any) => void;
   rowKey: string;
   hintColor: string;
+  activeIndex: number;
 }
 
 export const FavoritesRow = React.memo(
@@ -28,6 +37,7 @@ export const FavoritesRow = React.memo(
     onScroll,
     rowKey,
     hintColor,
+    activeIndex,
   }: FavoritesRowProps) => {
     const listRef = useRef<FlatList>(null);
 
@@ -66,6 +76,10 @@ export const FavoritesRow = React.memo(
           contentContainerStyle={styles.rowContent}
           onScroll={onScroll}
           scrollEventThrottle={16}
+          scrollEnabled={data.length > 2} // 2개 이하면 스크롤 비활성화
+          initialNumToRender={6} // 초기에 더 많은 아이템 렌더링
+          windowSize={10} // 뷰포트 밖 아이템도 미리 렌더링
+          removeClippedSubviews={false} // 이미지 로딩 보장
         />
 
         {/* 오른쪽 페이드 효과 */}
@@ -79,7 +93,7 @@ export const FavoritesRow = React.memo(
           />
         )}
 
-        {/* 스크롤 힌트 애니메이션 */}
+        {/* 스크롤 힌트 애니메이션 - 더 자연스럽게 */}
         {showScrollHint && data.length > 2 && (
           <Animated.View
             style={[
@@ -90,7 +104,13 @@ export const FavoritesRow = React.memo(
                   {
                     translateX: scrollHintAnim.interpolate({
                       inputRange: [0.3, 1],
-                      outputRange: [-5, 0],
+                      outputRange: [-8, 3],
+                    }),
+                  },
+                  {
+                    scale: scrollHintAnim.interpolate({
+                      inputRange: [0.3, 1],
+                      outputRange: [0.9, 1],
                     }),
                   },
                 ],
@@ -98,8 +118,27 @@ export const FavoritesRow = React.memo(
             ]}
             pointerEvents="none"
           >
-            <MaterialCommunityIcons name="chevron-right" size={32} color={hintColor} />
+            <MaterialCommunityIcons name="chevron-double-right" size={24} color={hintColor} />
           </Animated.View>
+        )}
+
+        {/* Active Pagination Dots */}
+        {data.length > 2 && (
+          <View style={styles.scrollIndicator}>
+            {Array.from({ length: Math.ceil(data.length / 2) }).map((_, index) => (
+              <View
+                key={`dot-${rowKey}-${index}`}
+                style={[
+                  styles.scrollDot,
+                  {
+                    backgroundColor:
+                      index === activeIndex ? hintColor : `${hintColor}30`,
+                    transform: [{ scale: index === activeIndex ? 1.2 : 1 }],
+                  },
+                ]}
+              />
+            ))}
+          </View>
         )}
       </View>
     );
@@ -108,8 +147,7 @@ export const FavoritesRow = React.memo(
 
 const styles = StyleSheet.create({
   rowWrapper: {
-    height: '50%',
-    marginBottom: spacing.sm,
+    height: MAX_ROW_HEIGHT,
     position: 'relative',
   },
   rowContent: {
@@ -148,5 +186,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  scrollIndicator: {
+    position: 'absolute',
+    bottom: 12,
+    right: 20,
+    flexDirection: 'row',
+    gap: 4,
+    zIndex: 1,
+  },
+  scrollDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
 });
