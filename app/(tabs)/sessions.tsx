@@ -1,11 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SessionListContainer from '@/components/session/SessionListContainer';
-import { spacing } from '@/constants/theme';
+import { SessionTabs } from '@/components/session/SessionTabs';
 import { useSessions } from '@/hooks/useSessions';
 import { toggleSessionBookmark } from '@/services/sessions';
 import type { Session } from '@/services/sessions/types';
@@ -53,7 +51,7 @@ export default function SessionsScreen() {
       if (activePage === 1) {
         setAllActiveSessions(activeData.content);
       } else {
-        setAllActiveSessions(prev => [...prev, ...activeData.content]);
+        setAllActiveSessions((prev) => [...prev, ...activeData.content]);
       }
     }
   }, [activeData, activePage]);
@@ -63,7 +61,7 @@ export default function SessionsScreen() {
       if (closedPage === 1) {
         setAllClosedSessions(closedData.content);
       } else {
-        setAllClosedSessions(prev => [...prev, ...closedData.content]);
+        setAllClosedSessions((prev) => [...prev, ...closedData.content]);
       }
     }
   }, [closedData, closedPage]);
@@ -73,7 +71,7 @@ export default function SessionsScreen() {
       if (bookmarkedPage === 1) {
         setAllBookmarkedSessions(bookmarkedData.content);
       } else {
-        setAllBookmarkedSessions(prev => [...prev, ...bookmarkedData.content]);
+        setAllBookmarkedSessions((prev) => [...prev, ...bookmarkedData.content]);
       }
     }
   }, [bookmarkedData, bookmarkedPage]);
@@ -106,19 +104,19 @@ export default function SessionsScreen() {
   // 무한 스크롤 핸들러
   const handleLoadMoreActive = useCallback(() => {
     if (!activeLoading && activeData?.pageInfo?.hasNext) {
-      setActivePage(prev => prev + 1);
+      setActivePage((prev) => prev + 1);
     }
   }, [activeLoading, activeData]);
 
   const handleLoadMoreClosed = useCallback(() => {
     if (!closedLoading && closedData?.pageInfo?.hasNext) {
-      setClosedPage(prev => prev + 1);
+      setClosedPage((prev) => prev + 1);
     }
   }, [closedLoading, closedData]);
 
   const handleLoadMoreBookmarked = useCallback(() => {
     if (!bookmarkedLoading && bookmarkedData?.pageInfo?.hasNext) {
-      setBookmarkedPage(prev => prev + 1);
+      setBookmarkedPage((prev) => prev + 1);
     }
   }, [bookmarkedLoading, bookmarkedData]);
 
@@ -140,58 +138,7 @@ export default function SessionsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <View style={styles.titleSection}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="clipboard-text-multiple" size={20} color="#6B46C1" />
-          </View>
-          <Text style={styles.title}>상담 내역</Text>
-        </View>
-
-        <View style={styles.chipContainer}>
-          <Pressable
-            style={[styles.chip, tabIndex === '0' && styles.chipActive]}
-            onPress={() => setTabIndex('0')}
-          >
-            <MaterialCommunityIcons
-              name="chat-processing"
-              size={14}
-              color={tabIndex === '0' ? '#FFFFFF' : '#6B7280'}
-            />
-            <Text style={[styles.chipText, tabIndex === '0' && styles.chipTextActive]}>
-              진행중
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.chip, tabIndex === '1' && styles.chipActive]}
-            onPress={() => setTabIndex('1')}
-          >
-            <MaterialCommunityIcons
-              name="check-circle"
-              size={14}
-              color={tabIndex === '1' ? '#FFFFFF' : '#6B7280'}
-            />
-            <Text style={[styles.chipText, tabIndex === '1' && styles.chipTextActive]}>
-              종료됨
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.chip, tabIndex === '2' && styles.chipActive]}
-            onPress={() => setTabIndex('2')}
-          >
-            <MaterialCommunityIcons
-              name="star"
-              size={14}
-              color={tabIndex === '2' ? '#FFFFFF' : '#6B7280'}
-            />
-            <Text style={[styles.chipText, tabIndex === '2' && styles.chipTextActive]}>
-              북마크
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+      <SessionTabs tabIndex={tabIndex} onTabChange={setTabIndex} />
 
       <View style={styles.content}>
         {tabIndex === '0' && (
@@ -254,75 +201,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm + 2,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  titleSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: 'rgba(107, 70, 193, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    fontFamily: 'Pretendard-Bold',
-    color: '#111827',
-    letterSpacing: -0.3,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    gap: 6,
-    marginLeft: spacing.md,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  chipActive: {
-    backgroundColor: '#6B46C1',
-    borderColor: '#6B46C1',
-    elevation: 2,
-    shadowColor: '#6B46C1',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  chipText: {
-    fontSize: 12,
-    fontFamily: 'Pretendard-Medium',
-    color: '#6B7280',
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-    fontFamily: 'Pretendard-SemiBold',
   },
   content: {
     flex: 1,

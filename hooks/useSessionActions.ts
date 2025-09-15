@@ -63,10 +63,10 @@ export const useSessionActions = ({
 
       // 특히 진행중/종료됨 탭 갱신
       queryClient.invalidateQueries({
-        queryKey: ['sessions', 1, 20, undefined, false] // 진행중
+        queryKey: ['sessions', 1, 20, undefined, false], // 진행중
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions', 1, 20, undefined, true] // 종료됨
+        queryKey: ['sessions', 1, 20, undefined, true], // 종료됨
       });
     },
     onError: () => {

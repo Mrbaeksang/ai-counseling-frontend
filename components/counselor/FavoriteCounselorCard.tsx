@@ -16,7 +16,7 @@ export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2; // �
 const availableHeight = screenHeight - 180; // 헤더, 탭바, 여백 제외
 export const CARD_HEIGHT = Math.max(
   CARD_WIDTH * 1.5, // 최소 비율
-  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8) // 최대 48% 또는 1.8 비율
+  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8), // 최대 48% 또는 1.8 비율
 );
 
 interface FavoriteCounselorCardProps {
@@ -34,11 +34,20 @@ export const FavoriteCounselorCard = React.memo(
     const imageSource = getCounselorImage(counselor.avatarUrl);
 
     return (
-      <AnimatedButton onPress={handlePress} scaleTo={0.96} springConfig={{ damping: 12, stiffness: 160 }}>
+      <AnimatedButton
+        onPress={handlePress}
+        scaleTo={0.96}
+        springConfig={{ damping: 12, stiffness: 160 }}
+      >
         <View style={styles.card}>
           {/* 이미지가 카드 전체를 차지 */}
           {imageSource ? (
-            <Image source={imageSource} style={styles.fullImage} contentFit="cover" transition={200} />
+            <Image
+              source={imageSource}
+              style={styles.fullImage}
+              contentFit="cover"
+              transition={200}
+            />
           ) : (
             <LinearGradient
               colors={['#EC4899', '#F472B6']}

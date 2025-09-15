@@ -1,12 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { CounselorCard } from '@/components/counselor/CounselorCard';

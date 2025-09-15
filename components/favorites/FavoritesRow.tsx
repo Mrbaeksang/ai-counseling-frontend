@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useRef } from 'react';
 import { Animated, Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
-import { FavoriteCounselorCard, CARD_WIDTH } from '@/components/counselor/FavoriteCounselorCard';
+import { CARD_WIDTH, FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselorResponse } from '@/services/counselors/types';
 
@@ -12,7 +12,7 @@ const { height: screenHeight } = Dimensions.get('window');
 const availableHeight = screenHeight - 180;
 const MAX_ROW_HEIGHT = Math.max(
   CARD_WIDTH * 1.5,
-  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8)
+  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8),
 ); // 카드 높이와 동일
 
 interface FavoritesRowProps {
@@ -21,7 +21,7 @@ interface FavoritesRowProps {
   showScrollHint: boolean;
   scrollHintAnim: Animated.Value;
   onFavoriteToggle: (counselorId: number) => void;
-  onScroll: (event?: any) => void;
+  onScroll: (event?: { nativeEvent: { contentOffset: { x: number } } }) => void;
   rowKey: string;
   hintColor: string;
   activeIndex: number;
@@ -131,8 +131,7 @@ export const FavoritesRow = React.memo(
                 style={[
                   styles.scrollDot,
                   {
-                    backgroundColor:
-                      index === activeIndex ? hintColor : `${hintColor}30`,
+                    backgroundColor: index === activeIndex ? hintColor : `${hintColor}30`,
                     transform: [{ scale: index === activeIndex ? 1.2 : 1 }],
                   },
                 ]}

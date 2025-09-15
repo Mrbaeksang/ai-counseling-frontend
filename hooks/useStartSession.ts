@@ -15,11 +15,10 @@ export const useStartSession = () => {
 
       // 특히 진행중 세션 목록 즉시 갱신
       queryClient.invalidateQueries({
-        queryKey: ['sessions', 1, 20, undefined, false]
+        queryKey: ['sessions', 1, 20, undefined, false],
       });
     },
-    onError: (error) => {
-      console.error('Session start failed:', error);
+    onError: (_error) => {
       toast.show('세션 시작에 실패했습니다', 'error');
     },
   });

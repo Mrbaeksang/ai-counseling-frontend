@@ -39,7 +39,12 @@ export const ChatHeader = React.memo(
                 <Text style={styles.title} numberOfLines={1}>
                   {title || '새 상담'}
                 </Text>
-                <AnimatedButton onPress={onTitleEdit} style={styles.editButton} scaleTo={0.85} springConfig={{ damping: 15, stiffness: 200 }}>
+                <AnimatedButton
+                  onPress={onTitleEdit}
+                  style={styles.editButton}
+                  scaleTo={0.85}
+                  springConfig={{ damping: 15, stiffness: 200 }}
+                >
                   <IconButton icon="pencil-outline" size={16} />
                 </AnimatedButton>
               </View>

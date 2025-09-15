@@ -22,7 +22,7 @@ export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2; // �
 const availableHeight = screenHeight - 310; // 더 많은 공간 차지
 export const CARD_HEIGHT = Math.min(
   (availableHeight - spacing.lg) / 2, // 2행이 정확히 들어가도록
-  CARD_WIDTH * 1.5 // 최대 비율 제한
+  CARD_WIDTH * 1.5, // 최대 비율 제한
 );
 
 interface VisualSessionCardProps {
@@ -36,10 +36,13 @@ export const VisualSessionCard = React.memo(
       router.push(`/session/${session.sessionId}`);
     }, [session.sessionId]);
 
-    const handleBookmarkPress = useCallback((e: any) => {
-      e.stopPropagation();
-      onBookmarkToggle?.();
-    }, [onBookmarkToggle]);
+    const handleBookmarkPress = useCallback(
+      (e: { stopPropagation: () => void }) => {
+        e.stopPropagation();
+        onBookmarkToggle?.();
+      },
+      [onBookmarkToggle],
+    );
 
     const imageSource = getCounselorImage(session.avatarUrl);
 
@@ -94,24 +97,16 @@ export const VisualSessionCard = React.memo(
           )}
 
           {/* 그라데이션 오버레이 */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.7)']}
-            style={styles.overlay}
-          />
+          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.overlay} />
 
           {/* 상태 뱃지 (진행중/종료) */}
-          <View style={[
-            styles.statusBadge,
-            isActive ? styles.activeBadge : styles.closedBadge
-          ]}>
+          <View style={[styles.statusBadge, isActive ? styles.activeBadge : styles.closedBadge]}>
             <MaterialCommunityIcons
               name={isActive ? 'chat-processing' : 'check-circle'}
               size={12}
               color="#FFFFFF"
             />
-            <Text style={styles.statusText}>
-              {isActive ? '진행중' : '종료됨'}
-            </Text>
+            <Text style={styles.statusText}>{isActive ? '진행중' : '종료됨'}</Text>
           </View>
 
           {/* 북마크 버튼 */}

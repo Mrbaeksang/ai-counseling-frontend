@@ -41,10 +41,7 @@ export default function CounselorDetailScreen() {
           isBookmarked: 'false', // 새 세션은 항상 북마크되지 않은 상태
         },
       });
-    } catch (error) {
-      // 에러는 이미 mutation에서 처리됨
-      console.error('Session start error:', error);
-    }
+    } catch (_error) {}
   };
 
   if (isLoading) {

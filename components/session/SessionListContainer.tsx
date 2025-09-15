@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import React, { type ReactElement, useCallback } from 'react';
-import { RefreshControl, StyleSheet, View, FlatList } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 import type { Session } from '@/services/sessions/types';
@@ -53,7 +53,7 @@ export const SessionListContainer = React.memo(
           />
         </View>
       ),
-      [onBookmarkToggle]
+      [onBookmarkToggle],
     );
 
     // 로딩 상태
@@ -103,7 +103,11 @@ export const SessionListContainer = React.memo(
           showsVerticalScrollIndicator={false}
           refreshControl={
             onRefresh ? (
-              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#6B46C1']} />
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                colors={['#6B46C1']}
+              />
             ) : undefined
           }
           onEndReached={onEndReached}
@@ -124,7 +128,7 @@ export const SessionListContainer = React.memo(
       <FlashList
         data={sessions}
         keyExtractor={(item) => item.sessionId.toString()}
-        renderItem={({ item }) => renderItem!(item)}
+        renderItem={({ item }) => renderItem?.(item)}
         refreshControl={
           onRefresh ? (
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#6B46C1']} />

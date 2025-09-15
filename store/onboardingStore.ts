@@ -29,8 +29,7 @@ const useOnboardingStore = create<OnboardingState>((set) => ({
         hasSeenOnboarding: hasSeenOnboarding === 'true',
         isLoading: false,
       });
-    } catch (error: unknown) {
-      console.error('Failed to check onboarding status:', error);
+    } catch (_error: unknown) {
       set({ isLoading: false });
     }
   },

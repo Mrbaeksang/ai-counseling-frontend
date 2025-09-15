@@ -26,7 +26,12 @@ export const FavoritesEmptyState = React.memo(({ isAuthenticated }: FavoritesEmp
           ? '로그인하고 마음에 드는 상담사를 저장해보세요'
           : '마음에 드는 철학자를 즐겨찾기에 추가해보세요'}
       </Text>
-      <AnimatedButton style={styles.browseButton} onPress={handleStartChat} scaleTo={0.95} springConfig={{ damping: 12, stiffness: 160 }}>
+      <AnimatedButton
+        style={styles.browseButton}
+        onPress={handleStartChat}
+        scaleTo={0.95}
+        springConfig={{ damping: 12, stiffness: 160 }}
+      >
         <Text style={styles.browseButtonText}>
           {!isAuthenticated ? '로그인하기' : '상담사 둘러보기'}
         </Text>

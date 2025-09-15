@@ -24,7 +24,12 @@ export const ProfileHeader = React.memo(({ counselor }: ProfileHeaderProps) => {
       style={styles.header}
     >
       <View style={styles.headerTop}>
-        <AnimatedButton onPress={() => router.back()} style={styles.backButton} scaleTo={0.88} springConfig={{ damping: 15, stiffness: 200 }}>
+        <AnimatedButton
+          onPress={() => router.back()}
+          style={styles.backButton}
+          scaleTo={0.88}
+          springConfig={{ damping: 15, stiffness: 200 }}
+        >
           <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
         </AnimatedButton>
       </View>

@@ -79,7 +79,7 @@ export const FavoritesList = React.memo(
       return [row1, row2];
     }, [favorites, isLoading]);
 
-    const handleScrollRow1 = (event?: any) => {
+    const handleScrollRow1 = (event?: { nativeEvent: { contentOffset: { x: number } } }) => {
       setShowScrollHint(false);
       if (event?.nativeEvent) {
         const { contentOffset } = event.nativeEvent;
@@ -88,7 +88,7 @@ export const FavoritesList = React.memo(
       }
     };
 
-    const handleScrollRow2 = (event?: any) => {
+    const handleScrollRow2 = (event?: { nativeEvent: { contentOffset: { x: number } } }) => {
       setShowScrollHint(false);
       if (event?.nativeEvent) {
         const { contentOffset } = event.nativeEvent;
