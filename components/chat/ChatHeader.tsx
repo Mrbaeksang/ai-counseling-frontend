@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
 
@@ -18,7 +19,7 @@ interface ChatHeaderProps {
 export const ChatHeader = React.memo(
   ({
     title,
-    counselorName,
+    counselorName: _counselorName, // 향후 사용 예정
     counselorAvatar,
     onTitleEdit,
     onBookmarkToggle,
@@ -34,14 +35,18 @@ export const ChatHeader = React.memo(
           <View style={styles.counselorInfo}>
             {avatarSource && <Image source={avatarSource} style={styles.avatar} />}
             <View style={styles.textContainer}>
-              {counselorName && <Text style={styles.counselorName}>{counselorName} 상담사</Text>}
               <View style={styles.titleContainer}>
                 <Text style={styles.title} numberOfLines={1}>
-                  {title || '새 대화'}
+                  {title || '새 상담'}
                 </Text>
-                <TouchableOpacity onPress={onTitleEdit} style={styles.editButton}>
+                <AnimatedButton
+                  onPress={onTitleEdit}
+                  style={styles.editButton}
+                  scaleTo={0.85}
+                  springConfig={{ damping: 15, stiffness: 200 }}
+                >
                   <IconButton icon="pencil-outline" size={16} />
-                </TouchableOpacity>
+                </AnimatedButton>
               </View>
             </View>
           </View>
@@ -64,7 +69,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm, // 16px → 8px로 줄임
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
@@ -83,9 +88,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40, // 44 → 40으로 약간 줄임
+    height: 40,
+    borderRadius: 20,
     marginRight: spacing.sm,
     borderWidth: 1,
     borderColor: '#6B46C1',
@@ -94,8 +99,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   counselorName: {
-    fontSize: 12,
-    fontFamily: 'Pretendard-Medium',
+    fontSize: 15, // 사용하지 않지만 남겨둠
+    fontFamily: 'Pretendard-Bold',
     color: '#6B46C1',
     marginBottom: 2,
   },
@@ -104,10 +109,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16,
-    fontFamily: 'Pretendard-SemiBold',
-    color: '#111827',
-    maxWidth: '80%',
+    fontSize: 16, // 원래 크기로 복원
+    fontFamily: 'Pretendard-SemiBold', // 원래 굵기로 복원
+    color: '#111827', // 원래 색상으로 복원
+    maxWidth: '85%',
   },
   editButton: {
     marginLeft: -8,

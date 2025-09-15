@@ -2,8 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Animated, Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
@@ -22,18 +22,30 @@ interface CounselorGridCardProps {
 export const CounselorGridCard = React.memo(
   ({ counselor, onFavoriteToggle }: CounselorGridCardProps) => {
     const imageSource = getCounselorImage(counselor.avatarUrl);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePress = useCallback(() => {
       router.push(`/counselors/${counselor.id}`);
     }, [counselor.id]);
 
-    const handleFavoritePress = useCallback(
-      (e: { stopPropagation: () => void }) => {
-        e.stopPropagation();
-        onFavoriteToggle();
-      },
-      [onFavoriteToggle],
-    );
+    const handleFavoritePress = useCallback(() => {
+      // 애니메이션 실행
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 0.8,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 3,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      onFavoriteToggle();
+    }, [onFavoriteToggle, scaleAnim]);
 
     return (
       <AnimatedButton
@@ -61,19 +73,25 @@ export const CounselorGridCard = React.memo(
           {/* 다크 배경 레이어 추가 */}
           <View style={styles.darkBackdrop} />
 
-          {/* 즐겨찾기 버튼 */}
-          <TouchableOpacity
-            style={styles.favoriteButton}
+          {/* 즐겨찾기 버튼 - Pressable + Animated.View 조합 */}
+          <Pressable
             onPress={handleFavoritePress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.favoriteButton}
           >
-            <MaterialCommunityIcons
-              name={counselor.isFavorite ? 'heart' : 'heart-outline'}
-              size={20}
-              color={counselor.isFavorite ? '#EF4444' : 'white'}
-              style={styles.favoriteIcon}
-            />
-          </TouchableOpacity>
+            <Animated.View
+              style={{
+                transform: [{ scale: scaleAnim }],
+              }}
+            >
+              <MaterialCommunityIcons
+                name={counselor.isFavorite ? 'heart' : 'heart-outline'}
+                size={20}
+                color={counselor.isFavorite ? '#EF4444' : 'white'}
+                style={styles.favoriteIcon}
+              />
+            </Animated.View>
+          </Pressable>
 
           {/* 상담사 정보 */}
           <View style={styles.infoContainer}>
@@ -161,9 +179,12 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.6)', // 더 진하게
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)', // 경계선 추가
+    zIndex: 10, // 확실한 최상위 레이어
   },
   favoriteIcon: {
     textShadowColor: 'rgba(0,0,0,0.5)',

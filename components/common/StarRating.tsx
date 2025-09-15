@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { spacing } from '@/constants/theme';
 
 interface StarRatingProps {
@@ -30,10 +31,11 @@ export const StarRating = React.memo(
             {!readOnly && (
               <View style={[styles.starOverlay, { width: size, height: size }]}>
                 {/* 왼쪽 반개 */}
-                <TouchableOpacity
+                <AnimatedButton
                   style={[styles.halfStarTouchLeft, { width: size / 2, height: size }]}
                   onPress={() => onRatingChange(i - 0.5)}
-                  activeOpacity={0.7}
+                  scaleTo={0.9}
+                  springConfig={{ damping: 20, stiffness: 300 }}
                 >
                   {(isHalfFilled || isFullFilled) && (
                     <View style={[styles.halfStarLeftFill, { width: size / 2, height: size }]}>
@@ -48,13 +50,14 @@ export const StarRating = React.memo(
                       </Text>
                     </View>
                   )}
-                </TouchableOpacity>
+                </AnimatedButton>
 
                 {/* 오른쪽 반개 */}
-                <TouchableOpacity
+                <AnimatedButton
                   style={[styles.halfStarTouchRight, { width: size / 2, height: size }]}
                   onPress={() => onRatingChange(i)}
-                  activeOpacity={0.7}
+                  scaleTo={0.9}
+                  springConfig={{ damping: 20, stiffness: 300 }}
                 >
                   {isFullFilled && (
                     <View style={[styles.halfStarRightFill, { width: size / 2, height: size }]}>
@@ -70,7 +73,7 @@ export const StarRating = React.memo(
                       </Text>
                     </View>
                   )}
-                </TouchableOpacity>
+                </AnimatedButton>
               </View>
             )}
 

@@ -1,4 +1,4 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -6,41 +6,61 @@ import { spacing } from '@/constants/theme';
 
 export const FavoritesHeader = React.memo(() => {
   return (
-    <LinearGradient
-      colors={['#FFFFFF', '#FAF5FF']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.header}
-    >
+    <View style={styles.header}>
       <View style={styles.headerContent}>
-        <Text style={styles.title}>✨ 즐겨찾기</Text>
-        <Text style={styles.subtitle}>자주 상담받는 철학자들을 모아보세요</Text>
+        <View style={styles.topRow}>
+          <View style={styles.titleContainer}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons name="heart" size={20} color="#EC4899" />
+            </View>
+            <Text style={styles.title}>즐겨찾기</Text>
+          </View>
+        </View>
+        <View style={styles.divider} />
       </View>
-    </LinearGradient>
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(229, 231, 235, 0.3)',
-    marginBottom: spacing.xs,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    backgroundColor: '#FFFFFF',
   },
   headerContent: {
+    alignItems: 'flex-start',
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: spacing.sm,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     fontFamily: 'Pretendard-Bold',
     color: '#111827',
-    marginBottom: 4,
+    letterSpacing: -0.3,
   },
-  subtitle: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-Regular',
-    color: '#6B7280',
+  divider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    width: '100%',
   },
 });

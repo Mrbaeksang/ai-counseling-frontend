@@ -56,6 +56,8 @@ interface OnboardingFlowProps {
 export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) => {
   const sliderRef = useRef<AppIntroSlider<SlideItem>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const lastClickTime = useRef(0);
 
   const renderItem = useCallback(
     ({ item, index }: { item: SlideItem; index: number }) => {
@@ -91,30 +93,52 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
     [currentIndex],
   );
 
+  const handleNext = useCallback(() => {
+    const now = Date.now();
+
+    // 300ms 이내 중복 클릭 방지 (더 강력한 debounce)
+    if (now - lastClickTime.current < 300) {
+      return;
+    }
+
+    lastClickTime.current = now;
+    setIsTransitioning(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // 즉시 상태 업데이트 후 슬라이드 호출
+    const nextIndex = currentIndex + 1;
+
+    // requestAnimationFrame으로 다음 프레임에서 실행
+    requestAnimationFrame(() => {
+      setCurrentIndex(nextIndex);
+      sliderRef.current?.goToSlide(nextIndex);
+
+      // 더 짧은 시간으로 다시 활성화
+      setTimeout(() => setIsTransitioning(false), 150);
+    });
+  }, [currentIndex]);
+
   const renderNextButton = useCallback(() => {
     return (
-      <AnimatedButton
-        style={styles.button}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          sliderRef.current?.goToSlide(currentIndex + 1);
-        }}
-        hapticStyle="light"
-      >
+      <AnimatedButton style={styles.button} onPress={handleNext} hapticStyle="light">
         <Text style={styles.buttonText}>다음</Text>
         <MaterialCommunityIcons name="arrow-right" size={20} color="white" />
       </AnimatedButton>
     );
-  }, [currentIndex]);
+  }, [handleNext]);
+
+  const handleComplete = useCallback(() => {
+    if (isTransitioning) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onComplete();
+  }, [onComplete, isTransitioning]);
 
   const renderDoneButton = useCallback(() => {
     return (
       <AnimatedButton
         style={[styles.button, styles.doneButton]}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          onComplete();
-        }}
+        onPress={handleComplete}
         hapticStyle="medium"
         scaleTo={0.93}
       >
@@ -122,23 +146,29 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
         <MaterialCommunityIcons name="check" size={20} color="white" />
       </AnimatedButton>
     );
-  }, [onComplete]);
+  }, [handleComplete]);
+
+  const handleSkip = useCallback(() => {
+    if (isTransitioning) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onComplete();
+  }, [onComplete, isTransitioning]);
 
   const renderSkipButton = useCallback(() => {
     return (
-      <Button
-        mode="text"
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          onComplete();
-        }}
-        textColor="rgba(255,255,255,0.7)"
-        compact
-      >
+      <Button mode="text" onPress={handleSkip} textColor="rgba(255,255,255,0.7)" compact>
         건너뛰기
       </Button>
     );
-  }, [onComplete]);
+  }, [handleSkip]);
+
+  const handleSlideChange = useCallback((index: number) => {
+    // 스와이프로 변경된 경우에만 currentIndex 업데이트
+    setCurrentIndex(index);
+    // 슬라이드 변경 완료 후 즉시 버튼 활성화
+    setIsTransitioning(false);
+  }, []);
 
   return (
     <AppIntroSlider
@@ -149,7 +179,7 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
       renderDoneButton={renderDoneButton}
       renderSkipButton={renderSkipButton}
       showSkipButton
-      onSlideChange={setCurrentIndex}
+      onSlideChange={handleSlideChange}
       dotStyle={styles.dot}
       activeDotStyle={styles.activeDot}
     />
