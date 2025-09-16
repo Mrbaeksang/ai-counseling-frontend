@@ -1,77 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { CATEGORIES } from '@/constants/categories';
 import { spacing } from '@/constants/theme';
-import type { IconName } from '@/types/icons';
-
-// New Architecture에서는 LayoutAnimation 비활성화 (no-op 경고 방지)
-// 대신 Animated API만 사용
-
-// 개별 카테고리 아이템 컴포넌트
-const CategoryItem = React.memo(
-  ({
-    category,
-    onPress,
-  }: {
-    category: {
-      id: string;
-      label: string;
-      icon: string;
-      gradient: readonly [string, string, ...string[]];
-    };
-    onPress: () => void;
-  }) => {
-    const theme = useTheme();
-    const scale = useSharedValue(1);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-    }));
-
-    const handlePressIn = useCallback(() => {
-      scale.value = withSpring(0.92, {
-        damping: 15,
-        stiffness: 200,
-      });
-    }, [scale]);
-
-    const handlePressOut = useCallback(() => {
-      scale.value = withSpring(1, {
-        damping: 15,
-        stiffness: 200,
-      });
-      onPress();
-    }, [onPress, scale]);
-
-    return (
-      <TouchableOpacity
-        style={styles.categoryCard}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={1}
-      >
-        <Reanimated.View style={animatedStyle}>
-          <LinearGradient
-            colors={category.gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.categoryGradient}
-          >
-            <MaterialCommunityIcons name={category.icon as IconName} size={26} color="white" />
-          </LinearGradient>
-        </Reanimated.View>
-        <Text style={[styles.categoryLabel, { color: theme.colors.onSurface }]}>
-          {category.label}
-        </Text>
-      </TouchableOpacity>
-    );
-  },
-);
+import { CategoryItem } from './CategoryItem';
 
 interface CategoryGridProps {
   onCategoryPress: (categoryId: string) => void;

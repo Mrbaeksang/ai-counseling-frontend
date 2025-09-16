@@ -46,7 +46,7 @@ export const useSessionActions = ({
       );
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
     },
-    onError: () => {
+    onError: (_error: unknown) => {
       toast.show('북마크 처리에 실패했습니다', 'error');
     },
   });

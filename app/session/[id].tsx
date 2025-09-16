@@ -1,18 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import {
-  Bubble,
-  type BubbleProps,
-  GiftedChat,
-  type IMessage,
-  InputToolbar,
-  type InputToolbarProps,
-} from 'react-native-gifted-chat';
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import type { IMessage } from 'react-native-gifted-chat';
 import { ActivityIndicator, Provider as PaperProvider, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatHeader } from '@/components/chat/ChatHeader';
-import { CustomAvatar } from '@/components/chat/CustomAvatar';
+import { ChatMessages } from '@/components/chat/ChatMessages';
 import { RatingDialog } from '@/components/chat/RatingDialog';
 import { TitleEditDialog } from '@/components/chat/TitleEditDialog';
 import { getCounselorImage } from '@/constants/counselorImages';
@@ -147,57 +140,6 @@ export default function SessionScreen() {
     }
   }, [newTitle, sessionTitle, handleTitleUpdate, setShowTitleDialog]);
 
-  // Custom bubble renderer with spacing and width fix
-  const renderBubble = useCallback(
-    (props: BubbleProps<IMessage>) => {
-      const { width } = Dimensions.get('window');
-      // 상담원 아바타(48) + marginRight(10) + 좌우 패딩(32) = 90px
-      const maxBubbleWidth = width - 90;
-
-      return (
-        <View style={{ marginBottom: 8 }}>
-          <Bubble
-            {...props}
-            wrapperStyle={{
-              left: {
-                backgroundColor: theme.colors.surfaceVariant,
-                maxWidth: maxBubbleWidth,
-              },
-              right: {
-                backgroundColor: theme.colors.primary,
-              },
-            }}
-            textStyle={{
-              left: {
-                color: theme.colors.onSurface,
-              },
-              right: {
-                color: theme.colors.onPrimary,
-              },
-            }}
-          />
-        </View>
-      );
-    },
-    [theme],
-  );
-
-  const renderInputToolbar = useCallback(
-    (props: InputToolbarProps<IMessage>) => (
-      <InputToolbar
-        {...props}
-        containerStyle={[
-          styles.inputToolbar,
-          {
-            backgroundColor: theme.colors.surface,
-            borderTopColor: theme.colors.outlineVariant,
-          },
-        ]}
-      />
-    ),
-    [theme],
-  );
-
   // Convert backend rating (1-10) to frontend rating (0.5-5)
   const handleRatingSubmit = useCallback(() => {
     handleRatingSubmitAction();
@@ -290,21 +232,11 @@ export default function SessionScreen() {
             isBookmarked={isBookmarked}
           />
 
-          <GiftedChat
+          <ChatMessages
             messages={giftedChatMessages}
             onSend={onSend}
-            user={{ _id: 1, name: '나' }}
-            placeholder={isSessionClosed ? '상담이 종료되었습니다' : '메시지를 입력하세요...'}
-            alwaysShowSend={!isSessionClosed}
-            showUserAvatar={false}
-            renderAvatar={(props) => <CustomAvatar {...props} />}
-            renderBubble={renderBubble}
-            renderUsernameOnMessage={false}
-            renderTime={() => null}
-            inverted={false}
-            isTyping={isSending}
-            infiniteScroll
-            renderInputToolbar={isSessionClosed ? () => null : renderInputToolbar}
+            isSessionClosed={isSessionClosed}
+            isSending={isSending}
           />
 
           <RatingDialog
@@ -338,9 +270,6 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     flex: 1,
-  },
-  inputToolbar: {
-    borderTopWidth: 1,
   },
   loadingContainer: {
     flex: 1,

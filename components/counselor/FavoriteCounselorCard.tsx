@@ -88,7 +88,7 @@ export const FavoriteCounselorCard = React.memo(
               {counselor.averageRating > 0 && (
                 <View style={styles.rating}>
                   <MaterialCommunityIcons name="star" size={12} color="#FFC107" />
-                  <Text style={styles.ratingText}>{(counselor.averageRating / 10).toFixed(1)}</Text>
+                  <Text style={styles.ratingText}>{(counselor.averageRating / 20).toFixed(1)}</Text>
                 </View>
               )}
             </View>

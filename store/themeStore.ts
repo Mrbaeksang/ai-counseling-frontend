@@ -97,13 +97,34 @@ const useThemeStore = create<ThemeState>((set, get) => ({
   },
 }));
 
-// 시스템 테마 변경 감지
-Appearance.addChangeListener((_event) => {
-  const { mode, setTheme } = useThemeStore.getState();
-  if (mode === 'system') {
-    // 시스템 모드일 때만 자동 업데이트
-    setTheme('system');
+// 시스템 테마 변경 감지 - 리스너를 저장하여 cleanup 가능하게
+let appearanceListener: { remove: () => void } | null = null;
+
+const setupAppearanceListener = () => {
+  // 기존 리스너 제거
+  if (appearanceListener) {
+    appearanceListener.remove();
   }
-});
+
+  // 새 리스너 등록
+  appearanceListener = Appearance.addChangeListener(() => {
+    const { mode, setTheme } = useThemeStore.getState();
+    if (mode === 'system') {
+      // 시스템 모드일 때만 자동 업데이트
+      setTheme('system');
+    }
+  });
+};
+
+// 초기 설정
+setupAppearanceListener();
+
+// cleanup 함수 export
+export const cleanupThemeListener = () => {
+  if (appearanceListener) {
+    appearanceListener.remove();
+    appearanceListener = null;
+  }
+};
 
 export default useThemeStore;

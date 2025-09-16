@@ -106,7 +106,7 @@ export const CounselorGridCard = React.memo(
               <View style={styles.stat}>
                 <MaterialCommunityIcons name="star" size={12} color="#FCD34D" />
                 <Text style={styles.statText}>
-                  {counselor.averageRating > 0 ? (counselor.averageRating / 10).toFixed(1) : '0.0'}
+                  {counselor.averageRating > 0 ? (counselor.averageRating / 20).toFixed(1) : '0.0'}
                 </Text>
               </View>
               <View style={styles.stat}>

@@ -97,11 +97,8 @@ export const getSessionDetail = async (sessionId: number): Promise<Session | nul
 export const toggleSessionBookmark = async (sessionId: number): Promise<ToggleBookmarkResponse> => {
   const response = await api.patch<ToggleBookmarkResponse>(`/sessions/${sessionId}/bookmark`);
 
-  if (!response.data) {
-    throw new Error('Failed to toggle bookmark');
-  }
-
-  return response.data;
+  // 백엔드가 data를 반환하지 않을 수 있음
+  return response.data || ({ isBookmarked: false } as ToggleBookmarkResponse);
 };
 
 // 세션 종료
@@ -113,20 +110,15 @@ export const endSession = async (sessionId: number): Promise<void> => {
 export const rateSession = async (sessionId: number, rating: number, feedback?: string) => {
   const response = await api.post(`/sessions/${sessionId}/rate`, { rating, feedback });
 
-  if (!response.data) {
-    throw new Error('Failed to rate session');
-  }
-
-  return response.data;
+  // 백엔드가 data: null 반환해도 성공 처리
+  return response.data || { success: true };
 };
 
 // 세션 제목 업데이트
 export const updateSessionTitle = async (sessionId: number, title: string) => {
   const response = await api.patch(`/sessions/${sessionId}/title`, { title });
 
-  if (!response.data) {
-    throw new Error('Failed to update session title');
-  }
-
-  return response.data;
+  // 백엔드가 data: null 반환해도 성공 처리
+  // resultCode가 S-1이면 성공
+  return response.data || { success: true };
 };

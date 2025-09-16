@@ -83,7 +83,8 @@ export const FavoritesRow = React.memo(
           scrollEnabled={data.length > 2}
           initialNumToRender={6}
           windowSize={10}
-          removeClippedSubviews={false}
+          removeClippedSubviews
+          maxToRenderPerBatch={4}
         />
 
         {data.length > 2 && (
@@ -153,6 +154,7 @@ const createStyles = (theme: MD3Theme, hintOverlay: string) =>
     rowWrapper: {
       height: MAX_ROW_HEIGHT,
       position: 'relative',
+      marginBottom: spacing.lg, // 각 행 아래 추가 여백
     },
     rowContent: {
       paddingLeft: spacing.lg,

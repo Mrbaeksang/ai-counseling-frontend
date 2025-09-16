@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ export default function CounselorDetailScreen() {
   const { data: counselor, isLoading } = useCounselorDetail(counselorId);
   const startSessionMutation = useStartSession();
 
-  const handleStartSession = async () => {
+  const handleStartSession = useCallback(async () => {
     if (!user) {
       // 로그인 유도 다이얼로그 표시
       setShowLoginDialog(true);
@@ -44,8 +44,8 @@ export default function CounselorDetailScreen() {
           isBookmarked: 'false', // 새 세션은 항상 북마크되지 않은 상태
         },
       });
-    } catch (_error) {}
-  };
+    } catch (_error: unknown) {}
+  }, [user, counselorId, startSessionMutation]);
 
   if (isLoading) {
     return (

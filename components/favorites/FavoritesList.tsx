@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { type MD3Theme, useTheme } from 'react-native-paper';
 import { CARD_WIDTH } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
@@ -84,24 +84,95 @@ export const FavoritesList = React.memo(
       return [row1, row2];
     }, [favorites, isLoading]);
 
-    const handleScrollRow1 = (event?: { nativeEvent: { contentOffset: { x: number } } }) => {
-      setShowScrollHint(false);
-      if (event?.nativeEvent) {
-        const { contentOffset } = event.nativeEvent;
-        const index = Math.round(contentOffset.x / (CARD_WIDTH + spacing.sm));
-        setActiveIndex1(Math.max(0, index));
-      }
-    };
+    const handleScrollRow1 = useCallback(
+      (event?: { nativeEvent: { contentOffset: { x: number } } }) => {
+        setShowScrollHint(false);
+        if (event?.nativeEvent) {
+          const { contentOffset } = event.nativeEvent;
+          const index = Math.round(contentOffset.x / (CARD_WIDTH + spacing.sm));
+          setActiveIndex1(Math.max(0, index));
+        }
+      },
+      [],
+    );
 
-    const handleScrollRow2 = (event?: { nativeEvent: { contentOffset: { x: number } } }) => {
-      setShowScrollHint(false);
-      if (event?.nativeEvent) {
-        const { contentOffset } = event.nativeEvent;
-        const index = Math.round(contentOffset.x / (CARD_WIDTH + spacing.sm));
-        setActiveIndex2(Math.max(0, index));
-      }
-    };
+    const handleScrollRow2 = useCallback(
+      (event?: { nativeEvent: { contentOffset: { x: number } } }) => {
+        setShowScrollHint(false);
+        if (event?.nativeEvent) {
+          const { contentOffset } = event.nativeEvent;
+          const index = Math.round(contentOffset.x / (CARD_WIDTH + spacing.sm));
+          setActiveIndex2(Math.max(0, index));
+        }
+      },
+      [],
+    );
 
+    const renderItem = useCallback(
+      ({ item }: { item: { key: string; type: 'header' | 'row1' | 'row2' } }) => {
+        switch (item.type) {
+          case 'header':
+            return <FavoritesHeader />;
+          case 'row1':
+            return (
+              <FavoritesRow
+                data={firstRow}
+                isLoading={isLoading}
+                showScrollHint={showScrollHint}
+                scrollHintAnim={scrollHintAnim}
+                onFavoriteToggle={onFavoriteToggle}
+                onScroll={handleScrollRow1}
+                rowKey="row1"
+                hintColor={primaryHintColor}
+                activeIndex={activeIndex1}
+              />
+            );
+          case 'row2':
+            return secondRow.length > 0 ? (
+              <FavoritesRow
+                data={secondRow}
+                isLoading={isLoading}
+                showScrollHint={showScrollHint}
+                scrollHintAnim={scrollHintAnim}
+                onFavoriteToggle={onFavoriteToggle}
+                onScroll={handleScrollRow2}
+                rowKey="row2"
+                hintColor={secondaryHintColor}
+                activeIndex={activeIndex2}
+              />
+            ) : null;
+          default:
+            return null;
+        }
+      },
+      [
+        firstRow,
+        secondRow,
+        isLoading,
+        showScrollHint,
+        scrollHintAnim,
+        onFavoriteToggle,
+        handleScrollRow1,
+        handleScrollRow2,
+        primaryHintColor,
+        secondaryHintColor,
+        activeIndex1,
+        activeIndex2,
+      ],
+    );
+
+    const listData = useMemo(() => {
+      const data: Array<{ key: string; type: 'header' | 'row1' | 'row2' }> = [
+        { key: 'header', type: 'header' },
+        { key: 'row1', type: 'row1' },
+      ];
+      if (secondRow.length > 0) {
+        data.push({ key: 'row2', type: 'row2' });
+      }
+      return data;
+    }, [secondRow.length]);
+
+    // Early return after all hooks
     if (!isAuthenticated || (favorites.length === 0 && !isLoading)) {
       return (
         <>
@@ -112,8 +183,12 @@ export const FavoritesList = React.memo(
     }
 
     return (
-      <ScrollView
+      <FlatList
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        data={listData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.key}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -123,38 +198,7 @@ export const FavoritesList = React.memo(
             colors={[theme.colors.primary]}
           />
         }
-        contentContainerStyle={styles.contentContainer}
-      >
-        <FavoritesHeader />
-
-        <View style={styles.rowsContainer}>
-          <FavoritesRow
-            data={firstRow}
-            isLoading={isLoading}
-            showScrollHint={showScrollHint}
-            scrollHintAnim={scrollHintAnim}
-            onFavoriteToggle={onFavoriteToggle}
-            onScroll={handleScrollRow1}
-            rowKey="row1"
-            hintColor={primaryHintColor}
-            activeIndex={activeIndex1}
-          />
-
-          {secondRow.length > 0 && (
-            <FavoritesRow
-              data={secondRow}
-              isLoading={isLoading}
-              showScrollHint={showScrollHint}
-              scrollHintAnim={scrollHintAnim}
-              onFavoriteToggle={onFavoriteToggle}
-              onScroll={handleScrollRow2}
-              rowKey="row2"
-              hintColor={secondaryHintColor}
-              activeIndex={activeIndex2}
-            />
-          )}
-        </View>
-      </ScrollView>
+      />
     );
   },
 );
@@ -166,12 +210,11 @@ const createStyles = (theme: MD3Theme) =>
       backgroundColor: theme.colors.background,
     },
     contentContainer: {
-      flex: 1,
-      justifyContent: 'center',
+      // flex: 1 제거 - 이것이 헤더를 아래로 밀고 있었음
+      // justifyContent: 'center' 제거 - 상단부터 시작하도록
     },
     rowsContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      gap: spacing.lg, // 1행과 2행 사이 간격
+      paddingVertical: spacing.md,
+      gap: spacing.xl, // 1행과 2행 사이 간격 증가
     },
   });

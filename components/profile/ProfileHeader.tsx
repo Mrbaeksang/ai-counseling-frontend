@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Avatar, Text, useTheme } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 import type { UserProfileResponse } from '@/services/users/types';
+import { AuthProvider } from '@/types/auth';
 
 interface ProfileHeaderProps {
   profile?: UserProfileResponse;
@@ -132,12 +133,12 @@ export const ProfileHeader = React.memo(({ profile, avatarSize = 80 }: ProfileHe
             ]}
           >
             <MaterialCommunityIcons
-              name={profile.authProvider === 'GOOGLE' ? 'google' : 'chat'}
+              name={profile.authProvider === AuthProvider.GOOGLE ? 'google' : 'chat'}
               size={16}
               color={theme.colors.primary}
             />
             <Text style={[styles.providerText, { color: theme.colors.primary }]}>
-              {profile.authProvider === 'GOOGLE' ? 'Google' : 'Kakao'} 계정
+              {profile.authProvider === AuthProvider.GOOGLE ? 'Google' : 'Kakao'} 계정
             </Text>
           </View>
         )}

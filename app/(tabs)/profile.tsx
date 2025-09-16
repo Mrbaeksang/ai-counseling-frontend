@@ -52,9 +52,13 @@ export default function ProfileScreen() {
   // 백엔드와 동기화 안된 경우 감지
   if (user && !profile && !isLoading) {
     // 자동 로그아웃 실행
-    logout().then(() => {
-      showToast('세션이 만료되었습니다. 다시 로그인해주세요.', 'info');
-    });
+    logout()
+      .then(() => {
+        showToast('세션이 만료되었습니다. 다시 로그인해주세요.', 'info');
+      })
+      .catch((_error: unknown) => {
+        showToast('로그아웃 중 오류가 발생했습니다.', 'error');
+      });
   }
 
   const [showNicknameDialog, setShowNicknameDialog] = useState(false);
@@ -70,14 +74,22 @@ export default function ProfileScreen() {
   );
 
   const handleAccountDelete = useCallback(async () => {
-    deleteAccount();
-    setShowDeleteDialog(false);
-  }, [deleteAccount]);
+    try {
+      await deleteAccount();
+      setShowDeleteDialog(false);
+    } catch (_error: unknown) {
+      showToast('회원 탈퇴 중 오류가 발생했습니다.', 'error');
+    }
+  }, [deleteAccount, showToast]);
 
   const handleLogout = useCallback(async () => {
-    await logout();
-    showToast('로그아웃되었습니다', 'success');
-    router.replace('/(auth)/login');
+    try {
+      await logout();
+      showToast('로그아웃되었습니다', 'success');
+      router.replace('/(auth)/login');
+    } catch (_error: unknown) {
+      showToast('로그아웃 중 오류가 발생했습니다.', 'error');
+    }
   }, [logout, showToast]);
 
   const handleResetOnboarding = useCallback(async () => {
