@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { type MD3Theme, Text, useTheme } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { CounselorCard } from '@/components/counselor/CounselorCard';
 import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
@@ -40,6 +40,8 @@ export const CounselorList = React.memo(
     onEndReached,
     isLoadingMore = false,
   }: CounselorListProps) => {
+    const theme = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
     // 정렬 옵션 - useMemo로 최적화
     const sortOptions = useMemo(
       () => [
@@ -70,7 +72,7 @@ export const CounselorList = React.memo(
           />
         );
       },
-      [onFavoriteToggle, viewMode],
+      [onFavoriteToggle, viewMode, styles.gridItem],
     );
 
     const renderSkeleton = useCallback(
@@ -84,7 +86,7 @@ export const CounselorList = React.memo(
         }
         return <CounselorCardSkeleton key={`skeleton-${index}`} />;
       },
-      [viewMode],
+      [viewMode, styles.gridItem],
     );
 
     const ListHeader = useCallback(
@@ -107,7 +109,9 @@ export const CounselorList = React.memo(
                   <MaterialCommunityIcons
                     name={option.icon as IconName}
                     size={16}
-                    color={sortBy === option.key ? '#6B46C1' : '#9CA3AF'}
+                    color={
+                      sortBy === option.key ? theme.colors.primary : theme.colors.onSurfaceVariant
+                    }
                   />
                   <Text
                     style={[
@@ -123,13 +127,30 @@ export const CounselorList = React.memo(
           </View>
         </>
       ),
-      [ListHeaderComponent, sortOptions, sortBy, onSortChange],
+      [
+        ListHeaderComponent,
+        onSortChange,
+        sortBy,
+        sortOptions,
+        theme,
+        styles.sortOption,
+        styles.sortOptionActive,
+        styles.sortOptionText,
+        styles.sortOptionTextActive,
+        styles.sortOptions,
+        styles.sortSection,
+        styles.sortTitle,
+      ],
     );
 
     const ListEmpty = useCallback(
       () => (
         <View style={styles.emptyContainer}>
-          <MaterialCommunityIcons name="account-search-outline" size={64} color="#9CA3AF" />
+          <MaterialCommunityIcons
+            name="account-search-outline"
+            size={64}
+            color={theme.colors.onSurfaceVariant}
+          />
           <Text style={styles.emptyTitle}>
             {counselors.length === 0 && isLoading
               ? '상담사를 불러오는 중...'
@@ -140,7 +161,14 @@ export const CounselorList = React.memo(
           </Text>
         </View>
       ),
-      [counselors.length, isLoading],
+      [
+        counselors.length,
+        isLoading,
+        theme,
+        styles.emptyContainer,
+        styles.emptyDescription,
+        styles.emptyTitle,
+      ],
     );
 
     const ListFooter = useCallback(() => {
@@ -148,11 +176,11 @@ export const CounselorList = React.memo(
 
       return (
         <View style={styles.loadingFooter}>
-          <ActivityIndicator size="small" color="#6B46C1" />
+          <ActivityIndicator size="small" color={theme.colors.primary} />
           <Text style={styles.loadingText}>더 많은 상담사를 불러오는 중...</Text>
         </View>
       );
-    }, [isLoadingMore]);
+    }, [isLoadingMore, theme, styles.loadingFooter, styles.loadingText]);
 
     return (
       <FlashList
@@ -162,7 +190,14 @@ export const CounselorList = React.memo(
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={!isLoading ? ListEmpty : null}
         ListFooterComponent={ListFooter}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
+        }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         // 그리드 설정
@@ -179,84 +214,85 @@ export const CounselorList = React.memo(
   },
 );
 
-const styles = StyleSheet.create({
-  listContent: {
-    flexGrow: 1,
-    paddingBottom: spacing.xxl,
-  },
-  gridRow: {
-    justifyContent: 'flex-start', // 왼쪽 정렬로 변경
-    gap: spacing.sm, // 카드 간 간격
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.xs,
-  },
-  gridItem: {
-    flex: 1 / 3, // 3열에 맞게 조정
-  },
-  sortSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  sortTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Pretendard-Bold',
-    color: '#111827',
-  },
-  sortOptions: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  sortOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  sortOptionActive: {
-    backgroundColor: '#EDE9FE',
-  },
-  sortOptionText: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-Medium',
-    color: '#9CA3AF',
-  },
-  sortOptionTextActive: {
-    color: '#6B46C1',
-    fontFamily: 'Pretendard-SemiBold',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing.xxl * 3,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: 'Pretendard-SemiBold',
-    color: '#111827',
-    marginTop: spacing.md,
-  },
-  emptyDescription: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    color: '#6B7280',
-    marginTop: spacing.xs,
-  },
-  loadingFooter: {
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-Regular',
-    color: '#6B7280',
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    listContent: {
+      flexGrow: 1,
+      paddingBottom: spacing.xxl,
+    },
+    gridRow: {
+      justifyContent: 'flex-start', // 왼쪽 정렬 유지
+      gap: spacing.sm, // 카드 간격
+      paddingHorizontal: spacing.lg,
+      marginBottom: spacing.xs,
+    },
+    gridItem: {
+      flex: 1 / 3, // 3단 컬럼에 맞춤
+    },
+    sortSection: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    sortTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      fontFamily: 'Pretendard-Bold',
+      color: theme.colors.onSurface,
+    },
+    sortOptions: {
+      flexDirection: 'row',
+      gap: spacing.xs,
+    },
+    sortOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 6,
+      borderRadius: 16,
+      backgroundColor: theme.colors.surfaceVariant,
+    },
+    sortOptionActive: {
+      backgroundColor: theme.colors.primaryContainer,
+    },
+    sortOptionText: {
+      fontSize: 13,
+      fontFamily: 'Pretendard-Medium',
+      color: theme.colors.onSurfaceVariant,
+    },
+    sortOptionTextActive: {
+      color: theme.colors.primary,
+      fontFamily: 'Pretendard-SemiBold',
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: spacing.xxl * 3,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontFamily: 'Pretendard-SemiBold',
+      color: theme.colors.onSurface,
+      marginTop: spacing.md,
+    },
+    emptyDescription: {
+      fontSize: 14,
+      fontFamily: 'Pretendard-Regular',
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing.xs,
+    },
+    loadingFooter: {
+      paddingVertical: spacing.lg,
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontSize: 13,
+      fontFamily: 'Pretendard-Regular',
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing.xs,
+    },
+  });

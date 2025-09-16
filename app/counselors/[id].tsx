@@ -1,7 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LoginPromptDialog } from '@/components/common/LoginPromptDialog';
 import { CategorySection } from '@/components/counselor/CategorySection';
 import { CounselingMethod } from '@/components/counselor/CounselingMethod';
 import { ProfileHeader } from '@/components/counselor/ProfileHeader';
@@ -14,6 +16,7 @@ export default function CounselorDetailScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { user } = useAuthStore();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const counselorId = Number(params.id);
 
@@ -23,8 +26,8 @@ export default function CounselorDetailScreen() {
 
   const handleStartSession = async () => {
     if (!user) {
-      // 로그인 필요
-      router.push('/login');
+      // 로그인 유도 다이얼로그 표시
+      setShowLoginDialog(true);
       return;
     }
 
@@ -72,7 +75,7 @@ export default function CounselorDetailScreen() {
           <Surface style={styles.section}>
             <Text style={styles.sectionTitle}>소개</Text>
             <Text style={styles.description}>
-              {counselor.description || '철학적 상담을 통해 삶의 지혜를 나눕니다.'}
+              {counselor.description || '따뜻한 상담을 통해 삶의 지혜를 나눕니다.'}
             </Text>
           </Surface>
 
@@ -91,6 +94,8 @@ export default function CounselorDetailScreen() {
           onPress={handleStartSession}
           loading={startSessionMutation.isPending}
           disabled={startSessionMutation.isPending}
+          buttonColor="#6B46C1"
+          textColor="white"
           style={styles.startButton}
           contentStyle={styles.startButtonContent}
           labelStyle={styles.startButtonLabel}
@@ -98,6 +103,14 @@ export default function CounselorDetailScreen() {
           상담 시작하기
         </Button>
       </View>
+
+      {/* 로그인 유도 다이얼로그 */}
+      <LoginPromptDialog
+        visible={showLoginDialog}
+        onDismiss={() => setShowLoginDialog(false)}
+        title="상담을 시작하려면 로그인이 필요해요"
+        description="3초만에 로그인하고\n개인 맞춤 상담을 받아보세요! ✨"
+      />
     </View>
   );
 }

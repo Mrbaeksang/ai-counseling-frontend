@@ -1,22 +1,30 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 
 export const FavoritesHeader = React.memo(() => {
+  const theme = useTheme();
   return (
-    <View style={styles.header}>
+    <View
+      style={[
+        styles.header,
+        { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.outlineVariant },
+      ]}
+    >
       <View style={styles.headerContent}>
         <View style={styles.topRow}>
           <View style={styles.titleContainer}>
-            <View style={styles.iconContainer}>
-              <MaterialCommunityIcons name="heart" size={20} color="#EC4899" />
+            <View
+              style={[styles.iconContainer, { backgroundColor: theme.colors.primaryContainer }]}
+            >
+              <MaterialCommunityIcons name="heart" size={20} color={theme.colors.primary} />
             </View>
-            <Text style={styles.title}>즐겨찾기</Text>
+            <Text style={[styles.title, { color: theme.colors.onSurface }]}>즐겨찾기</Text>
           </View>
         </View>
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
       </View>
     </View>
   );
@@ -27,7 +35,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   headerContent: {
     alignItems: 'flex-start',
@@ -60,7 +68,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'transparent',
     width: '100%',
   },
 });

@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import React, { type ReactElement, useCallback } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { ActivityIndicator } from 'react-native-paper';
+import { ActivityIndicator, useTheme } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 import type { Session } from '@/services/sessions/types';
 import EmptySessionState from './EmptySessionState';
@@ -43,6 +43,7 @@ export const SessionListContainer = React.memo(
     onBookmarkToggle,
     layoutMode = 'list',
   }: SessionListContainerProps) => {
+    const theme = useTheme();
     // 그리드 모드용 렌더 아이템
     const renderGridItem = useCallback(
       ({ item }: { item: Session }) => (
@@ -106,7 +107,8 @@ export const SessionListContainer = React.memo(
               <RefreshControl
                 refreshing={isRefreshing}
                 onRefresh={onRefresh}
-                colors={['#6B46C1']}
+                colors={[theme.colors.primary]}
+                tintColor={theme.colors.primary}
               />
             ) : undefined
           }
@@ -115,7 +117,7 @@ export const SessionListContainer = React.memo(
           ListFooterComponent={
             hasMore || isLoading ? (
               <View style={styles.footer}>
-                <ActivityIndicator size="small" color="#6B46C1" />
+                <ActivityIndicator size="small" color={theme.colors.primary} />
               </View>
             ) : null
           }
@@ -131,7 +133,12 @@ export const SessionListContainer = React.memo(
         renderItem={({ item }) => renderItem?.(item) ?? null}
         refreshControl={
           onRefresh ? (
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#6B46C1']} />
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
+            />
           ) : undefined
         }
         onEndReached={onEndReached}
@@ -139,7 +146,7 @@ export const SessionListContainer = React.memo(
         ListFooterComponent={
           hasMore ? (
             <View style={styles.footer}>
-              <ActivityIndicator size="small" color="#6B46C1" />
+              <ActivityIndicator size="small" color={theme.colors.primary} />
             </View>
           ) : null
         }

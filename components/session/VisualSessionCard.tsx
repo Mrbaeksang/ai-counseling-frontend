@@ -91,7 +91,7 @@ export const VisualSessionCard = React.memo(
               style={styles.fullImage}
             >
               <Text style={styles.avatarPlaceholder}>
-                {session.counselorName?.substring(0, 2) || '철학'}
+                {session.counselorName?.substring(0, 2) || '상담'}
               </Text>
             </LinearGradient>
           )}

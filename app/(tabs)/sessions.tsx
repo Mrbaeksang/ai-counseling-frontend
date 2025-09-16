@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SessionListContainer from '@/components/session/SessionListContainer';
 import { SessionTabs } from '@/components/session/SessionTabs';
@@ -12,6 +13,7 @@ import { useToast } from '@/store/toastStore';
 export default function SessionsScreen() {
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const theme = useTheme();
   const [tabIndex, setTabIndex] = useState('0');
 
   // 페이지네이션 상태
@@ -137,7 +139,12 @@ export default function SessionsScreen() {
   }, [refetchBookmarked]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: theme.colors.background },
+      ]}
+    >
       <SessionTabs tabIndex={tabIndex} onTabChange={setTabIndex} />
 
       <View style={styles.content}>
@@ -200,7 +207,6 @@ export default function SessionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   content: {
     flex: 1,

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { type MD3Theme, useTheme } from 'react-native-paper';
 import { CARD_WIDTH } from '@/components/counselor/FavoriteCounselorCard';
 import { spacing } from '@/constants/theme';
 import type { FavoriteCounselorResponse } from '@/services/counselors/types';
@@ -25,6 +26,10 @@ export const FavoritesList = React.memo(
     onRefresh,
     onFavoriteToggle,
   }: FavoritesListProps) => {
+    const theme = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
+    const primaryHintColor = theme.colors.primary;
+    const secondaryHintColor = theme.colors.secondary;
     // 스크롤 힌트 애니메이션
     const scrollHintAnim = useRef(new Animated.Value(1)).current;
     const [showScrollHint, setShowScrollHint] = useState(true);
@@ -110,7 +115,14 @@ export const FavoritesList = React.memo(
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
+        }
         contentContainerStyle={styles.contentContainer}
       >
         <FavoritesHeader />
@@ -124,7 +136,7 @@ export const FavoritesList = React.memo(
             onFavoriteToggle={onFavoriteToggle}
             onScroll={handleScrollRow1}
             rowKey="row1"
-            hintColor="#6B46C1"
+            hintColor={primaryHintColor}
             activeIndex={activeIndex1}
           />
 
@@ -137,7 +149,7 @@ export const FavoritesList = React.memo(
               onFavoriteToggle={onFavoriteToggle}
               onScroll={handleScrollRow2}
               rowKey="row2"
-              hintColor="#EC4899"
+              hintColor={secondaryHintColor}
               activeIndex={activeIndex2}
             />
           )}
@@ -147,18 +159,19 @@ export const FavoritesList = React.memo(
   },
 );
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  rowsContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: spacing.lg, // 1행과 2행 사이 충분한 여백 (24px)
-  },
-});
+const createStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    contentContainer: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    rowsContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      gap: spacing.lg, // 1행과 2행 사이 간격
+    },
+  });

@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LoginPromptDialog } from '@/components/common/LoginPromptDialog';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
 import { CounselorList } from '@/components/home/CounselorList';
 import { DailyQuote } from '@/components/home/DailyQuote';
@@ -9,15 +11,19 @@ import { WelcomeSection } from '@/components/home/WelcomeSection';
 import { useToggleFavorite } from '@/hooks/useCounselors';
 import { useInfiniteCounselors } from '@/hooks/useInfiniteCounselors';
 import useAuthStore from '@/store/authStore';
+import { useToast } from '@/store/toastStore';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
+  const { show: _showToast } = useToast();
+  const theme = useTheme();
 
   // 상태 관리
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'rating'>('latest');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   // 정렬 옵션 매핑
   const sortMap: Record<'latest' | 'popular' | 'rating', 'recent' | 'popular' | 'rating'> = {
@@ -94,9 +100,14 @@ export default function HomeScreen() {
 
   const handleFavoriteToggle = useCallback(
     (counselorId: number, isFavorite: boolean) => {
+      // 로그인 체크 - 다이얼로그 표시
+      if (!user) {
+        setShowLoginDialog(true);
+        return;
+      }
       toggleFavorite(counselorId, isFavorite);
     },
-    [toggleFavorite],
+    [toggleFavorite, user],
   );
 
   // 무한 스크롤 핸들러
@@ -133,7 +144,12 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: theme.colors.background },
+      ]}
+    >
       <CounselorList
         counselors={filteredCounselors}
         isLoading={isLoading}
@@ -147,6 +163,14 @@ export default function HomeScreen() {
         onEndReached={handleLoadMore}
         isLoadingMore={isFetchingNextPage}
       />
+
+      {/* 로그인 유도 다이얼로그 */}
+      <LoginPromptDialog
+        visible={showLoginDialog}
+        onDismiss={() => setShowLoginDialog(false)}
+        title="즐겨찾기를 사용하려면 로그인이 필요해요"
+        description="3초만에 로그인하고\n개인 맞춤 상담을 받아보세요! ✨"
+      />
     </View>
   );
 }
@@ -154,6 +178,5 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
 });

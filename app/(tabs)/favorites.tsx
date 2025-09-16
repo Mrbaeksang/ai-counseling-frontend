@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FavoritesList } from '@/components/favorites/FavoritesList';
 import { useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
@@ -8,6 +9,7 @@ import useAuthStore from '@/store/authStore';
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuthStore();
+  const theme = useTheme();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: favoriteCounselors, isLoading, refetch } = useFavoriteCounselors();
@@ -28,7 +30,12 @@ export default function FavoritesScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: theme.colors.background },
+      ]}
+    >
       <FavoritesList
         favorites={favoriteCounselors || []}
         isLoading={isLoading}
@@ -44,6 +51,5 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
 });

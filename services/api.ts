@@ -133,7 +133,11 @@ api.interceptors.response.use(
 
         // Clear auth on refresh failure
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
-        // TODO: Redirect to login screen
+
+        // Zustand store도 초기화
+        const authStore = (await import('@/store/authStore')).default;
+        await authStore.getState().logout();
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

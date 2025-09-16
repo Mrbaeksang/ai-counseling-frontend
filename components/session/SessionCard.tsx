@@ -63,7 +63,7 @@ export const SessionCard = React.memo(
                     />
                   ) : (
                     <Text style={styles.avatarText}>
-                      {session.counselorName?.substring(0, 2) || '철학'}
+                      {session.counselorName?.substring(0, 2) || '상담'}
                     </Text>
                   )}
                 </View>

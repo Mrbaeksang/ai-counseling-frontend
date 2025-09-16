@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { spacing } from '@/constants/theme';
 
@@ -11,23 +11,31 @@ interface FavoritesEmptyStateProps {
 }
 
 export const FavoritesEmptyState = React.memo(({ isAuthenticated }: FavoritesEmptyStateProps) => {
+  const theme = useTheme();
   const handleStartChat = useCallback(() => {
     router.push('/(tabs)/');
   }, []);
 
   return (
     <View style={styles.emptyContainer}>
-      <MaterialCommunityIcons name="heart-outline" size={64} color="#9CA3AF" />
-      <Text style={styles.emptyTitle}>
-        {!isAuthenticated ? '로그인이 필요합니다' : '아직 즐겨찾기한 상담사가 없어요'}
+      <MaterialCommunityIcons
+        name="heart-outline"
+        size={64}
+        color={theme.colors.onSurfaceVariant}
+      />
+      <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>
+        {!isAuthenticated ? '로그인이 필요해요' : '아직 즐겨찾기한 상담사가 없어요'}
       </Text>
-      <Text style={styles.emptyDescription}>
+      <Text style={[styles.emptyDescription, { color: theme.colors.onSurfaceVariant }]}>
         {!isAuthenticated
-          ? '로그인하고 마음에 드는 상담사를 저장해보세요'
-          : '마음에 드는 철학자를 즐겨찾기에 추가해보세요'}
+          ? '로그인하고 마음에 드는 상담사를 살펴보세요'
+          : '마음에 드는 상담사를 즐겨찾기에 추가해보세요'}
       </Text>
       <AnimatedButton
-        style={styles.browseButton}
+        style={[
+          styles.browseButton,
+          { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary },
+        ]}
         onPress={handleStartChat}
         scaleTo={0.95}
         springConfig={{ damping: 12, stiffness: 160 }}
@@ -66,11 +74,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   browseButton: {
-    backgroundColor: '#6B46C1',
+    backgroundColor: 'transparent',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: 24,
-    shadowColor: '#6B46C1',
+    shadowColor: 'transparent',
     shadowOffset: {
       width: 0,
       height: 4,

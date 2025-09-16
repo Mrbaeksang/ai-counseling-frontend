@@ -19,25 +19,37 @@ interface ProfileInfoCardProps {
 }
 
 export const ProfileInfoCard = React.memo(({ items, style }: ProfileInfoCardProps) => {
+  const renderItem = (item: ProfileMenuItem, index: number) => {
+    const elements = [];
+
+    // Divider 추가 (첫 번째 아이템이 아닌 경우)
+    if (index > 0) {
+      elements.push(<Divider key={`divider-${item.id}`} />);
+    }
+
+    // List.Item 추가
+    elements.push(
+      <List.Item
+        key={`item-${item.id}`}
+        title={item.title}
+        description={item.description}
+        titleStyle={item.textColor ? { color: item.textColor } : undefined}
+        left={(props) => <List.Icon {...props} icon={item.icon} color={item.textColor} />}
+        right={
+          item.showChevron !== false
+            ? (props) => <List.Icon {...props} icon="chevron-right" />
+            : undefined
+        }
+        onPress={item.onPress}
+      />,
+    );
+
+    return elements;
+  };
+
   return (
     <Card style={[styles.card, style]}>
-      {items.map((item, index) => (
-        <React.Fragment key={item.id}>
-          {index > 0 && <Divider />}
-          <List.Item
-            title={item.title}
-            description={item.description}
-            titleStyle={item.textColor ? { color: item.textColor } : undefined}
-            left={(props) => <List.Icon {...props} icon={item.icon} color={item.textColor} />}
-            right={
-              item.showChevron !== false
-                ? (props) => <List.Icon {...props} icon="chevron-right" />
-                : undefined
-            }
-            onPress={item.onPress}
-          />
-        </React.Fragment>
-      ))}
+      {items.flatMap((item, index) => renderItem(item, index))}
     </Card>
   );
 });
