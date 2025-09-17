@@ -3,12 +3,15 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { configureFonts, MD3LightTheme, PaperProvider } from 'react-native-paper';
+import { configureFonts, PaperProvider } from 'react-native-paper';
 import Toast from '@/components/common/Toast';
+import { darkTheme, lightTheme } from '@/constants/theme';
+import useThemeStore from '@/store/themeStore';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+// Pretendard 폰트 설정
 const fontConfig = {
   bodyLarge: {
     fontFamily: 'Pretendard-Regular',
@@ -75,30 +78,8 @@ const fontConfig = {
   },
 };
 
-const theme = {
-  ...MD3LightTheme,
-  colors: {
-    ...MD3LightTheme.colors,
-    primary: '#6B46C1',
-    secondary: '#9333EA',
-    tertiary: '#7C3AED',
-    primaryContainer: '#EDE9FE',
-    secondaryContainer: '#F3E8FF',
-    surface: '#FFFFFF',
-    surfaceVariant: '#F9FAFB',
-    background: '#FFFFFF',
-    error: '#EF4444',
-    onPrimary: '#FFFFFF',
-    onSecondary: '#FFFFFF',
-    onSurface: '#1F2937',
-    onBackground: '#1F2937',
-    onError: '#FFFFFF',
-  },
-  roundness: 8,
-  fonts: configureFonts({ config: fontConfig }),
-};
-
 export default function RootLayout() {
+  const { isDark, loadStoredTheme } = useThemeStore();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -120,6 +101,11 @@ export default function RootLayout() {
     'Pretendard-Bold': require('@/assets/fonts/Pretendard-Bold.otf'),
   });
 
+  // 저장된 테마 불러오기
+  useEffect(() => {
+    loadStoredTheme();
+  }, [loadStoredTheme]);
+
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
@@ -129,6 +115,17 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return null;
   }
+
+  // 폰트 설정이 포함된 테마 선택
+  const theme = isDark
+    ? {
+        ...darkTheme,
+        fonts: configureFonts({ config: fontConfig }),
+      }
+    : {
+        ...lightTheme,
+        fonts: configureFonts({ config: fontConfig }),
+      };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -142,6 +139,9 @@ export default function RootLayout() {
             headerTitleStyle: {
               fontWeight: 'bold',
               fontFamily: 'Pretendard-Bold',
+            },
+            contentStyle: {
+              backgroundColor: theme.colors.background,
             },
           }}
         >

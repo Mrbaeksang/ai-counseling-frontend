@@ -128,12 +128,20 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: unknown) {
         processQueue(refreshError, null);
 
         // Clear auth on refresh failure
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
-        // TODO: Redirect to login screen
+        try {
+          await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+        } catch (_storageError: unknown) {}
+
+        // Zustand store도 초기화
+        try {
+          const authStore = (await import('@/store/authStore')).default;
+          await authStore.getState().logout();
+        } catch (_logoutError: unknown) {}
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

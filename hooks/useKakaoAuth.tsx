@@ -16,7 +16,7 @@ export const useKakaoAuth = () => {
       try {
         // 카카오 로그인 시도
         token = await KakaoLogin.login();
-      } catch (error) {
+      } catch (error: unknown) {
         // Expo Go 환경에서 실행 중일 때
         if (__DEV__) {
           Alert.alert(
@@ -36,7 +36,7 @@ export const useKakaoAuth = () => {
       await authService.kakaoLogin(token.accessToken);
       // 메인 화면으로 이동
       router.replace('/(tabs)');
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : '다시 시도해주세요.';
       Alert.alert('로그인 실패', message);
     } finally {

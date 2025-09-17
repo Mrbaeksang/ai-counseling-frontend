@@ -83,7 +83,7 @@ export const CounselorCard = React.memo(
               )}
 
               {/* 인기 뱃지 - 평균 4.0점 이상 */}
-              {counselor.averageRating >= 40 && (
+              {counselor.averageRating >= 80 && (
                 <View style={styles.popularBadge}>
                   <MaterialCommunityIcons name="star" size={12} color="#FFF" />
                   <Text style={styles.badgeText}>인기</Text>
@@ -105,7 +105,7 @@ export const CounselorCard = React.memo(
                 {counselor.averageRating > 0 ? (
                   <View style={styles.statItem}>
                     <MaterialCommunityIcons name="star" size={12} color="#F59E0B" />
-                    <Text style={styles.statText}>{(counselor.averageRating / 10).toFixed(1)}</Text>
+                    <Text style={styles.statText}>{(counselor.averageRating / 20).toFixed(1)}</Text>
                   </View>
                 ) : (
                   <View style={styles.statItem}>

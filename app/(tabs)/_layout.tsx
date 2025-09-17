@@ -1,23 +1,30 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
+import { useCallback } from 'react';
 import { useTheme } from 'react-native-paper';
 
 export default function TabLayout() {
   const theme = useTheme();
 
+  const handleTabPress = useCallback(() => {
+    // 탭 전환 시 가벼운 햅틱 피드백
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: '#6B7280',
+        tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+        tabBarStyle: {
+          backgroundColor: theme.colors.surface,
+          borderTopColor: theme.colors.outlineVariant,
+        },
         headerShown: false,
       }}
       screenListeners={{
-        tabPress: () => {
-          // 탭 전환 시 가벼운 햅틱 피드백
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        },
+        tabPress: handleTabPress,
       }}
     >
       <Tabs.Screen

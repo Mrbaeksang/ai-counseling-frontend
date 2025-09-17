@@ -50,7 +50,7 @@ export const ProfileHeader = React.memo(({ counselor }: ProfileHeaderProps) => {
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="star" size={16} color="#FCD34D" />
             <Text style={styles.statText}>
-              {counselor.averageRating > 0 ? (counselor.averageRating / 10).toFixed(1) : '0.0'}
+              {counselor.averageRating > 0 ? (counselor.averageRating / 20).toFixed(1) : '0.0'}
             </Text>
             <Text style={styles.statSubtext}>({counselor.totalRatings || 0})</Text>
           </View>

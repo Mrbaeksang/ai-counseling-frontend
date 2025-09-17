@@ -20,7 +20,7 @@ class AuthService {
 
       // Zustand store에 저장 (AsyncStorage 저장 포함)
       await useAuthStore.getState().login(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           throw new Error('Google 인증에 실패했습니다.');
@@ -38,7 +38,7 @@ class AuthService {
       });
 
       await useAuthStore.getState().login(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           throw new Error('카카오 인증에 실패했습니다.');
@@ -56,7 +56,7 @@ class AuthService {
       });
 
       await useAuthStore.getState().login(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof AxiosError && error.response?.status === 401) {
         throw new Error('네이버 인증에 실패했습니다.');
       }

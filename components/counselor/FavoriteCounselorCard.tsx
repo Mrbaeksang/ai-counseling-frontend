@@ -83,12 +83,12 @@ export const FavoriteCounselorCard = React.memo(
             </Text>
             <View style={styles.bottomRow}>
               <Text style={styles.title} numberOfLines={1}>
-                {counselor.title || '철학자'}
+                {counselor.title || '상담사'}
               </Text>
               {counselor.averageRating > 0 && (
                 <View style={styles.rating}>
                   <MaterialCommunityIcons name="star" size={12} color="#FFC107" />
-                  <Text style={styles.ratingText}>{(counselor.averageRating / 10).toFixed(1)}</Text>
+                  <Text style={styles.ratingText}>{(counselor.averageRating / 20).toFixed(1)}</Text>
                 </View>
               )}
             </View>

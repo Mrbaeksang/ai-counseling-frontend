@@ -22,7 +22,7 @@ const getGreetingByTime = () => {
 
 export function WelcomeSection({ userName }: WelcomeSectionProps) {
   const greeting = getGreetingByTime();
-  const displayName = userName || '철학자와의 대화';
+  const displayName = userName || '상담사와의 대화';
 
   return (
     <LinearGradient
@@ -35,7 +35,7 @@ export function WelcomeSection({ userName }: WelcomeSectionProps) {
         <Text style={styles.welcomeLabel}>안녕하세요, {displayName}님</Text>
         <Text style={styles.welcomeMessage}>{greeting}</Text>
         <Text style={styles.welcomeSubtext}>
-          오늘도 당신의 마음에 귀 기울이는 철학자들이 기다리고 있어요
+          오늘도 당신의 마음에 귀 기울이는 상담사들이 기다리고 있어요
         </Text>
       </View>
 

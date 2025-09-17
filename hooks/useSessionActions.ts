@@ -46,7 +46,7 @@ export const useSessionActions = ({
       );
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
     },
-    onError: () => {
+    onError: (_error: unknown) => {
       toast.show('북마크 처리에 실패했습니다', 'error');
     },
   });
@@ -132,11 +132,21 @@ export const useSessionActions = ({
     rateMutation.mutate();
   }, [rating, rateMutation, toast]);
 
-  const handleTitleEdit = useCallback(() => {
-    // 현재 세션 제목을 가져오되, null이면 "새 상담" 사용
-    setNewTitle(sessionInfo?.title || '새 상담');
-    setShowTitleDialog(true);
-  }, [sessionInfo?.title]);
+  const handleTitleEdit = useCallback(
+    (currentTitle?: string) => {
+      setNewTitle((prevTitle) => {
+        if (sessionInfo?.title) {
+          return sessionInfo.title;
+        }
+        if (currentTitle?.trim()) {
+          return currentTitle;
+        }
+        return prevTitle || '새 상담';
+      });
+      setShowTitleDialog(true);
+    },
+    [sessionInfo?.title],
+  );
 
   const handleTitleUpdate = useCallback(() => {
     if (!newTitle.trim()) {

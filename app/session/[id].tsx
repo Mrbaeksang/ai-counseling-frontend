@@ -1,11 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { Bubble, type BubbleProps, GiftedChat, type IMessage } from 'react-native-gifted-chat';
-import { ActivityIndicator, Provider as PaperProvider } from 'react-native-paper';
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import type { IMessage } from 'react-native-gifted-chat';
+import { ActivityIndicator, Provider as PaperProvider, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatHeader } from '@/components/chat/ChatHeader';
-import { CustomAvatar } from '@/components/chat/CustomAvatar';
+import { ChatMessages } from '@/components/chat/ChatMessages';
 import { RatingDialog } from '@/components/chat/RatingDialog';
 import { TitleEditDialog } from '@/components/chat/TitleEditDialog';
 import { getCounselorImage } from '@/constants/counselorImages';
@@ -25,6 +25,7 @@ export default function SessionScreen() {
     isBookmarked?: string;
   }>();
   const toast = useToast();
+  const theme = useTheme();
 
   const sessionId = Number(params.id);
   const initialCounselorInfo = useMemo(
@@ -127,9 +128,8 @@ export default function SessionScreen() {
   }, [confirmEndSession, isSessionClosed, toast]);
 
   const handleTitleEdit = useCallback(() => {
-    setNewTitle(sessionTitle);
-    handleTitleEditAction();
-  }, [sessionTitle, setNewTitle, handleTitleEditAction]);
+    handleTitleEditAction(sessionTitle);
+  }, [sessionTitle, handleTitleEditAction]);
 
   const handleTitleSave = useCallback(async () => {
     if (newTitle.trim() && newTitle !== sessionTitle) {
@@ -139,38 +139,6 @@ export default function SessionScreen() {
       setShowTitleDialog(false);
     }
   }, [newTitle, sessionTitle, handleTitleUpdate, setShowTitleDialog]);
-
-  // Custom bubble renderer with spacing and width fix
-  const renderBubble = useCallback((props: BubbleProps<IMessage>) => {
-    const { width } = Dimensions.get('window');
-    // 아바타(48) + marginRight(10) + 좌우 패딩(32) = 90px
-    const maxBubbleWidth = width - 90;
-
-    return (
-      <View style={{ marginBottom: 8 }}>
-        <Bubble
-          {...props}
-          wrapperStyle={{
-            left: {
-              backgroundColor: '#F3F4F6',
-              maxWidth: maxBubbleWidth,
-            },
-            right: {
-              backgroundColor: '#6B46C1',
-            },
-          }}
-          textStyle={{
-            left: {
-              color: '#1F2937',
-            },
-            right: {
-              color: '#FFFFFF',
-            },
-          }}
-        />
-      </View>
-    );
-  }, []);
 
   // Convert backend rating (1-10) to frontend rating (0.5-5)
   const handleRatingSubmit = useCallback(() => {
@@ -240,17 +208,17 @@ export default function SessionScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
     <PaperProvider>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <KeyboardAvoidingView
-          style={styles.keyboardView}
+          style={[styles.keyboardView, { backgroundColor: theme.colors.background }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
@@ -264,21 +232,11 @@ export default function SessionScreen() {
             isBookmarked={isBookmarked}
           />
 
-          <GiftedChat
+          <ChatMessages
             messages={giftedChatMessages}
             onSend={onSend}
-            user={{ _id: 1, name: '나' }}
-            placeholder={isSessionClosed ? '상담이 종료되었습니다' : '메시지를 입력하세요...'}
-            alwaysShowSend={!isSessionClosed}
-            showUserAvatar={false}
-            renderAvatar={(props) => <CustomAvatar {...props} />}
-            renderBubble={renderBubble}
-            renderUsernameOnMessage={false}
-            renderTime={() => null}
-            inverted={false}
-            isTyping={isSending}
-            infiniteScroll
-            renderInputToolbar={isSessionClosed ? () => null : undefined}
+            isSessionClosed={isSessionClosed}
+            isSending={isSending}
           />
 
           <RatingDialog
@@ -309,7 +267,6 @@ export default function SessionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   keyboardView: {
     flex: 1,
@@ -318,6 +275,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
   },
 });

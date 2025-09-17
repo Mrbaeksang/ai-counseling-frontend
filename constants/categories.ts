@@ -88,7 +88,7 @@ export const CATEGORIES: CategoryType[] = [
   },
   {
     id: 'philosophy',
-    label: '철학·명상',
+    label: '명상·치유',
     icon: 'meditation',
     color: '#A855F7',
     gradient: ['#A855F7', '#C084FC'],

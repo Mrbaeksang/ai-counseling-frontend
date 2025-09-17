@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { IconButton, Text } from 'react-native-paper';
+import { IconButton, Text, useTheme } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { getCounselorImage } from '@/constants/counselorImages';
 import { spacing } from '@/constants/theme';
@@ -26,17 +26,37 @@ export const ChatHeader = React.memo(
     onEndSession,
     isBookmarked,
   }: ChatHeaderProps) => {
+    const theme = useTheme();
     const avatarSource = counselorAvatar ? getCounselorImage(counselorAvatar) : null;
 
     return (
-      <View style={styles.header}>
-        <IconButton icon="arrow-left" size={24} onPress={() => router.back()} />
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.surface,
+            borderBottomColor: theme.colors.outlineVariant,
+            shadowColor: theme.colors.shadow,
+          },
+        ]}
+      >
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          iconColor={theme.colors.onSurface}
+          onPress={() => router.back()}
+        />
         <View style={styles.headerCenter}>
           <View style={styles.counselorInfo}>
-            {avatarSource && <Image source={avatarSource} style={styles.avatar} />}
+            {avatarSource && (
+              <Image
+                source={avatarSource}
+                style={[styles.avatar, { borderColor: theme.colors.primary }]}
+              />
+            )}
             <View style={styles.textContainer}>
               <View style={styles.titleContainer}>
-                <Text style={styles.title} numberOfLines={1}>
+                <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
                   {title || '새 상담'}
                 </Text>
                 <AnimatedButton
@@ -45,7 +65,11 @@ export const ChatHeader = React.memo(
                   scaleTo={0.85}
                   springConfig={{ damping: 15, stiffness: 200 }}
                 >
-                  <IconButton icon="pencil-outline" size={16} />
+                  <IconButton
+                    icon="pencil-outline"
+                    size={16}
+                    iconColor={theme.colors.onSurfaceVariant}
+                  />
                 </AnimatedButton>
               </View>
             </View>
@@ -55,9 +79,15 @@ export const ChatHeader = React.memo(
           <IconButton
             icon={isBookmarked ? 'bookmark' : 'bookmark-outline'}
             size={24}
+            iconColor={isBookmarked ? theme.colors.primary : theme.colors.onSurfaceVariant}
             onPress={onBookmarkToggle}
           />
-          <IconButton icon="exit-to-app" size={24} onPress={onEndSession} />
+          <IconButton
+            icon="exit-to-app"
+            size={24}
+            iconColor={theme.colors.onSurfaceVariant}
+            onPress={onEndSession}
+          />
         </View>
       </View>
     );
@@ -70,11 +100,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm, // 16px → 8px로 줄임
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'transparent',
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
