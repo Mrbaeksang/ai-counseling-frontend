@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Button, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Button, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountDeleteDialog } from '@/components/profile/AccountDeleteDialog';
 import { NicknameEditDialog } from '@/components/profile/NicknameEditDialog';
@@ -11,7 +11,6 @@ import { ThemeSelector } from '@/components/profile/ThemeSelector';
 import { spacing } from '@/constants/theme';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import useAuthStore from '@/store/authStore';
-import useOnboardingStore from '@/store/onboardingStore';
 import useThemeStore from '@/store/themeStore';
 import { useToast } from '@/store/toastStore';
 
@@ -44,7 +43,6 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { user, logout } = useAuthStore();
-  const { resetOnboarding } = useOnboardingStore();
   const { mode: themeMode } = useThemeStore();
   const { show: showToast } = useToast();
   const { profile, isLoading, updateNickname, deleteAccount } = useUserProfile();
@@ -91,11 +89,6 @@ export default function ProfileScreen() {
       showToast('로그아웃 중 오류가 발생했습니다.', 'error');
     }
   }, [logout, showToast]);
-
-  const handleResetOnboarding = useCallback(async () => {
-    await resetOnboarding();
-    showToast('온보딩이 초기화되었습니다. 앱을 재시작하세요.', 'success');
-  }, [resetOnboarding, showToast]);
 
   // 테마 모드 표시 텍스트
   const getThemeModeText = useCallback((mode: typeof themeMode) => {
@@ -168,18 +161,50 @@ export default function ProfileScreen() {
     [handleLogout],
   );
 
-  const devMenuItems: ProfileMenuItem[] = useMemo(
-    () => [
-      {
-        id: 'reset-onboarding',
-        title: '온보딩 초기화 (개발용)',
-        description: '다음 앱 시작시 온보딩이 다시 표시됩니다',
-        icon: 'restart',
-        onPress: handleResetOnboarding,
-      },
-    ],
-    [handleResetOnboarding],
-  );
+  // 비로그인 사용자 처리
+  if (!user) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.centerContent,
+          { backgroundColor: theme.colors.background, paddingTop: insets.top },
+        ]}
+      >
+        <View style={{ alignItems: 'center', padding: spacing.xl }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: 'Pretendard-SemiBold',
+              color: theme.colors.onBackground,
+              marginBottom: spacing.md,
+            }}
+          >
+            로그인이 필요합니다
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: 'Pretendard-Regular',
+              color: theme.colors.onSurfaceVariant,
+              textAlign: 'center',
+              marginBottom: spacing.xl,
+            }}
+          >
+            로그인하시면 프로필 관리와{'\n'}맞춤 상담 서비스를 이용하실 수 있습니다
+          </Text>
+          <Button
+            mode="contained"
+            onPress={() => router.push('/(auth)/login')}
+            style={{ borderRadius: 12 }}
+            contentStyle={{ height: 48, paddingHorizontal: spacing.xl }}
+          >
+            로그인하기
+          </Button>
+        </View>
+      </View>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -217,9 +242,6 @@ export default function ProfileScreen() {
 
         {/* Actions - 로그인한 사용자만 */}
         {profile && <ProfileInfoCard items={actionMenuItems} />}
-
-        {/* Development Tools (only in dev mode) */}
-        {__DEV__ && <ProfileInfoCard items={devMenuItems} />}
 
         {/* Delete Account Button - 로그인한 사용자만 */}
         {profile && (

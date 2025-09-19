@@ -1,19 +1,22 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Button, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SessionListContainer from '@/components/session/SessionListContainer';
 import { SessionTabs } from '@/components/session/SessionTabs';
+import { spacing } from '@/constants/theme';
 import { useSessions } from '@/hooks/useSessions';
 import { toggleSessionBookmark } from '@/services/sessions';
 import type { Session } from '@/services/sessions/types';
+import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
 export default function SessionsScreen() {
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const theme = useTheme();
+  const { user } = useAuthStore();
   const [tabIndex, setTabIndex] = useState('0');
 
   // 페이지네이션 상태
@@ -137,6 +140,55 @@ export default function SessionsScreen() {
     setBookmarkedPage(1);
     refetchBookmarked();
   }, [refetchBookmarked]);
+
+  // 비로그인 사용자 처리
+  if (!user) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            paddingTop: insets.top,
+            backgroundColor: theme.colors.background,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <View style={{ alignItems: 'center', padding: spacing.xl }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: 'Pretendard-SemiBold',
+              color: theme.colors.onBackground,
+              marginBottom: spacing.md,
+            }}
+          >
+            로그인이 필요합니다
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: 'Pretendard-Regular',
+              color: theme.colors.onSurfaceVariant,
+              textAlign: 'center',
+              marginBottom: spacing.xl,
+            }}
+          >
+            로그인하시면 상담 내역을 확인하고{'\n'}저장하실 수 있습니다
+          </Text>
+          <Button
+            mode="contained"
+            onPress={() => router.push('/(auth)/login')}
+            style={{ borderRadius: 12 }}
+            contentStyle={{ height: 48, paddingHorizontal: spacing.xl }}
+          >
+            로그인하기
+          </Button>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View

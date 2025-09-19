@@ -25,18 +25,6 @@ export const loginWithKakao = async (token: string): Promise<AuthResponse> => {
   return response.data;
 };
 
-// Naver 로그인
-export const loginWithNaver = async (token: string): Promise<AuthResponse> => {
-  const request: OAuthLoginRequest = { token };
-  const response = await api.post<AuthResponse>('/auth/login/naver', request);
-
-  if (!response.data) {
-    throw new Error('No data received from Naver login');
-  }
-
-  return response.data;
-};
-
 // 토큰 갱신
 export const refreshToken = async (refreshToken: string): Promise<AuthResponse> => {
   const request: RefreshTokenRequest = { refreshToken };

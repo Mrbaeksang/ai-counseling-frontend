@@ -1,36 +1,28 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card } from 'react-native-paper';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { ActivityIndicator, Card, useTheme } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 
 export const SessionCardSkeleton = React.memo(() => {
+  const theme = useTheme();
+
   return (
     <Card style={styles.card}>
       <Card.Content style={styles.content}>
-        <SkeletonPlaceholder
-          backgroundColor="#F3F4F6"
-          highlightColor="#FFFFFF"
-          speed={1200}
-          borderRadius={8}
-        >
-          <View style={styles.header}>
-            {/* Avatar */}
-            <View style={styles.avatar} />
+        <View style={styles.header}>
+          <View style={[styles.avatar, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+          </View>
 
-            <View style={styles.textContainer}>
-              {/* Session Title */}
-              <View style={styles.title} />
-              {/* Last Message */}
-              <View style={styles.subtitle} />
-              {/* Time & Message Count */}
-              <View style={styles.footer}>
-                <View style={styles.time} />
-                <View style={styles.count} />
-              </View>
+          <View style={styles.textContainer}>
+            <View style={[styles.title, { backgroundColor: theme.colors.surfaceVariant }]} />
+            <View style={[styles.subtitle, { backgroundColor: theme.colors.surfaceVariant }]} />
+            <View style={styles.footer}>
+              <View style={[styles.time, { backgroundColor: theme.colors.surfaceVariant }]} />
+              <View style={[styles.count, { backgroundColor: theme.colors.surfaceVariant }]} />
             </View>
           </View>
-        </SkeletonPlaceholder>
+        </View>
       </Card.Content>
     </Card>
   );
@@ -54,6 +46,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textContainer: {
     marginLeft: spacing.sm,

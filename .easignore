@@ -1,0 +1,16 @@
+# EAS Build ignore file
+node_modules/
+.git/
+android/
+ios/
+.husky/
+.vscode/
+*.log
+.DS_Store
+.env.local
+.env.development
+.env.test
+coverage/
+.expo/
+dist/
+web-build/

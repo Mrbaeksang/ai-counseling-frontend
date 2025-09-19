@@ -5,7 +5,7 @@ import useAuthStore from '@/store/authStore';
 import useOnboardingStore from '@/store/onboardingStore';
 
 export default function Index() {
-  const { isAuthenticated, isLoading: authLoading, loadStoredAuth } = useAuthStore();
+  const { isLoading: authLoading, loadStoredAuth } = useAuthStore();
   const { isLoading: onboardingLoading, checkOnboardingStatus } = useOnboardingStore();
 
   useEffect(() => {
@@ -19,9 +19,8 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="#6B46C1" />
-      {/* 로딩 완료 후 리다이렉트 - 화면에는 보이지 않음 */}
-      {!isLoading &&
-        (isAuthenticated ? <Redirect href="/(tabs)" /> : <Redirect href="/(auth)/login" />)}
+      {/* 로딩 완료 후 홈으로 리다이렉트 - 로그인 여부와 관계없이 */}
+      {!isLoading && <Redirect href="/(tabs)" />}
     </View>
   );
 }

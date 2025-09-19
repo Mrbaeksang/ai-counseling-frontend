@@ -24,7 +24,8 @@
       "WebFetch(domain:github.com)",
       "Bash(cat:*)",
       "Bash(npm install:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

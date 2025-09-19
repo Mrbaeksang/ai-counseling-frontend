@@ -21,7 +21,6 @@ export interface AuthResponse {
 export const AUTH_PROVIDERS = {
   GOOGLE: 'GOOGLE',
   KAKAO: 'KAKAO',
-  NAVER: 'NAVER',
 } as const;
 
 export type OAuthProvider = (typeof AUTH_PROVIDERS)[keyof typeof AUTH_PROVIDERS];
