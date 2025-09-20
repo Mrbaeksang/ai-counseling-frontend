@@ -89,7 +89,7 @@ jobs:
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                model: 'openrouter/sonoma-sky-alpha',
+                model: 'x-ai/grok-4-fast:free',
                 messages: [{
                   role: 'system',
                   content: `React Native 프론트엔드 코드 리뷰어입니다.

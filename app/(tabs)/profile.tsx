@@ -1,3 +1,4 @@
+import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -131,22 +132,35 @@ export default function ProfileScreen() {
     [themeMode, getThemeModeText],
   );
 
+  const openExternalLink = useCallback(
+    async (url: string) => {
+      try {
+        await Linking.openURL(url);
+      } catch (_error) {
+        showToast('링크를 열 수 없습니다', 'error');
+      }
+    },
+    [showToast],
+  );
+
   const legalMenuItems: ProfileMenuItem[] = useMemo(
     () => [
       {
         id: 'terms',
         title: '이용 약관',
         icon: 'file-document',
-        onPress: () => showToast('준비 중입니다', 'info'),
+        onPress: () =>
+          openExternalLink('https://mrbaeksang.github.io/dr-mind-legal/terms-of-service.html'),
       },
       {
         id: 'privacy',
         title: '개인정보 처리방침',
         icon: 'shield-lock',
-        onPress: () => showToast('준비 중입니다', 'info'),
+        onPress: () =>
+          openExternalLink('https://mrbaeksang.github.io/dr-mind-legal/privacy-policy.html'),
       },
     ],
-    [showToast],
+    [openExternalLink],
   );
 
   const actionMenuItems: ProfileMenuItem[] = useMemo(

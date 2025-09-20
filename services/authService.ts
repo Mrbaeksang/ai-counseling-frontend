@@ -102,6 +102,26 @@ class AuthService {
       throw new Error('닉네임 변경에 실패했습니다.');
     }
   }
+
+  // Google Play 심사용 테스트 로그인
+  async testGoogleLogin(): Promise<void> {
+    try {
+      const response = await api.post<AuthResponse>('/auth/test-login-google');
+      await useAuthStore.getState().login(response.data);
+    } catch (_error: unknown) {
+      throw new Error('테스트 로그인 중 오류가 발생했습니다.');
+    }
+  }
+
+  // Google Play 심사용 카카오 테스트 로그인
+  async testKakaoLogin(): Promise<void> {
+    try {
+      const response = await api.post<AuthResponse>('/auth/test-login-kakao');
+      await useAuthStore.getState().login(response.data);
+    } catch (_error: unknown) {
+      throw new Error('테스트 로그인 중 오류가 발생했습니다.');
+    }
+  }
 }
 
 export default new AuthService();

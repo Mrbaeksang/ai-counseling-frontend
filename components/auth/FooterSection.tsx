@@ -1,13 +1,37 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import * as Linking from 'expo-linking';
+import React, { useCallback } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { borderRadius, spacing } from '@/constants/theme';
 
 export const FooterSection = React.memo(() => {
+  const openTerms = useCallback(async () => {
+    try {
+      await Linking.openURL('https://mrbaeksang.github.io/dr-mind-legal/terms-of-service.html');
+    } catch (_error) {
+      // 에러 처리는 조용히 함 (로그인 화면에서는 토스트 없이)
+    }
+  }, []);
+
+  const openPrivacy = useCallback(async () => {
+    try {
+      await Linking.openURL('https://mrbaeksang.github.io/dr-mind-legal/privacy-policy.html');
+    } catch (_error) {
+      // 에러 처리는 조용히 함 (로그인 화면에서는 토스트 없이)
+    }
+  }, []);
+
   return (
     <View style={styles.footer}>
       <Text style={styles.footerText}>
-        계속 진행 시<Text style={styles.footerLink}>서비스 이용약관</Text> 및{'\n'}
-        <Text style={styles.footerLink}>개인정보처리방침</Text>에 동의하게 됩니다
+        계속 진행 시
+        <TouchableOpacity onPress={openTerms}>
+          <Text style={styles.footerLink}>서비스 이용약관</Text>
+        </TouchableOpacity>{' '}
+        및{'\n'}
+        <TouchableOpacity onPress={openPrivacy}>
+          <Text style={styles.footerLink}>개인정보처리방침</Text>
+        </TouchableOpacity>
+        에 동의하게 됩니다
       </Text>
     </View>
   );

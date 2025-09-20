@@ -1,3 +1,5 @@
+import type { InfiniteData } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
@@ -12,6 +14,7 @@ import { getCounselorImage } from '@/constants/counselorImages';
 import { useSessionActions } from '@/hooks/useSessionActions';
 import { useSessionMessages } from '@/hooks/useSessionMessages';
 import { sendMessage } from '@/services/sessions';
+import type { PagedResponse, Session } from '@/services/sessions/types';
 import { useToast } from '@/store/toastStore';
 import { formatAIMessage } from '@/utils/textFormatting';
 
@@ -26,6 +29,7 @@ export default function SessionScreen() {
   }>();
   const toast = useToast();
   const theme = useTheme();
+  const queryClient = useQueryClient();
 
   const sessionId = Number(params.id);
   const initialCounselorInfo = useMemo(
@@ -133,8 +137,12 @@ export default function SessionScreen() {
 
   const handleTitleSave = useCallback(async () => {
     if (newTitle.trim() && newTitle !== sessionTitle) {
-      await handleTitleUpdate();
-      setSessionTitle(newTitle);
+      try {
+        await handleTitleUpdate();
+        setSessionTitle(newTitle);
+      } catch (_error) {
+        // 에러는 handleTitleUpdate 내부에서 처리됨
+      }
     } else {
       setShowTitleDialog(false);
     }
@@ -167,6 +175,35 @@ export default function SessionScreen() {
         if (response.sessionTitle) {
           setSessionTitle(response.sessionTitle);
           setNewTitle(response.sessionTitle);
+
+          // React Query 캐시 업데이트: 세션 목록의 해당 세션 제목 동기화
+          queryClient.setQueryData(
+            ['sessions'],
+            (oldData: InfiniteData<PagedResponse<Session>> | undefined) => {
+              if (!oldData?.pages) return oldData;
+
+              return {
+                ...oldData,
+                pages: oldData.pages.map((page) => ({
+                  ...page,
+                  content: page.content.map((session) =>
+                    session.sessionId === sessionId
+                      ? { ...session, title: response.sessionTitle }
+                      : session,
+                  ),
+                })),
+              };
+            },
+          );
+
+          // React Query 캐시 업데이트: 세션 상세 정보의 제목도 동기화
+          queryClient.setQueryData(
+            ['sessions', sessionId],
+            (oldSessionData: Session | undefined) => {
+              if (!oldSessionData) return oldSessionData;
+              return { ...oldSessionData, title: response.sessionTitle };
+            },
+          );
         }
 
         // AI 메시지 추가 (백엔드 타입 그대로)
@@ -203,7 +240,16 @@ export default function SessionScreen() {
         setIsSending(false);
       }
     },
-    [sessionId, isSending, addMessage, removeLastMessage, toast, setNewTitle, setShowRatingDialog],
+    [
+      sessionId,
+      isSending,
+      addMessage,
+      removeLastMessage,
+      toast,
+      setNewTitle,
+      setShowRatingDialog,
+      queryClient,
+    ],
   );
 
   if (isLoading) {
