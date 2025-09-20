@@ -22,6 +22,7 @@ const config = {
       backgroundColor: '#ffffff',
     },
     package: 'com.drmind.app',
+    versionCode: 2,
   },
   web: {
     favicon: './assets/favicon.png',
