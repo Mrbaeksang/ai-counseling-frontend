@@ -135,11 +135,12 @@ export const useSessionActions = ({
   const handleTitleEdit = useCallback(
     (currentTitle?: string) => {
       setNewTitle((prevTitle) => {
-        if (sessionInfo?.title) {
-          return sessionInfo.title;
-        }
+        // 화면에 보이는 제목을 우선하여 사용자 경험 개선
         if (currentTitle?.trim()) {
           return currentTitle;
+        }
+        if (sessionInfo?.title) {
+          return sessionInfo.title;
         }
         return prevTitle || '새 상담';
       });

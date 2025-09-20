@@ -52,6 +52,7 @@ const config = {
     apiUrl: process.env.EXPO_PUBLIC_API_BASE_URL
       ? `${process.env.EXPO_PUBLIC_API_BASE_URL}/api`
       : 'https://ai-counseling-backend-production.up.railway.app/api',
+    isReviewMode: process.env.EXPO_PUBLIC_REVIEW_MODE === 'true',
   },
 };
 
