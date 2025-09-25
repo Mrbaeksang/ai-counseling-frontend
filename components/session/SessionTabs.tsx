@@ -26,8 +26,8 @@ export const SessionTabs = React.memo(({ tabIndex, onTabChange }: SessionTabsPro
           />
         </View>
         <View>
-          <Text style={styles.title}>상담내역</Text>
-          <Text style={styles.subtitle}>최근 상담 기록을 확인하세요</Text>
+          <Text style={styles.title}>대화내역</Text>
+          <Text style={styles.subtitle}>최근 대화 기록을 확인하세요</Text>
         </View>
       </View>
 

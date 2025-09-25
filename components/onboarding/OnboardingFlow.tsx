@@ -1,10 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
-import { Button, Text } from 'react-native-paper';
+import { Button, Checkbox, Text } from 'react-native-paper';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { spacing } from '@/constants/theme';
@@ -16,36 +16,44 @@ interface SlideItem {
   text: string;
   icon: string;
   colors: [string, string];
+  consentDetails?: string[];
+  requiresConsent?: boolean;
 }
 
 const slides: SlideItem[] = [
   {
     key: 'welcome',
-    title: '당신의 이야기를 들어드립니다',
-    text: 'AI 전문 상담사가\n언제든 편하게 대화해드려요',
-    icon: 'heart-pulse',
+    title: '마음이 가벼워지는 AI 토크',
+    text: '가상 캐릭터와 가볍게 이야기 나누며\n감정을 정리하고 휴식할 수 있는 공간이에요.',
+    icon: 'chat-processing',
     colors: ['#8B5CF6', '#EC4899'],
   },
   {
-    key: 'counselors',
-    title: '다양한 관점의 상담',
-    text: '연애, 직장, 인간관계, 자기계발\n고민별로 최적의 상담사를 만나보세요',
-    icon: 'account-group',
+    key: 'characters',
+    title: '스토리 기반 캐릭터와 대화',
+    text: '다양한 캐릭터 시나리오를 따라가며\n취향에 맞는 힐링 토크를 즐겨 보세요.',
+    icon: 'account-voice',
     colors: ['#6366F1', '#8B5CF6'],
   },
   {
-    key: 'privacy',
-    title: '나만 볼 수 있는 대화',
-    text: '모든 상담 내용은 비밀 보장\n원할 때 언제든 삭제 가능해요',
-    icon: 'shield-check',
+    key: 'ai_content',
+    title: 'AI가 만드는 엔터테인먼트',
+    text: '대화 내용은 AI가 자동으로 생성돼요.\n즐거운 체험을 위한 콘텐츠로 제공됩니다.',
+    icon: 'robot-happy',
     colors: ['#10B981', '#3B82F6'],
   },
   {
     key: 'start',
-    title: '지금 무료로 시작',
-    text: '회원가입 없이 소셜 로그인만으로\n바로 무료 상담을 받아보세요',
-    icon: 'rocket-launch',
+    title: '시작 전 안내를 확인해 주세요',
+    text: '아래 내용을 읽고 동의해 주시면 바로 마인드톡을 이용할 수 있어요.',
+    icon: 'clipboard-check',
     colors: ['#F97316', '#EC4899'],
+    requiresConsent: true,
+    consentDetails: [
+      '이 앱은 의료·심리·법률 상담을 제공하지 않습니다.',
+      'AI가 자동 생성한 응답으로 오류나 부정확한 표현이 포함될 수 있습니다.',
+      '건강이나 안전과 관련된 문제는 반드시 전문 기관에 문의하세요.',
+    ],
   },
 ];
 
@@ -57,7 +65,13 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
   const sliderRef = useRef<AppIntroSlider<SlideItem>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
   const lastClickTime = useRef(0);
+
+  const isConsentSlide = useMemo(
+    () => slides[currentIndex]?.requiresConsent ?? false,
+    [currentIndex],
+  );
 
   const renderItem = useCallback(
     ({ item, index }: { item: SlideItem; index: number }) => {
@@ -86,17 +100,46 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
             >
               {item.text}
             </Animated.Text>
+
+            {item.consentDetails && (
+              <Animated.View
+                entering={isActive ? FadeInUp.delay(700).springify() : undefined}
+                style={styles.consentDetails}
+              >
+                {item.consentDetails.map((detail) => (
+                  <Text key={detail} style={styles.consentDetailText}>
+                    {`• ${detail}`}
+                  </Text>
+                ))}
+              </Animated.View>
+            )}
+
+            {item.requiresConsent && (
+              <Animated.View
+                entering={isActive ? FadeInUp.delay(800).springify() : undefined}
+                style={styles.consentCheckboxRow}
+              >
+                <Checkbox
+                  status={hasConsent ? 'checked' : 'unchecked'}
+                  onPress={() => setHasConsent((prev) => !prev)}
+                  color="white"
+                  uncheckedColor="white"
+                />
+                <Text style={styles.consentCheckboxLabel}>
+                  위 내용을 이해했고 엔터테인먼트 목적으로 이용할게요.
+                </Text>
+              </Animated.View>
+            )}
           </View>
         </LinearGradient>
       );
     },
-    [currentIndex],
+    [currentIndex, hasConsent],
   );
 
   const handleNext = useCallback(() => {
     const now = Date.now();
 
-    // 300ms 이내 중복 클릭 방지 (더 강력한 debounce)
     if (now - lastClickTime.current < 300) {
       return;
     }
@@ -105,15 +148,11 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
     setIsTransitioning(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // 즉시 상태 업데이트 후 슬라이드 호출
     const nextIndex = currentIndex + 1;
 
-    // requestAnimationFrame으로 다음 프레임에서 실행
     requestAnimationFrame(() => {
       setCurrentIndex(nextIndex);
       sliderRef.current?.goToSlide(nextIndex);
-
-      // 더 짧은 시간으로 다시 활성화
       setTimeout(() => setIsTransitioning(false), 150);
     });
   }, [currentIndex]);
@@ -129,45 +168,58 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
 
   const handleComplete = useCallback(() => {
     if (isTransitioning) return;
+    if (slides[currentIndex]?.requiresConsent && !hasConsent) {
+      return;
+    }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onComplete();
-  }, [onComplete, isTransitioning]);
+  }, [currentIndex, hasConsent, isTransitioning, onComplete]);
 
   const renderDoneButton = useCallback(() => {
+    const consentRequired = slides[currentIndex]?.requiresConsent ?? false;
+    const disabled = consentRequired && !hasConsent;
+
     return (
       <AnimatedButton
-        style={[styles.button, styles.doneButton]}
+        style={[styles.button, styles.doneButton, disabled ? styles.buttonDisabled : null]}
         onPress={handleComplete}
         hapticStyle="medium"
         scaleTo={0.93}
+        disabled={disabled}
       >
-        <Text style={styles.buttonText}>시작하기</Text>
+        <Text style={styles.buttonText}>시작할게요</Text>
         <MaterialCommunityIcons name="check" size={20} color="white" />
       </AnimatedButton>
     );
-  }, [handleComplete]);
+  }, [currentIndex, handleComplete, hasConsent]);
 
   const handleSkip = useCallback(() => {
     if (isTransitioning) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onComplete();
-  }, [onComplete, isTransitioning]);
+  }, [isTransitioning, onComplete]);
 
   const renderSkipButton = useCallback(() => {
+    if (slides[currentIndex]?.requiresConsent) {
+      return null;
+    }
+
     return (
       <Button mode="text" onPress={handleSkip} textColor="rgba(255,255,255,0.7)" compact>
         건너뛰기
       </Button>
     );
-  }, [handleSkip]);
+  }, [currentIndex, handleSkip]);
 
   const handleSlideChange = useCallback((index: number) => {
-    // 스와이프로 변경된 경우에만 currentIndex 업데이트
     setCurrentIndex(index);
-    // 슬라이드 변경 완료 후 즉시 버튼 활성화
     setIsTransitioning(false);
+
+    if (!slides[index]?.requiresConsent) {
+      setHasConsent(false);
+    }
   }, []);
 
   return (
@@ -178,7 +230,7 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
       renderNextButton={renderNextButton}
       renderDoneButton={renderDoneButton}
       renderSkipButton={renderSkipButton}
-      showSkipButton
+      showSkipButton={!isConsentSlide}
       onSlideChange={handleSlideChange}
       dotStyle={styles.dot}
       activeDotStyle={styles.activeDot}
@@ -221,7 +273,36 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     lineHeight: 28,
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.xl,
+  },
+  consentDetails: {
+    width: '100%',
+    marginBottom: spacing.lg,
+    gap: spacing.xs,
+  },
+  consentDetailText: {
+    fontSize: 15,
+    fontFamily: 'Pretendard-Regular',
+    color: 'rgba(255, 255, 255, 0.92)',
+    lineHeight: 22,
+    textAlign: 'left',
+  },
+  consentCheckboxRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 16,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  consentCheckboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'Pretendard-Medium',
+    color: 'rgba(255, 255, 255, 0.95)',
   },
   button: {
     flexDirection: 'row',
@@ -235,6 +316,9 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  buttonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   buttonText: {
     color: 'white',

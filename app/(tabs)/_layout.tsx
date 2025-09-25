@@ -48,7 +48,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sessions"
         options={{
-          title: '상담내역',
+          title: '대화내역',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="message-text-outline" size={size} color={color} />
           ),

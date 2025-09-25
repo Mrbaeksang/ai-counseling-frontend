@@ -6,7 +6,7 @@ import { borderRadius, spacing } from '@/constants/theme';
 export const FooterSection = React.memo(() => {
   const openTerms = useCallback(async () => {
     try {
-      await Linking.openURL('https://mrbaeksang.github.io/dr-mind-legal/terms-of-service.html');
+      await Linking.openURL('https://mrbaeksang.github.io/mindtalk-legal/terms-of-service.html');
     } catch (_error) {
       // 에러 처리는 조용히 함 (로그인 화면에서는 토스트 없이)
     }
@@ -14,7 +14,7 @@ export const FooterSection = React.memo(() => {
 
   const openPrivacy = useCallback(async () => {
     try {
-      await Linking.openURL('https://mrbaeksang.github.io/dr-mind-legal/privacy-policy.html');
+      await Linking.openURL('https://mrbaeksang.github.io/mindtalk-legal/privacy-policy.html');
     } catch (_error) {
       // 에러 처리는 조용히 함 (로그인 화면에서는 토스트 없이)
     }

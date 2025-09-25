@@ -16,8 +16,8 @@ export interface PageResponse<T> {
   pageInfo: PageInfo;
 }
 
-// 상담사 목록 응답 (백엔드 CounselorListResponse와 일치)
-export interface CounselorListResponse {
+// AI 캐릭터 목록 응답 (백엔드 characterListResponse와 일치)
+export interface CharacterListResponse {
   id: number;
   name: string;
   title: string;
@@ -28,8 +28,8 @@ export interface CounselorListResponse {
   isFavorite: boolean; // 즐겨찾기 여부
 }
 
-// 상담사 상세 응답 (백엔드 CounselorDetailResponse와 일치)
-export interface CounselorDetailResponse {
+// AI 캐릭터 상세 응답 (백엔드 CharacterDetailResponse와 일치)
+export interface CharacterDetailResponse {
   id: number;
   name: string;
   title: string;
@@ -42,8 +42,8 @@ export interface CounselorDetailResponse {
   categories?: string; // 카테고리 (콤마로 구분된 문자열)
 }
 
-// 즐겨찾기 상담사 응답 (백엔드 FavoriteCounselorResponse와 일치)
-export interface FavoriteCounselorResponse {
+// 즐겨찾기 AI 캐릭터 응답 (백엔드 FavoriteCharacterResponse와 일치)
+export interface FavoriteCharacterResponse {
   id: number;
   name: string;
   title: string;
@@ -52,6 +52,6 @@ export interface FavoriteCounselorResponse {
 }
 
 // 별칭 타입 (하위 호환성 유지)
-export type Counselor = CounselorListResponse;
-export type CounselorDetail = CounselorDetailResponse;
-export type FavoriteCounselor = FavoriteCounselorResponse;
+export type Character = CharacterListResponse;
+export type CharacterDetail = CharacterDetailResponse;
+export type FavoriteCharacter = FavoriteCharacterResponse;

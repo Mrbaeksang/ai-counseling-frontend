@@ -1,12 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { endSession, getSessions } from '@/services/sessions';
+import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
 // 세션 목록 조회
 export const useSessions = (page = 1, size = 20, bookmarked?: boolean, isClosed?: boolean) => {
+  const userId = useAuthStore((state) => state.user?.userId);
+  const userKey = userId ? `user-${userId}` : 'guest';
+  const queryKey = [
+    'sessions',
+    userKey,
+    {
+      page,
+      size,
+      bookmarked: typeof bookmarked === 'boolean' ? bookmarked : null,
+      isClosed: typeof isClosed === 'boolean' ? isClosed : null,
+    },
+  ] as const;
+
   return useQuery({
-    queryKey: ['sessions', page, size, bookmarked, isClosed],
+    queryKey,
     queryFn: () => getSessions(page, size, bookmarked, isClosed),
+    enabled: !!userId,
     staleTime: 2 * 60 * 1000, // 2분
     gcTime: 5 * 60 * 1000,
   });
@@ -27,13 +42,16 @@ export const useSessions = (page = 1, size = 20, bookmarked?: boolean, isClosed?
 export const useDeleteSession = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const userId = useAuthStore((state) => state.user?.userId);
+  const userKey = userId ? `user-${userId}` : 'guest';
+  const sessionsBaseKey = ['sessions', userKey] as const;
 
   return useMutation({
     mutationFn: (sessionId: number) => endSession(sessionId),
     onSuccess: () => {
       // 세션 목록 새로고침
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      toast.show('상담 기록이 삭제되었습니다', 'success');
+      queryClient.invalidateQueries({ queryKey: sessionsBaseKey, exact: false });
+      toast.show('대화 기록이 삭제되었습니다', 'success');
     },
     onError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {

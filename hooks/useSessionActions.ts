@@ -8,21 +8,25 @@ import {
   updateSessionTitle,
 } from '@/services/sessions';
 import type { Session } from '@/services/sessions/types';
+import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
 interface UseSessionActionsProps {
   sessionId: number;
   sessionInfo: Session | null;
-  counselorId?: number;
+  characterId?: number;
 }
 
 export const useSessionActions = ({
   sessionId,
   sessionInfo,
-  counselorId,
+  characterId,
 }: UseSessionActionsProps) => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const userId = useAuthStore((state) => state.user?.userId);
+  const userKey = userId ? `user-${userId}` : 'guest';
+  const sessionsBaseKey = ['sessions', userKey] as const;
 
   // Dialog states
   const [showEndDialog, setShowEndDialog] = useState(false);
@@ -44,7 +48,7 @@ export const useSessionActions = ({
         data.isBookmarked ? '북마크에 추가되었습니다' : '북마크가 해제되었습니다',
         'success',
       );
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: sessionsBaseKey, exact: false });
     },
     onError: (_error: unknown) => {
       toast.show('북마크 처리에 실패했습니다', 'error');
@@ -59,15 +63,7 @@ export const useSessionActions = ({
       setShowRatingDialog(true);
 
       // 세션 목록 캐시 즉시 무효화
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-
-      // 특히 진행중/종료됨 탭 갱신
-      queryClient.invalidateQueries({
-        queryKey: ['sessions', 1, 20, undefined, false], // 진행중
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['sessions', 1, 20, undefined, true], // 종료됨
-      });
+      queryClient.invalidateQueries({ queryKey: sessionsBaseKey, exact: false });
     },
     onError: () => {
       toast.show('세션 종료에 실패했습니다', 'error');
@@ -86,10 +82,10 @@ export const useSessionActions = ({
       setShowRatingDialog(false);
 
       // Invalidate queries for immediate update
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      if (counselorId) {
-        queryClient.invalidateQueries({ queryKey: ['counselor', counselorId] });
-        queryClient.invalidateQueries({ queryKey: ['counselors'] });
+      queryClient.invalidateQueries({ queryKey: sessionsBaseKey, exact: false });
+      if (characterId) {
+        queryClient.invalidateQueries({ queryKey: ['character', characterId] });
+        queryClient.invalidateQueries({ queryKey: ['characters'] });
       }
 
       router.back();
@@ -105,7 +101,7 @@ export const useSessionActions = ({
     onSuccess: () => {
       toast.show('제목이 변경되었습니다', 'success');
       setShowTitleDialog(false);
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: sessionsBaseKey, exact: false });
     },
     onError: () => {
       toast.show('제목 변경에 실패했습니다', 'error');
@@ -142,7 +138,7 @@ export const useSessionActions = ({
         if (sessionInfo?.title) {
           return sessionInfo.title;
         }
-        return prevTitle || '새 상담';
+        return prevTitle || '새 대화';
       });
       setShowTitleDialog(true);
     },

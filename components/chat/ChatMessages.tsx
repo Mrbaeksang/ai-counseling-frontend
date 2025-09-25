@@ -6,28 +6,30 @@ import { useTheme } from 'react-native-paper';
 import { ChatBubble } from './ChatBubble';
 import { ChatInputToolbar } from './ChatInputToolbar';
 import { CustomAvatar } from './CustomAvatar';
+import type { ChatMessage } from './types';
 
 interface ChatMessagesProps {
-  messages: IMessage[];
+  messages: ChatMessage[];
   onSend: (messages: IMessage[]) => void;
   isSessionClosed: boolean;
   isSending: boolean;
+  onMessageAction?: (message: ChatMessage) => void;
 }
 
 export const ChatMessages = React.memo(
-  ({ messages, onSend, isSessionClosed, isSending }: ChatMessagesProps) => {
+  ({ messages, onSend, isSessionClosed, isSending, onMessageAction }: ChatMessagesProps) => {
     const theme = useTheme();
 
     return (
-      <GiftedChat
+      <GiftedChat<ChatMessage>
         messages={messages}
         onSend={onSend}
         user={{ _id: 1, name: '나' }}
-        placeholder={isSessionClosed ? '상담이 종료되었습니다' : '메시지를 입력하세요...'}
+        placeholder={isSessionClosed ? '대화이 종료되었습니다' : '메시지를 입력하세요...'}
         alwaysShowSend={!isSessionClosed}
         showUserAvatar={false}
         renderAvatar={(props) => <CustomAvatar {...props} />}
-        renderBubble={(props) => <ChatBubble {...props} />}
+        renderBubble={(props) => <ChatBubble {...props} onPressAction={onMessageAction} />}
         renderUsernameOnMessage={false}
         renderTime={() => null}
         inverted={false}

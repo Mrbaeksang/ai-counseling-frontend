@@ -17,7 +17,7 @@ export const LoginPromptDialog = React.memo(
     visible,
     onDismiss,
     title = '로그인이 필요해요',
-    description: _description = '3초만에 로그인하고\n개인 맞춤 상담을 받아보세요! ✨',
+    description: customDescription = '3초 만에 로그인하고\n개인 맞춤 대화를 즐겨보세요! ✨',
   }: LoginPromptDialogProps) => {
     const theme = useTheme();
 
@@ -49,12 +49,11 @@ export const LoginPromptDialog = React.memo(
 
           <Dialog.Content>
             <View style={styles.descriptionContainer}>
-              <Text style={[styles.description, { color: theme.colors.primary }]}>
-                3초만에 로그인하고
-              </Text>
-              <Text style={[styles.description, { color: theme.colors.primary }]}>
-                개인 맞춤 상담을 받아보세요! ✨
-              </Text>
+              {customDescription.split('\n').map((line) => (
+                <Text key={line} style={[styles.description, { color: theme.colors.primary }]}>
+                  {line}
+                </Text>
+              ))}
             </View>
 
             <View
@@ -67,7 +66,7 @@ export const LoginPromptDialog = React.memo(
                   color={theme.colors.primary}
                 />
                 <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
-                  모든 상담사와 대화
+                  모든 AI 캐릭터와 대화하기
                 </Text>
               </View>
               <View style={styles.benefitRow}>
@@ -77,7 +76,7 @@ export const LoginPromptDialog = React.memo(
                   color={theme.colors.primary}
                 />
                 <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
-                  상담 내역 저장
+                  이야기 기록을 언제든 다시 보기
                 </Text>
               </View>
               <View style={styles.benefitRow}>
@@ -87,7 +86,7 @@ export const LoginPromptDialog = React.memo(
                   color={theme.colors.primary}
                 />
                 <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
-                  즐겨찾기 관리
+                  즐겨찾기 캐릭터 빠르게 찾기
                 </Text>
               </View>
             </View>
@@ -159,6 +158,7 @@ const styles = StyleSheet.create({
   descriptionContainer: {
     alignItems: 'center',
     marginBottom: spacing.lg,
+    gap: spacing.xs,
   },
   description: {
     fontSize: 16,

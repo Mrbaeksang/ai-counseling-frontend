@@ -7,7 +7,7 @@ const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm * 2) / 3;
 const CARD_HEIGHT = CARD_WIDTH * 1.4;
 
-export const CounselorGridCardSkeleton = React.memo(() => {
+export const CharacterGridCardSkeleton = React.memo(() => {
   const theme = useTheme();
 
   return (
@@ -23,7 +23,7 @@ export const CounselorGridCardSkeleton = React.memo(() => {
   );
 });
 
-CounselorGridCardSkeleton.displayName = 'CounselorGridCardSkeleton';
+CharacterGridCardSkeleton.displayName = 'CharacterGridCardSkeleton';
 
 const styles = StyleSheet.create({
   container: {

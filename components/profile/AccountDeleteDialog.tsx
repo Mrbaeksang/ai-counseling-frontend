@@ -69,7 +69,7 @@ export const AccountDeleteDialog = React.memo(
             </Text>
 
             <Text style={styles.warningList}>
-              • 모든 상담 내역{'\n'}• 상담사와의 대화 기록{'\n'}• 개인 설정 및 선호도{'\n'}•
+              • 모든 대화 내역{'\n'}• AI 캐릭터와의 대화 기록{'\n'}• 개인 설정 및 선호도{'\n'}•
               북마크한 세션들
             </Text>
 

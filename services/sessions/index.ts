@@ -1,6 +1,8 @@
 import api from '../api';
 import type {
   MessageItem,
+  MessageReportRequest,
+  MessageReportResponse,
   PagedResponse,
   SendMessageResponse,
   Session,
@@ -9,8 +11,8 @@ import type {
 } from './types';
 
 // 새 세션 시작
-export const startSession = async (counselorId: number): Promise<StartSessionResponse> => {
-  const response = await api.post<StartSessionResponse>(`/sessions`, { counselorId });
+export const startSession = async (characterId: number): Promise<StartSessionResponse> => {
+  const response = await api.post<StartSessionResponse>(`/sessions`, { characterId });
 
   if (!response.data) {
     throw new Error('Failed to start session');
@@ -33,6 +35,24 @@ export const sendMessage = async (
 
   if (!response.data) {
     throw new Error('Failed to send message');
+  }
+
+  return response.data;
+};
+
+// 메시지 신고
+export const reportMessage = async (
+  sessionId: number,
+  messageId: number,
+  payload: MessageReportRequest,
+): Promise<MessageReportResponse> => {
+  const response = await api.post<MessageReportResponse>(
+    `/sessions/${sessionId}/messages/${messageId}/report`,
+    payload,
+  );
+
+  if (!response.data) {
+    throw new Error('Failed to report message');
   }
 
   return response.data;

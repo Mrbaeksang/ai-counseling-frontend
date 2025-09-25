@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, IconButton, Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { getCounselorImage } from '@/constants/counselorImages';
+import { getCharacterImage } from '@/constants/characterImages';
 import type { Session } from '@/services/sessions/types';
 
 interface SessionCardProps {
@@ -12,34 +12,29 @@ interface SessionCardProps {
   onBookmarkToggle?: () => void;
 }
 
+const formatRelativeTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+  if (diffMinutes < 1) return '방금 전';
+  if (diffMinutes < 60) return `${diffMinutes}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${month}월 ${day}일`;
+};
+
 export const SessionCard = React.memo(
   ({ session, variant = 'active', onBookmarkToggle }: SessionCardProps) => {
     const handlePress = useCallback(() => {
-      // 애니메이션이 보이도록 약간 지연 후 이동
       setTimeout(() => {
         router.push(`/session/${session.sessionId}`);
       }, 200);
     }, [session.sessionId]);
-
-    const formatTime = (dateString: string) => {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffInMillis = now.getTime() - date.getTime();
-      const diffInHours = diffInMillis / (1000 * 60 * 60);
-      const diffInMinutes = diffInMillis / (1000 * 60);
-
-      if (diffInMinutes < 1) {
-        return '방금 전';
-      } else if (diffInMinutes < 60) {
-        return `${Math.floor(diffInMinutes)}분 전`;
-      } else if (diffInHours < 24) {
-        return `${Math.floor(diffInHours)}시간 전`;
-      } else {
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        return `${month}월 ${day}일`;
-      }
-    };
 
     const isActive = !session.closedAt;
     const showStatusBadge = variant === 'bookmarked';
@@ -54,16 +49,16 @@ export const SessionCard = React.memo(
         <Card style={styles.card}>
           <Card.Content style={styles.content}>
             <View style={styles.header}>
-              <View style={styles.counselorInfo}>
+              <View style={styles.characterInfo}>
                 <View style={styles.avatar}>
                   {session.avatarUrl ? (
                     <Image
-                      source={getCounselorImage(session.avatarUrl)}
+                      source={getCharacterImage(session.avatarUrl)}
                       style={styles.avatarImage}
                     />
                   ) : (
                     <Text style={styles.avatarText}>
-                      {session.counselorName?.substring(0, 2) || '상담'}
+                      {session.characterName?.substring(0, 2) || 'AI'}
                     </Text>
                   )}
                 </View>
@@ -71,24 +66,14 @@ export const SessionCard = React.memo(
                   <Text variant="titleMedium" style={styles.title}>
                     {session.title}
                   </Text>
-                  <Text
-                    variant="bodyMedium"
-                    style={[
-                      styles.counselorName,
-                      session.counselorName === '붓다' && styles.buddhaName,
-                    ]}
-                  >
-                    {session.counselorName === '붓다' ? (
-                      <Text style={styles.buddhaEmphasis}>붓다</Text>
-                    ) : (
-                      session.counselorName
-                    )}
-                    {' 상담사'}
+                  <Text variant="bodyMedium" style={styles.characterName}>
+                    {session.characterName}
+                    {' AI 캐릭터'}
                   </Text>
                   <Text variant="bodySmall" style={styles.time}>
                     {session.closedAt
-                      ? `종료: ${formatTime(session.closedAt)}`
-                      : `최근 대화: ${formatTime(session.lastMessageAt)}`}
+                      ? `종료: ${formatRelativeTime(session.closedAt)}`
+                      : `최근 대화: ${formatRelativeTime(session.lastMessageAt)}`}
                   </Text>
                 </View>
               </View>
@@ -100,7 +85,7 @@ export const SessionCard = React.memo(
                     compact
                     style={[styles.statusChip, isActive ? styles.activeChip : styles.closedChip]}
                   >
-                    {isActive ? '진행중' : '종료됨'}
+                    {isActive ? '진행 중' : '완료'}
                   </Chip>
                 )}
                 <AnimatedButton
@@ -121,13 +106,13 @@ export const SessionCard = React.memo(
 
             {variant === 'active' && (
               <Button mode="contained" style={styles.actionButton} onPress={handlePress}>
-                계속 대화하기
+                대화 이어하기
               </Button>
             )}
 
             {variant === 'closed' && (
               <Button mode="outlined" style={styles.actionButton} onPress={handlePress}>
-                대화 내역 보기
+                AI 기록 보기
               </Button>
             )}
           </Card.Content>
@@ -156,7 +141,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  counselorInfo: {
+  characterInfo: {
     flexDirection: 'row',
     flex: 1,
   },
@@ -178,15 +163,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
   },
-  buddhaName: {
-    fontWeight: '700',
-  },
-  buddhaEmphasis: {
-    color: '#FF6B35',
-    fontSize: 16,
-    fontWeight: '800',
-    fontFamily: 'Pretendard-Bold',
-  },
   textContainer: {
     marginLeft: 12,
     flex: 1,
@@ -195,7 +171,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  counselorName: {
+  characterName: {
     color: '#666',
     marginBottom: 2,
   },

@@ -7,17 +7,13 @@ interface WelcomeSectionProps {
   userName?: string;
 }
 
-// 시간대별 인사말
 const getGreetingByTime = () => {
   const hour = new Date().getHours();
-  if (hour < 5) return '늦은 밤이네요. 잠이 안 오시나요?';
-  if (hour < 8) return '이른 아침이네요. 상쾌한 하루 되세요';
-  if (hour < 12) return '좋은 아침이에요! 오늘은 어떤 하루를 보내고 계신가요?';
-  if (hour < 14) return '점심은 맛있게 드셨나요?';
-  if (hour < 17) return '오후의 평온한 시간이네요';
-  if (hour < 19) return '저녁 시간이 다가오네요';
-  if (hour < 21) return '하루를 마무리하며 마음을 정리해요';
-  return '오늘 있었던 일, 편하게 들려주세요';
+
+  if (hour < 6) return '조용한 새벽, 마인드톡과 마음을 가볍게 만들어 보세요.';
+  if (hour < 12) return '아침 기분을 채우는 힐링 토크 한 잔 어떠세요?';
+  if (hour < 18) return '하루 한 번, 가볍게 이야기 나누며 쉬어 가요.';
+  return '오늘 있었던 일, 마인드톡에게 털어놓으며 마무리해요.';
 };
 
 export function WelcomeSection({ userName }: WelcomeSectionProps) {
@@ -31,14 +27,18 @@ export function WelcomeSection({ userName }: WelcomeSectionProps) {
       style={styles.welcomeSection}
     >
       <View style={styles.welcomeContent}>
-        <Text style={styles.welcomeLabel}>안녕하세요{userName ? `, ${userName}님` : ''}</Text>
+        <Text style={styles.welcomeLabel}>
+          {userName
+            ? `${userName}님, 마인드톡에 오신 걸 환영해요`
+            : '마인드톡과 즐거운 대화를 시작해요'}
+        </Text>
         <Text style={styles.welcomeMessage}>{greeting}</Text>
         <Text style={styles.welcomeSubtext}>
-          오늘도 당신의 마음에 귀 기울이는 상담사들이 기다리고 있어요
+          마인드톡은 엔터테인먼트를 위한 가상 대화 공간이에요. AI가 자동으로 이야기를 만들어서
+          때때로 엉뚱한 답이 나올 수 있다는 점만 기억해 주세요.
         </Text>
       </View>
 
-      {/* 장식 요소 */}
       <View style={styles.decorativeCircle1} />
       <View style={styles.decorativeCircle2} />
     </LinearGradient>
@@ -82,8 +82,9 @@ const styles = StyleSheet.create({
   welcomeSubtext: {
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.85)',
     marginTop: spacing.xs,
+    lineHeight: 22,
   },
   decorativeCircle1: {
     position: 'absolute',

@@ -4,12 +4,12 @@ import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LoginPromptDialog } from '@/components/common/LoginPromptDialog';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
-import { CounselorList } from '@/components/home/CounselorList';
+import { CharacterList } from '@/components/home/CharacterList';
 import { DailyQuote } from '@/components/home/DailyQuote';
 import { FilterChips } from '@/components/home/FilterChips';
 import { WelcomeSection } from '@/components/home/WelcomeSection';
-import { useToggleFavorite } from '@/hooks/useCounselors';
-import { useInfiniteCounselors } from '@/hooks/useInfiniteCounselors';
+import { useToggleFavorite } from '@/hooks/useCharacters';
+import { useInfiniteCharacters } from '@/hooks/useInfiniteCharacters';
 import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
@@ -39,40 +39,40 @@ export default function HomeScreen() {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-    refetch: refetchCounselors,
-  } = useInfiniteCounselors(20, sortMap[sortBy]);
+    refetch: refetchCharacters,
+  } = useInfiniteCharacters(20, sortMap[sortBy]);
 
   const toggleFavoriteMutation = useToggleFavorite();
   const toggleFavorite = useCallback(
-    (counselorId: number, isFavorite: boolean) => {
-      toggleFavoriteMutation.mutate({ counselorId, isFavorite });
+    (characterId: number, isFavorite: boolean) => {
+      toggleFavoriteMutation.mutate({ characterId, isFavorite });
     },
     [toggleFavoriteMutation],
   );
 
-  // 모든 페이지의 상담사 데이터 합치기
-  const allCounselors = useMemo(() => {
+  // 모든 페이지의 AI 캐릭터 데이터 합치기
+  const allCharacters = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.content || []);
   }, [data]);
 
-  // 상담사 필터링 (useMemo로 최적화)
-  const filteredCounselors = useMemo(() => {
-    if (selectedCategories.size === 0) return allCounselors;
+  // AI 캐릭터 필터링 (useMemo로 최적화)
+  const filteredCharacters = useMemo(() => {
+    if (selectedCategories.size === 0) return allCharacters;
 
-    return allCounselors.filter((counselor) => {
-      if (!counselor.categories) return false;
-      const counselorCategories = counselor.categories.split(',').map((cat: string) => cat.trim());
-      return counselorCategories.some((cat: string) => selectedCategories.has(cat));
+    return allCharacters.filter((character) => {
+      if (!character.categories) return false;
+      const characterCategories = character.categories.split(',').map((cat: string) => cat.trim());
+      return characterCategories.some((cat: string) => selectedCategories.has(cat));
     });
-  }, [allCounselors, selectedCategories]);
+  }, [allCharacters, selectedCategories]);
 
   // 이벤트 핸들러 (useCallback으로 최적화)
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await refetchCounselors();
+    await refetchCharacters();
     setIsRefreshing(false);
-  }, [refetchCounselors]);
+  }, [refetchCharacters]);
 
   const handleCategoryPress = useCallback((categoryId: string) => {
     setSelectedCategories((prev) => {
@@ -99,13 +99,13 @@ export default function HomeScreen() {
   }, []);
 
   const handleFavoriteToggle = useCallback(
-    (counselorId: number, isFavorite: boolean) => {
+    (characterId: number, isFavorite: boolean) => {
       // 로그인 체크 - 다이얼로그 표시
       if (!user) {
         setShowLoginDialog(true);
         return;
       }
-      toggleFavorite(counselorId, isFavorite);
+      toggleFavorite(characterId, isFavorite);
     },
     [toggleFavorite, user],
   );
@@ -150,8 +150,8 @@ export default function HomeScreen() {
         { paddingTop: insets.top, backgroundColor: theme.colors.background },
       ]}
     >
-      <CounselorList
-        counselors={filteredCounselors}
+      <CharacterList
+        characters={filteredCharacters}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
         sortBy={sortBy}
@@ -169,7 +169,7 @@ export default function HomeScreen() {
         visible={showLoginDialog}
         onDismiss={() => setShowLoginDialog(false)}
         title="즐겨찾기를 사용하려면 로그인이 필요해요"
-        description="3초만에 로그인하고\n개인 맞춤 상담을 받아보세요! ✨"
+        description="3초만에 로그인하고\n개인 맞춤 대화을 받아보세요! ✨"
       />
     </View>
   );

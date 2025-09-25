@@ -5,30 +5,35 @@ import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { getCounselorImage } from '@/constants/counselorImages';
+import { getCharacterImage } from '@/constants/characterImages';
 import { spacing } from '@/constants/theme';
 import type { Session } from '@/services/sessions/types';
 
-// 상담내역 탭 전용 크기 (헤더 + 세그먼트 버튼 고려)
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2; // 정확히 2개씩
-
-// 상담내역 탭은 추가 UI 요소가 있음
-// - 상태바: ~40px
-// - 헤더: ~90px (title + subtitle)
-// - 세그먼트 버튼: ~60px
-// - 탭바: ~80px
-// - 여백: ~40px
-const availableHeight = screenHeight - 310; // 더 많은 공간 차지
-export const CARD_HEIGHT = Math.min(
-  (availableHeight - spacing.lg) / 2, // 2행이 정확히 들어가도록
-  CARD_WIDTH * 1.5, // 최대 비율 제한
-);
+export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2;
+const availableHeight = screenHeight - 310;
+export const CARD_HEIGHT = Math.min((availableHeight - spacing.lg) / 2, CARD_WIDTH * 1.5);
 
 interface VisualSessionCardProps {
   session: Session;
   onBookmarkToggle?: () => void;
 }
+
+const formatRelativeTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+  if (diffMinutes < 1) return '방금 전';
+  if (diffMinutes < 60) return `${diffMinutes}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${month}월 ${day}일`;
+};
 
 export const VisualSessionCard = React.memo(
   ({ session, onBookmarkToggle }: VisualSessionCardProps) => {
@@ -44,28 +49,7 @@ export const VisualSessionCard = React.memo(
       [onBookmarkToggle],
     );
 
-    const imageSource = getCounselorImage(session.avatarUrl);
-
-    const formatTime = (dateString: string) => {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffInMillis = now.getTime() - date.getTime();
-      const diffInHours = diffInMillis / (1000 * 60 * 60);
-      const diffInMinutes = diffInMillis / (1000 * 60);
-
-      if (diffInMinutes < 1) {
-        return '방금 전';
-      } else if (diffInMinutes < 60) {
-        return `${Math.floor(diffInMinutes)}분 전`;
-      } else if (diffInHours < 24) {
-        return `${Math.floor(diffInHours)}시간 전`;
-      } else {
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        return `${month}/${day}`;
-      }
-    };
-
+    const imageSource = getCharacterImage(session.avatarUrl);
     const isActive = !session.closedAt;
 
     return (
@@ -75,7 +59,6 @@ export const VisualSessionCard = React.memo(
         springConfig={{ damping: 12, stiffness: 160 }}
       >
         <View style={styles.card}>
-          {/* 전체 배경 이미지 */}
           {imageSource ? (
             <Image
               source={imageSource}
@@ -91,25 +74,22 @@ export const VisualSessionCard = React.memo(
               style={styles.fullImage}
             >
               <Text style={styles.avatarPlaceholder}>
-                {session.counselorName?.substring(0, 2) || '상담'}
+                {session.characterName?.substring(0, 2) || 'AI'}
               </Text>
             </LinearGradient>
           )}
 
-          {/* 그라데이션 오버레이 */}
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.overlay} />
 
-          {/* 상태 뱃지 (진행중/종료) */}
           <View style={[styles.statusBadge, isActive ? styles.activeBadge : styles.closedBadge]}>
             <MaterialCommunityIcons
               name={isActive ? 'chat-processing' : 'check-circle'}
               size={12}
               color="#FFFFFF"
             />
-            <Text style={styles.statusText}>{isActive ? '진행중' : '종료됨'}</Text>
+            <Text style={styles.statusText}>{isActive ? '진행 중' : '완료'}</Text>
           </View>
 
-          {/* 북마크 버튼 */}
           <AnimatedButton
             style={styles.bookmarkButton}
             onPress={handleBookmarkPress}
@@ -124,17 +104,16 @@ export const VisualSessionCard = React.memo(
             />
           </AnimatedButton>
 
-          {/* 하단 정보 영역 */}
           <View style={styles.infoContainer}>
             <Text style={styles.title} numberOfLines={2}>
               {session.title}
             </Text>
             <View style={styles.bottomRow}>
-              <Text style={styles.counselorName} numberOfLines={1}>
-                {session.counselorName}
+              <Text style={styles.characterName} numberOfLines={1}>
+                {session.characterName}
               </Text>
               <Text style={styles.time}>
-                {formatTime(session.closedAt || session.lastMessageAt)}
+                {formatRelativeTime(session.closedAt || session.lastMessageAt)}
               </Text>
             </View>
           </View>
@@ -179,7 +158,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: '35%', // 즐겨찾기와 동일
+    height: '35%',
   },
   statusBadge: {
     position: 'absolute',
@@ -237,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  counselorName: {
+  characterName: {
     fontSize: 13,
     fontFamily: 'Pretendard-Medium',
     color: 'rgba(255, 255, 255, 0.95)',

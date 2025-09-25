@@ -3,32 +3,32 @@ import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 import { type MD3Theme, Text, useTheme } from 'react-native-paper';
+import { CharacterCard } from '@/components/character/CharacterCard';
+import { CharacterCardSkeleton } from '@/components/character/CharacterCardSkeleton';
+import { CharacterGridCard } from '@/components/character/CharacterGridCard';
+import { CharacterGridCardSkeleton } from '@/components/character/CharacterGridCardSkeleton';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { CounselorCard } from '@/components/counselor/CounselorCard';
-import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
-import { CounselorGridCard } from '@/components/counselor/CounselorGridCard';
-import { CounselorGridCardSkeleton } from '@/components/counselor/CounselorGridCardSkeleton';
 import { spacing } from '@/constants/theme';
-import type { Counselor } from '@/services/counselors/types';
+import type { Character } from '@/services/characters/types';
 import type { IconName } from '@/types/icons';
 
-interface CounselorListProps {
-  counselors: Counselor[];
+interface CharacterListProps {
+  characters: Character[];
   isLoading: boolean;
   isRefreshing: boolean;
   sortBy: 'latest' | 'popular' | 'rating';
   onRefresh: () => void;
   onSortChange: (sort: 'latest' | 'popular' | 'rating') => void;
-  onFavoriteToggle: (counselorId: number, isFavorite: boolean) => void;
+  onFavoriteToggle: (characterId: number, isFavorite: boolean) => void;
   ListHeaderComponent?: React.ReactElement;
   viewMode?: 'list' | 'grid';
   onEndReached?: () => void;
   isLoadingMore?: boolean;
 }
 
-export const CounselorList = React.memo(
+export const CharacterList = React.memo(
   ({
-    counselors,
+    characters,
     isLoading,
     isRefreshing,
     sortBy,
@@ -39,7 +39,7 @@ export const CounselorList = React.memo(
     viewMode = 'grid',
     onEndReached,
     isLoadingMore = false,
-  }: CounselorListProps) => {
+  }: CharacterListProps) => {
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
     // 정렬 옵션 - useMemo로 최적화
@@ -52,21 +52,21 @@ export const CounselorList = React.memo(
       [],
     );
 
-    const renderCounselor = useCallback(
-      ({ item }: { item: Counselor }) => {
+    const renderCharacter = useCallback(
+      ({ item }: { item: Character }) => {
         if (viewMode === 'grid') {
           return (
             <View style={styles.gridItem}>
-              <CounselorGridCard
-                counselor={item}
+              <CharacterGridCard
+                character={item}
                 onFavoriteToggle={() => onFavoriteToggle(item.id, item.isFavorite)}
               />
             </View>
           );
         }
         return (
-          <CounselorCard
-            counselor={item}
+          <CharacterCard
+            character={item}
             isFavorite={item.isFavorite}
             onFavoriteToggle={() => onFavoriteToggle(item.id, item.isFavorite)}
           />
@@ -80,11 +80,11 @@ export const CounselorList = React.memo(
         if (viewMode === 'grid') {
           return (
             <View style={styles.gridItem}>
-              <CounselorGridCardSkeleton key={`skeleton-${index}`} />
+              <CharacterGridCardSkeleton key={`skeleton-${index}`} />
             </View>
           );
         }
-        return <CounselorCardSkeleton key={`skeleton-${index}`} />;
+        return <CharacterCardSkeleton key={`skeleton-${index}`} />;
       },
       [viewMode, styles.gridItem],
     );
@@ -96,7 +96,7 @@ export const CounselorList = React.memo(
 
           {/* 정렬 옵션 */}
           <View style={styles.sortSection}>
-            <Text style={styles.sortTitle}>전체 상담사</Text>
+            <Text style={styles.sortTitle}>전체 AI 캐릭터</Text>
             <View style={styles.sortOptions}>
               {sortOptions.map((option) => (
                 <AnimatedButton
@@ -152,17 +152,17 @@ export const CounselorList = React.memo(
             color={theme.colors.onSurfaceVariant}
           />
           <Text style={styles.emptyTitle}>
-            {counselors.length === 0 && isLoading
-              ? '상담사를 불러오는 중...'
-              : '조건에 맞는 상담사가 없습니다'}
+            {characters.length === 0 && isLoading
+              ? 'AI 캐릭터를 불러오는 중...'
+              : '조건에 맞는 AI 캐릭터가 없습니다'}
           </Text>
           <Text style={styles.emptyDescription}>
-            {counselors.length === 0 && !isLoading && '다른 카테고리를 선택해보세요'}
+            {characters.length === 0 && !isLoading && '다른 카테고리를 선택해보세요'}
           </Text>
         </View>
       ),
       [
-        counselors.length,
+        characters.length,
         isLoading,
         theme,
         styles.emptyContainer,
@@ -177,16 +177,16 @@ export const CounselorList = React.memo(
       return (
         <View style={styles.loadingFooter}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>더 많은 상담사를 불러오는 중...</Text>
+          <Text style={styles.loadingText}>더 많은 AI 캐릭터를 불러오는 중...</Text>
         </View>
       );
     }, [isLoadingMore, theme, styles.loadingFooter, styles.loadingText]);
 
     return (
       <FlashList
-        data={isLoading ? Array(6).fill({}) : counselors}
-        renderItem={isLoading ? renderSkeleton : renderCounselor}
-        keyExtractor={(item, index) => (isLoading ? `skeleton-${index}` : `counselor-${item.id}`)}
+        data={isLoading ? Array(6).fill({}) : characters}
+        renderItem={isLoading ? renderSkeleton : renderCharacter}
+        keyExtractor={(item, index) => (isLoading ? `skeleton-${index}` : `character-${item.id}`)}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={!isLoading ? ListEmpty : null}
         ListFooterComponent={ListFooter}

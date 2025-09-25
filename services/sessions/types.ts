@@ -1,9 +1,9 @@
 // 세션 목록 아이템 (백엔드 SessionListResponse와 일치)
 export interface Session {
   sessionId: number;
-  counselorId: number;
+  characterId: number;
   title: string;
-  counselorName: string;
+  characterName: string;
   lastMessageAt: string;
   isBookmarked: boolean;
   avatarUrl?: string;
@@ -12,7 +12,7 @@ export interface Session {
 
 // 세션 시작 요청 (백엔드 CreateSessionRequest와 일치)
 export interface CreateSessionRequest {
-  counselorId: number;
+  characterId: number;
 }
 
 // 메시지 전송 요청 (백엔드 SendMessageRequest와 일치)
@@ -31,9 +31,33 @@ export interface RateSessionRequest {
   feedback?: string; // 선택적 피드백
 }
 
+export type MessageReportReason =
+  | 'HARASSMENT'
+  | 'SELF_HARM'
+  | 'HATE_SPEECH'
+  | 'MISINFORMATION'
+  | 'SPAM'
+  | 'OTHER';
+
+export interface MessageReportRequest {
+  reasonCode: MessageReportReason;
+  detail?: string;
+}
+
+export interface MessageReportResponse {
+  reportId: number;
+  sessionId: number;
+  messageId: number;
+  reasonCode: MessageReportReason;
+  detail?: string;
+  createdAt: string;
+}
+
 // 메시지 전송 응답
 export interface SendMessageResponse {
+  userMessageId: number;
   userMessage: string;
+  aiMessageId: number;
   aiMessage: string;
   sessionTitle?: string;
   isSessionEnded?: boolean; // 세션 자동 종료 여부
@@ -41,15 +65,17 @@ export interface SendMessageResponse {
 
 // 메시지 목록 아이템 (백엔드 MessageItem과 일치)
 export interface MessageItem {
+  messageId: number;
   content: string;
   senderType: 'USER' | 'AI'; // 백엔드는 senderType 사용
+  createdAt: string;
 }
 
 // 세션 시작 응답 (백엔드 CreateSessionResponse와 일치)
 export interface StartSessionResponse {
   sessionId: number;
-  counselorId: number;
-  counselorName: string;
+  characterId: number;
+  characterName: string;
   title: string;
   avatarUrl?: string;
 }

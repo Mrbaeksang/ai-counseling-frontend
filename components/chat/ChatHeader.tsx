@@ -3,13 +3,13 @@ import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { IconButton, Text, useTheme } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { getCounselorImage } from '@/constants/counselorImages';
+import { getCharacterImage } from '@/constants/characterImages';
 import { spacing } from '@/constants/theme';
 
 interface ChatHeaderProps {
   title: string;
-  counselorName?: string;
-  counselorAvatar?: string;
+  characterName?: string;
+  characterAvatar?: string;
   onTitleEdit: () => void;
   onBookmarkToggle: () => void;
   onEndSession: () => void;
@@ -19,15 +19,15 @@ interface ChatHeaderProps {
 export const ChatHeader = React.memo(
   ({
     title,
-    counselorName: _counselorName, // 향후 사용 예정
-    counselorAvatar,
+    characterName: _characterName, // ?�후 ?�용 ?�정
+    characterAvatar,
     onTitleEdit,
     onBookmarkToggle,
     onEndSession,
     isBookmarked,
   }: ChatHeaderProps) => {
     const theme = useTheme();
-    const avatarSource = counselorAvatar ? getCounselorImage(counselorAvatar) : null;
+    const avatarSource = characterAvatar ? getCharacterImage(characterAvatar) : null;
 
     return (
       <View
@@ -47,7 +47,7 @@ export const ChatHeader = React.memo(
           onPress={() => router.back()}
         />
         <View style={styles.headerCenter}>
-          <View style={styles.counselorInfo}>
+          <View style={styles.characterInfo}>
             {avatarSource && (
               <Image
                 source={avatarSource}
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.sm, // 16px → 8px로 줄임
+    paddingVertical: spacing.sm, // 16px ??8px�?줄임
     backgroundColor: 'transparent',
     borderBottomWidth: 1,
     borderBottomColor: 'transparent',
@@ -113,12 +113,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: spacing.sm,
   },
-  counselorInfo: {
+  characterInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 40, // 44 → 40으로 약간 줄임
+    width: 40, // 44 ??40?�로 ?�간 줄임
     height: 40,
     borderRadius: 20,
     marginRight: spacing.sm,
@@ -128,9 +128,8 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
-  counselorName: {
-    fontSize: 15, // 사용하지 않지만 남겨둠
-    fontFamily: 'Pretendard-Bold',
+  characterName: {
+    fontSize: 15, // ?�용?��? ?��?�??�겨??    fontFamily: 'Pretendard-Bold',
     color: '#6B46C1',
     marginBottom: 2,
   },
@@ -139,9 +138,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16, // 원래 크기로 복원
-    fontFamily: 'Pretendard-SemiBold', // 원래 굵기로 복원
-    color: '#111827', // 원래 색상으로 복원
+    fontSize: 16, // ?�래 ?�기�?복원
+    fontFamily: 'Pretendard-SemiBold', // ?�래 굵기�?복원
+    color: '#111827', // ?�래 ?�상?�로 복원
     maxWidth: '85%',
   },
   editButton: {

@@ -1,14 +1,14 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { getCounselors } from '@/services/counselors';
-import type { Counselor, PageResponse } from '@/services/counselors/types';
+import { getCharacters } from '@/services/characters';
+import type { Character, PageResponse } from '@/services/characters/types';
 
-export const useInfiniteCounselors = (
+export const useInfiniteCharacters = (
   size = 20,
   sort: 'recent' | 'popular' | 'rating' = 'popular',
 ) => {
-  return useInfiniteQuery<PageResponse<Counselor>>({
-    queryKey: ['counselors', 'infinite', size, sort],
-    queryFn: ({ pageParam = 1 }) => getCounselors(pageParam as number, size, sort),
+  return useInfiniteQuery<PageResponse<Character>>({
+    queryKey: ['characters', 'infinite', size, sort],
+    queryFn: ({ pageParam = 1 }) => getCharacters(pageParam as number, size, sort),
     getNextPageParam: (lastPage) => {
       // 백엔드 페이지네이션 정보 활용
       if (!lastPage || !lastPage.pageInfo) return undefined;
