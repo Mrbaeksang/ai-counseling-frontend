@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Surface, useTheme } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 
-export function CounselorCardSkeleton() {
+export function CharacterCardSkeleton() {
   const theme = useTheme();
 
   return (

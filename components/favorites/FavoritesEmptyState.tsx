@@ -24,12 +24,12 @@ export const FavoritesEmptyState = React.memo(({ isAuthenticated }: FavoritesEmp
         color={theme.colors.onSurfaceVariant}
       />
       <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>
-        {!isAuthenticated ? '로그인이 필요해요' : '아직 즐겨찾기한 상담사가 없어요'}
+        {!isAuthenticated ? '로그인이 필요해요' : '아직 즐겨찾기한 AI 캐릭터가 없어요'}
       </Text>
       <Text style={[styles.emptyDescription, { color: theme.colors.onSurfaceVariant }]}>
         {!isAuthenticated
-          ? '로그인하고 마음에 드는 상담사를 살펴보세요'
-          : '마음에 드는 상담사를 즐겨찾기에 추가해보세요'}
+          ? '로그인하고 마음에 드는 AI 캐릭터를 살펴보세요'
+          : '마음에 드는 AI 캐릭터를 즐겨찾기에 추가해보세요'}
       </Text>
       <AnimatedButton
         style={[
@@ -41,7 +41,7 @@ export const FavoritesEmptyState = React.memo(({ isAuthenticated }: FavoritesEmp
         springConfig={{ damping: 12, stiffness: 160 }}
       >
         <Text style={styles.browseButtonText}>
-          {!isAuthenticated ? '로그인하기' : '상담사 둘러보기'}
+          {!isAuthenticated ? '로그인하기' : 'AI 캐릭터 둘러보기'}
         </Text>
       </AnimatedButton>
     </View>

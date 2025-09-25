@@ -1,12 +1,12 @@
 const config = {
-  name: 'Dr. Mind',
-  slug: 'dr-mind',
+  name: '마인드톡',
+  slug: 'mindtalk',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
-  scheme: 'drmind',
+  scheme: 'mindtalk',
   splash: {
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
@@ -14,14 +14,14 @@ const config = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.drmind.app',
+    bundleIdentifier: 'com.mindtalk.app',
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.drmind.app',
+    package: 'com.mindtalk.app',
     versionCode: 2,
   },
   web: {

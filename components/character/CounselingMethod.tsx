@@ -8,7 +8,7 @@ import { spacing } from '@/constants/theme';
 export const CounselingMethod = React.memo(() => {
   return (
     <Surface style={styles.section}>
-      <Text style={styles.sectionTitle}>상담 방식</Text>
+      <Text style={styles.sectionTitle}>마인드톡 즐기는 방법</Text>
 
       {COUNSELING_METHODS.map((method) => (
         <View key={method.number} style={styles.methodItem}>

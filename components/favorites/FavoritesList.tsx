@@ -1,20 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { type MD3Theme, useTheme } from 'react-native-paper';
-import { CARD_WIDTH } from '@/components/counselor/FavoriteCounselorCard';
+import { CARD_WIDTH } from '@/components/character/FavoriteCharacterCard';
 import { spacing } from '@/constants/theme';
-import type { FavoriteCounselorResponse } from '@/services/counselors/types';
+import type { FavoriteCharacterResponse } from '@/services/characters/types';
 import { FavoritesEmptyState } from './FavoritesEmptyState';
 import { FavoritesHeader } from './FavoritesHeader';
 import { FavoritesRow } from './FavoritesRow';
 
 interface FavoritesListProps {
-  favorites: FavoriteCounselorResponse[];
+  favorites: FavoriteCharacterResponse[];
   isLoading: boolean;
   isRefreshing: boolean;
   isAuthenticated: boolean;
   onRefresh: () => void;
-  onFavoriteToggle: (counselorId: number) => void;
+  onFavoriteToggle: (characterId: number) => void;
 }
 
 export const FavoritesList = React.memo(
@@ -72,8 +72,8 @@ export const FavoritesList = React.memo(
         return [Array(6).fill({}), Array(6).fill({})];
       }
       // 홀수 인덱스는 첫 번째 행, 짝수 인덱스는 두 번째 행
-      const row1: FavoriteCounselorResponse[] = [];
-      const row2: FavoriteCounselorResponse[] = [];
+      const row1: FavoriteCharacterResponse[] = [];
+      const row2: FavoriteCharacterResponse[] = [];
       favorites.forEach((item, index) => {
         if (index % 2 === 0) {
           row1.push(item);

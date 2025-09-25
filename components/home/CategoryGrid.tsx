@@ -61,7 +61,7 @@ export const CategoryGrid = React.memo(
             무엇이 가장 힘드신가요?
           </Text>
           <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-            고민에 맞는 상담사를 찾아드려요
+            고민에 맞는 AI 캐릭터를 찾아드려요
           </Text>
         </View>
 

@@ -1,51 +1,49 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Surface, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CategorySection } from '@/components/character/CategorySection';
+import { CounselingMethod } from '@/components/character/CounselingMethod';
+import { ProfileHeader } from '@/components/character/ProfileHeader';
 import { LoginPromptDialog } from '@/components/common/LoginPromptDialog';
-import { CategorySection } from '@/components/counselor/CategorySection';
-import { CounselingMethod } from '@/components/counselor/CounselingMethod';
-import { ProfileHeader } from '@/components/counselor/ProfileHeader';
 import { spacing } from '@/constants/theme';
-import { useCounselorDetail } from '@/hooks/useCounselors';
+import { useCharacterDetail } from '@/hooks/useCharacters';
 import { useStartSession } from '@/hooks/useStartSession';
 import useAuthStore from '@/store/authStore';
 
-export default function CounselorDetailScreen() {
+export default function CharacterDetailScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { user } = useAuthStore();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
 
-  const counselorId = Number(params.id);
+  const characterId = Number(params.id);
 
-  // React Query 훅 사용
-  const { data: counselor, isLoading } = useCounselorDetail(counselorId);
+  const { data: character, isLoading } = useCharacterDetail(characterId);
   const startSessionMutation = useStartSession();
 
   const handleStartSession = useCallback(async () => {
     if (!user) {
-      // 로그인 유도 다이얼로그 표시
       setShowLoginDialog(true);
       return;
     }
 
     try {
-      const response = await startSessionMutation.mutateAsync({ counselorId });
-      // 세션 화면으로 이동 (백엔드 응답의 counselorId 사용)
+      const response = await startSessionMutation.mutateAsync({ characterId });
       router.replace({
         pathname: `/session/${response.sessionId}`,
         params: {
-          counselorId: response.counselorId.toString(),
-          counselorName: response.counselorName,
+          characterId: response.characterId.toString(),
+          characterName: response.characterName,
           title: response.title,
           avatarUrl: response.avatarUrl || '',
-          isBookmarked: 'false', // 새 세션은 항상 북마크되지 않은 상태
+          isBookmarked: 'false',
         },
       });
     } catch (_error: unknown) {}
-  }, [user, counselorId, startSessionMutation]);
+  }, [user, characterId, startSessionMutation]);
 
   if (isLoading) {
     return (
@@ -55,10 +53,10 @@ export default function CounselorDetailScreen() {
     );
   }
 
-  if (!counselor) {
+  if (!character) {
     return (
       <View style={[styles.container, styles.errorContainer, { paddingTop: insets.top }]}>
-        <Text>상담사 정보를 불러올 수 없습니다.</Text>
+        <Text>AI 캐릭터 정보를 불러올 수 없습니다.</Text>
       </View>
     );
   }
@@ -66,28 +64,38 @@ export default function CounselorDetailScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* 헤더 섹션 */}
-        <ProfileHeader counselor={counselor} />
+        <ProfileHeader character={character} />
 
-        {/* 컨텐츠 섹션 */}
+        <Surface style={styles.noticeCard}>
+          <View style={styles.noticeRow}>
+            <View style={styles.noticeIcon}>
+              <MaterialCommunityIcons name="robot-happy" size={20} color="#6B46C1" />
+            </View>
+            <View style={styles.noticeTexts}>
+              <Text style={styles.noticeTitle}>AI 엔터테인먼트 안내</Text>
+              <Text style={styles.noticeDescription}>
+                마인드톡은 즐거운 이야기를 위한 서비스예요. AI가 자동으로 응답하므로 가끔 엉뚱한
+                답이 나올 수 있고, 전문 상담이나 조언으로 사용하면 안 된다는 점만 기억해 주세요.
+              </Text>
+            </View>
+          </View>
+        </Surface>
+
         <View style={styles.content}>
-          {/* 소개 */}
           <Surface style={styles.section}>
             <Text style={styles.sectionTitle}>소개</Text>
             <Text style={styles.description}>
-              {counselor.description || '따뜻한 상담을 통해 삶의 지혜를 나눕니다.'}
+              {character.description ||
+                '마인드톡 캐릭터와 편하게 이야기하며 마음을 가볍게 만들어 보세요.'}
             </Text>
           </Surface>
 
-          {/* 카테고리 */}
-          <CategorySection categories={counselor.categories} />
+          <CategorySection categories={character.categories} />
 
-          {/* 상담 방식 */}
           <CounselingMethod />
         </View>
       </ScrollView>
 
-      {/* 하단 버튼 */}
       <View style={[styles.bottomSection, { paddingBottom: insets.bottom + spacing.md }]}>
         <Button
           mode="contained"
@@ -100,16 +108,15 @@ export default function CounselorDetailScreen() {
           contentStyle={styles.startButtonContent}
           labelStyle={styles.startButtonLabel}
         >
-          상담 시작하기
+          대화 시작하기
         </Button>
       </View>
 
-      {/* 로그인 유도 다이얼로그 */}
       <LoginPromptDialog
         visible={showLoginDialog}
         onDismiss={() => setShowLoginDialog(false)}
-        title="상담을 시작하려면 로그인이 필요해요"
-        description="3초만에 로그인하고\n개인 맞춤 상담을 받아보세요! ✨"
+        title="대화를 시작하려면 로그인이 필요해요"
+        description="3초 만에 로그인하고\n개인 맞춤 대화를 즐겨보세요! ✨"
       />
     </View>
   );
@@ -151,6 +158,44 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     color: '#4B5563',
     lineHeight: 22,
+  },
+  noticeCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+    borderRadius: 16,
+    backgroundColor: '#F5F3FF',
+    padding: spacing.lg,
+    elevation: 0,
+  },
+  noticeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  noticeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(107, 70, 193, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  noticeTexts: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  noticeTitle: {
+    fontSize: 15,
+    fontFamily: 'Pretendard-SemiBold',
+    color: '#4C1D95',
+  },
+  noticeDescription: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: 'Pretendard-Regular',
+    color: '#4B5563',
   },
   bottomSection: {
     position: 'absolute',

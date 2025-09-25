@@ -1,44 +1,44 @@
 import api from '../api';
 import type {
-  CounselorDetailResponse,
-  CounselorListResponse,
-  FavoriteCounselorResponse,
+  CharacterDetailResponse,
+  CharacterListResponse,
+  FavoriteCharacterResponse,
   PageResponse,
 } from './types';
 
-// 상담사 목록 조회
-export const getCounselors = async (
+// AI 캐릭터 목록 조회
+export const getCharacters = async (
   page = 1, // 백엔드 API는 1부터 시작
   size = 20,
   sort = 'popular',
-): Promise<PageResponse<CounselorListResponse>> => {
-  const response = await api.get<PageResponse<CounselorListResponse>>('/counselors', {
+): Promise<PageResponse<CharacterListResponse>> => {
+  const response = await api.get<PageResponse<CharacterListResponse>>('/characters', {
     params: { page, size, sort },
   });
 
   if (!response.data) {
-    throw new Error('No counselors data received');
+    throw new Error('No characters data received');
   }
 
   return response.data;
 };
 
-// 상담사 상세 정보 조회
-export const getCounselorDetail = async (counselorId: number): Promise<CounselorDetailResponse> => {
-  const response = await api.get<CounselorDetailResponse>(`/counselors/${counselorId}`);
+// AI 캐릭터 상세 정보 조회
+export const getCharacterDetail = async (characterId: number): Promise<CharacterDetailResponse> => {
+  const response = await api.get<CharacterDetailResponse>(`/characters/${characterId}`);
 
   if (!response.data) {
-    throw new Error(`No data received for counselor ${counselorId}`);
+    throw new Error(`No data received for character ${characterId}`);
   }
 
   return response.data;
 };
 
-// 즐겨찾기 상담사 목록 조회
-export const getFavoriteCounselors = async (): Promise<FavoriteCounselorResponse[]> => {
+// 즐겨찾기 AI 캐릭터 목록 조회
+export const getFavoriteCharacters = async (): Promise<FavoriteCharacterResponse[]> => {
   try {
     const response =
-      await api.get<PageResponse<FavoriteCounselorResponse>>('/counselors/favorites');
+      await api.get<PageResponse<FavoriteCharacterResponse>>('/characters/favorites');
 
     // PagedResponse의 content 필드에서 데이터 추출
     if (!response.data || !response.data.content) {
@@ -60,16 +60,16 @@ export const getFavoriteCounselors = async (): Promise<FavoriteCounselorResponse
   }
 };
 
-// 상담사 즐겨찾기 토글
-export const toggleCounselorFavorite = async (
-  counselorId: number,
+// AI 캐릭터 즐겨찾기 토글
+export const toggleCharacterFavorite = async (
+  characterId: number,
   isFavorite: boolean,
 ): Promise<void> => {
   if (isFavorite) {
     // 이미 즐겨찾기한 경우 DELETE로 제거
-    await api.delete(`/counselors/${counselorId}/favorite`);
+    await api.delete(`/characters/${characterId}/favorite`);
   } else {
     // 즐겨찾기하지 않은 경우 POST로 추가
-    await api.post(`/counselors/${counselorId}/favorite`);
+    await api.post(`/characters/${characterId}/favorite`);
   }
 };

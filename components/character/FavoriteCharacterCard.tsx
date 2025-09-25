@@ -5,33 +5,32 @@ import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { getCounselorImage } from '@/constants/counselorImages';
+import { getCharacterImage } from '@/constants/characterImages';
 import { spacing } from '@/constants/theme';
-import type { FavoriteCounselorResponse } from '@/services/counselors/types';
+import type { FavoriteCharacterResponse } from '@/services/characters/types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-// 즐겨찾기 카드: 화면을 반응형으로 꽉 채움
-export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2; // 정확히 2개씩
-// 헤더와 탭바를 제외한 실제 콘텐츠 영역의 절반 크기로 설정
-const availableHeight = screenHeight - 180; // 헤더, 탭바, 여백 제외
+
+// Card size is derived from the device dimensions so two items fit per row.
+export const CARD_WIDTH = (screenWidth - spacing.lg * 2 - spacing.sm) / 2;
+const availableHeight = screenHeight - 180; // subtract rough header/nav space
 export const CARD_HEIGHT = Math.max(
-  CARD_WIDTH * 1.5, // 최소 비율
-  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8), // 최대 48% 또는 1.8 비율
+  CARD_WIDTH * 1.5,
+  Math.min(availableHeight * 0.48, CARD_WIDTH * 1.8),
 );
 
-interface FavoriteCounselorCardProps {
-  counselor: FavoriteCounselorResponse;
+interface FavoriteCharacterCardProps {
+  character: FavoriteCharacterResponse;
   onFavoriteToggle?: () => void;
 }
 
-export const FavoriteCounselorCard = React.memo(
-  ({ counselor, onFavoriteToggle }: FavoriteCounselorCardProps) => {
+export const FavoriteCharacterCard = React.memo(
+  ({ character, onFavoriteToggle }: FavoriteCharacterCardProps) => {
     const handlePress = useCallback(() => {
-      // 상담사 상세 페이지로 이동 (홈과 동일)
-      router.push(`/counselors/${counselor.id}`);
-    }, [counselor.id]);
+      router.push(`/characters/${character.id}`);
+    }, [character.id]);
 
-    const imageSource = getCounselorImage(counselor.avatarUrl);
+    const imageSource = getCharacterImage(character.avatarUrl);
 
     return (
       <AnimatedButton
@@ -40,7 +39,6 @@ export const FavoriteCounselorCard = React.memo(
         springConfig={{ damping: 12, stiffness: 160 }}
       >
         <View style={styles.card}>
-          {/* 이미지가 카드 전체를 차지 */}
           {imageSource ? (
             <Image
               source={imageSource}
@@ -55,18 +53,16 @@ export const FavoriteCounselorCard = React.memo(
               end={{ x: 1, y: 1 }}
               style={styles.fullImage}
             >
-              <Text style={styles.avatarPlaceholder}>{counselor.name.substring(0, 2)}</Text>
+              <Text style={styles.avatarPlaceholder}>{character.name.substring(0, 2)}</Text>
             </LinearGradient>
           )}
 
-          {/* 그라데이션 오버레이 (하단 어둡게) */}
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.overlay} />
 
-          {/* 하트 아이콘 - 클릭시 즐겨찾기 해제 */}
           <AnimatedButton
             style={styles.heartBadge}
             onPress={(e) => {
-              e.stopPropagation(); // 카드 클릭 이벤트와 분리
+              e.stopPropagation();
               onFavoriteToggle?.();
             }}
             scaleTo={0.85}
@@ -76,19 +72,18 @@ export const FavoriteCounselorCard = React.memo(
             <MaterialCommunityIcons name="heart" size={16} color="#FFFFFF" />
           </AnimatedButton>
 
-          {/* 하단 정보 영역 */}
           <View style={styles.infoContainer}>
             <Text style={styles.name} numberOfLines={1}>
-              {counselor.name}
+              {character.name}
             </Text>
             <View style={styles.bottomRow}>
               <Text style={styles.title} numberOfLines={1}>
-                {counselor.title || '상담사'}
+                {character.title || 'AI Character'}
               </Text>
-              {counselor.averageRating > 0 && (
+              {character.averageRating > 0 && (
                 <View style={styles.rating}>
                   <MaterialCommunityIcons name="star" size={12} color="#FFC107" />
-                  <Text style={styles.ratingText}>{(counselor.averageRating / 20).toFixed(1)}</Text>
+                  <Text style={styles.ratingText}>{(character.averageRating / 20).toFixed(1)}</Text>
                 </View>
               )}
             </View>
@@ -109,10 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     elevation: 6,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
   },

@@ -25,7 +25,11 @@
       "Bash(cat:*)",
       "Bash(npm install:*)",
       "WebSearch",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:developers-apps-in-toss.toss.im)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(xargs sed:*)"
     ],
     "deny": [],
     "ask": []

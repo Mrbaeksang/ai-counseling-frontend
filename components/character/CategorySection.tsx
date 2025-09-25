@@ -13,7 +13,7 @@ export const CategorySection = React.memo(({ categories }: CategorySectionProps)
 
   return (
     <Surface style={styles.section}>
-      <Text style={styles.sectionTitle}>전문 분야</Text>
+      <Text style={styles.sectionTitle}>이런 이야기를 나눠요</Text>
       <View style={styles.categoryContainer}>
         {categories.split(',').map((category) => (
           <Chip

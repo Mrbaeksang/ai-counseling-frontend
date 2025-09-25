@@ -6,30 +6,30 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { getCounselorImage } from '@/constants/counselorImages';
+import { getCharacterImage } from '@/constants/characterImages';
 import { spacing } from '@/constants/theme';
 import { useThrottle } from '@/hooks/useDebounce';
-import type { Counselor } from '@/services/counselors/types';
+import type { Character } from '@/services/characters/types';
 
-interface CounselorCardProps {
-  counselor: Counselor;
+interface CharacterCardProps {
+  character: Character;
   isFavorite?: boolean;
   onFavoriteToggle?: () => void;
 }
 
-export const CounselorCard = React.memo(
-  ({ counselor, isFavorite, onFavoriteToggle }: CounselorCardProps) => {
+export const CharacterCard = React.memo(
+  ({ character, isFavorite, onFavoriteToggle }: CharacterCardProps) => {
     const handlePressRaw = () => {
       // 애니메이션이 보이도록 약간 지연 후 이동
       setTimeout(() => {
-        router.push(`/counselors/${counselor.id}`);
+        router.push(`/characters/${character.id}`);
       }, 200);
     };
 
     // 쓰로틀 적용 - 1초 동안 중복 클릭 방지
     const [handlePress, canClick] = useThrottle(handlePressRaw, 1000);
 
-    const imageSource = getCounselorImage(counselor.avatarUrl);
+    const imageSource = getCharacterImage(character.avatarUrl);
 
     return (
       <AnimatedButton
@@ -78,12 +78,12 @@ export const CounselorCard = React.memo(
                   end={{ x: 1, y: 1 }}
                   style={styles.profileImagePlaceholder}
                 >
-                  <Text style={styles.placeholderText}>{counselor.name.substring(0, 2)}</Text>
+                  <Text style={styles.placeholderText}>{character.name.substring(0, 2)}</Text>
                 </LinearGradient>
               )}
 
               {/* 인기 뱃지 - 평균 4.0점 이상 */}
-              {counselor.averageRating >= 80 && (
+              {character.averageRating >= 80 && (
                 <View style={styles.popularBadge}>
                   <MaterialCommunityIcons name="star" size={12} color="#FFF" />
                   <Text style={styles.badgeText}>인기</Text>
@@ -94,18 +94,18 @@ export const CounselorCard = React.memo(
             {/* 정보 섹션 */}
             <View style={styles.infoSection}>
               <Text style={styles.name} numberOfLines={1}>
-                {counselor.name}
+                {character.name}
               </Text>
               <Text style={styles.title} numberOfLines={1}>
-                {counselor.title}
+                {character.title}
               </Text>
 
               {/* 통계 */}
               <View style={styles.statsRow}>
-                {counselor.averageRating > 0 ? (
+                {character.averageRating > 0 ? (
                   <View style={styles.statItem}>
                     <MaterialCommunityIcons name="star" size={12} color="#F59E0B" />
-                    <Text style={styles.statText}>{(counselor.averageRating / 20).toFixed(1)}</Text>
+                    <Text style={styles.statText}>{(character.averageRating / 20).toFixed(1)}</Text>
                   </View>
                 ) : (
                   <View style={styles.statItem}>
@@ -113,9 +113,9 @@ export const CounselorCard = React.memo(
                   </View>
                 )}
 
-                {counselor.totalSessions > 0 && (
+                {character.totalSessions > 0 && (
                   <Text style={styles.sessionCount}>
-                    {counselor.totalSessions.toLocaleString()}회 상담
+                    {character.totalSessions.toLocaleString()}회 대화
                   </Text>
                 )}
               </View>

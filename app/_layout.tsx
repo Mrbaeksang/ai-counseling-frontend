@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { configureFonts, PaperProvider } from 'react-native-paper';
 import Toast from '@/components/common/Toast';
 import { darkTheme, lightTheme } from '@/constants/theme';
+import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
 import useThemeStore from '@/store/themeStore';
 
 // Prevent the splash screen from auto-hiding
@@ -78,6 +79,11 @@ const fontConfig = {
   },
 };
 
+const AuthCacheEffect = () => {
+  useAuthCacheManager();
+  return null;
+};
+
 export default function RootLayout() {
   const { isDark, loadStoredTheme } = useThemeStore();
   const [queryClient] = useState(
@@ -129,6 +135,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthCacheEffect />
       <PaperProvider theme={theme}>
         <Stack
           screenOptions={{
@@ -148,7 +155,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="counselors/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="characters/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="session/[id]" options={{ headerShown: false }} />
         </Stack>
         <Toast />

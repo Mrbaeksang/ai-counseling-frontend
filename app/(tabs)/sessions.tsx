@@ -175,7 +175,7 @@ export default function SessionsScreen() {
               marginBottom: spacing.xl,
             }}
           >
-            로그인하시면 상담 내역을 확인하고{'\n'}저장하실 수 있습니다
+            로그인하시면 대화 내역을 확인하고{'\n'}저장하실 수 있습니다
           </Text>
           <Button
             mode="contained"
@@ -209,10 +209,10 @@ export default function SessionsScreen() {
             onRefresh={handleRefreshActive}
             onEndReached={handleLoadMoreActive}
             emptyIcon="chat-processing"
-            emptyTitle="진행 중인 상담이 없습니다"
-            emptySubtitle="새로운 상담을 시작해보세요!"
+            emptyTitle="진행 중인 대화이 없습니다"
+            emptySubtitle="새로운 대화을 시작해보세요!"
             emptyAction={{
-              label: '상담 시작하기',
+              label: '대화 시작하기',
               onPress: handleNewSession,
             }}
             onBookmarkToggle={handleBookmarkToggle}
@@ -229,8 +229,8 @@ export default function SessionsScreen() {
             onRefresh={handleRefreshClosed}
             onEndReached={handleLoadMoreClosed}
             emptyIcon="check-circle"
-            emptyTitle="종료된 상담이 없습니다"
-            emptySubtitle="상담을 완료하면 여기에 표시됩니다"
+            emptyTitle="종료된 대화이 없습니다"
+            emptySubtitle="대화을 완료하면 여기에 표시됩니다"
             onBookmarkToggle={handleBookmarkToggle}
             layoutMode="grid"
           />
@@ -245,8 +245,8 @@ export default function SessionsScreen() {
             onRefresh={handleRefreshBookmarked}
             onEndReached={handleLoadMoreBookmarked}
             emptyIcon="star"
-            emptyTitle="북마크한 상담이 없습니다"
-            emptySubtitle="중요한 상담은 ⭐을 눌러 저장하세요"
+            emptyTitle="북마크한 대화이 없습니다"
+            emptySubtitle="중요한 대화은 ⭐을 눌러 저장하세요"
             onBookmarkToggle={handleBookmarkToggle}
             layoutMode="grid"
           />

@@ -11,21 +11,27 @@ export const useUserProfile = () => {
   const { show: showToast } = useToast();
   const { updateUser, logout, user } = useAuthStore();
 
-  // 프로필 조회
+  const userIdForKey = user?.userId ?? 'guest';
+
+  React.useEffect(() => {
+    if (!user) {
+      queryClient.removeQueries({ queryKey: ['userProfile'] });
+    }
+  }, [user, queryClient]);
+
   const {
     data: profile,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['userProfile'],
+    queryKey: ['userProfile', userIdForKey],
     queryFn: getMyProfile,
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
-    enabled: !!user, // 로그인한 경우에만 실행
-    retry: false, // 401 에러시 재시도하지 않음
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    enabled: !!user,
+    retry: false,
   });
 
-  // 에러 처리
   React.useEffect(() => {
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response?: { status?: number } };
@@ -37,31 +43,33 @@ export const useUserProfile = () => {
     }
   }, [error, logout, showToast]);
 
-  // 닉네임 변경
   const nicknameMutation = useMutation({
     mutationFn: updateNickname,
     onMutate: async (newNickname: string) => {
-      // 낙관적 업데이트
-      await queryClient.cancelQueries({ queryKey: ['userProfile'] });
-      const previousProfile = queryClient.getQueryData<UserProfileResponse>(['userProfile']);
+      await queryClient.cancelQueries({ queryKey: ['userProfile', userIdForKey] });
+      const previousProfile = queryClient.getQueryData<UserProfileResponse>([
+        'userProfile',
+        userIdForKey,
+      ]);
 
-      queryClient.setQueryData(['userProfile'], (old: UserProfileResponse | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          nickname: newNickname,
-        };
-      });
+      queryClient.setQueryData(
+        ['userProfile', userIdForKey],
+        (old: UserProfileResponse | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            nickname: newNickname,
+          };
+        },
+      );
 
-      // Zustand store도 업데이트
       updateUser({ nickname: newNickname });
 
       return { previousProfile };
     },
     onError: (_error: unknown, _variables, context) => {
-      // 롤백
       if (context?.previousProfile) {
-        queryClient.setQueryData(['userProfile'], context.previousProfile);
+        queryClient.setQueryData(['userProfile', userIdForKey], context.previousProfile);
       }
       showToast('닉네임 변경에 실패했습니다', 'error');
     },
@@ -70,16 +78,16 @@ export const useUserProfile = () => {
     },
   });
 
-  // 회원 탈퇴
   const deleteMutation = useMutation({
     mutationFn: deleteAccount,
     onSuccess: async () => {
-      showToast('회원 탈퇴가 완료되었습니다', 'success');
+      showToast('계정이 삭제되었습니다', 'success');
       await logout();
+      queryClient.removeQueries({ queryKey: ['userProfile'] });
       router.replace('/(auth)/login');
     },
     onError: () => {
-      showToast('회원 탈퇴에 실패했습니다', 'error');
+      showToast('계정 삭제에 실패했습니다', 'error');
     },
   });
 

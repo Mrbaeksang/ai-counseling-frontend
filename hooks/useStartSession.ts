@@ -8,7 +8,7 @@ export const useStartSession = () => {
   const toast = useToast();
 
   return useMutation<StartSessionResponse, Error, CreateSessionRequest>({
-    mutationFn: ({ counselorId }) => startSession(counselorId),
+    mutationFn: ({ characterId }) => startSession(characterId),
     onSuccess: () => {
       // 세션 목록 캐시 무효화 - 모든 세션 관련 쿼리 갱신
       queryClient.invalidateQueries({ queryKey: ['sessions'] });

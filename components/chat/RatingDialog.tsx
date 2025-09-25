@@ -38,7 +38,7 @@ export const RatingDialog = React.memo(
 
     return (
       <BlurredDialog visible={visible} onDismiss={onDismiss} intensity={90} tint="dark">
-        <Dialog.Title>상담은 어떠셨나요?</Dialog.Title>
+        <Dialog.Title>대화은 어떠셨나요?</Dialog.Title>
         <Dialog.Content>
           <View style={styles.starsContainer}>
             <StarRating rating={selectedRating} onRatingChange={onRatingSelect} />
@@ -47,7 +47,7 @@ export const RatingDialog = React.memo(
           <Text style={styles.ratingText}>{getRatingText()}</Text>
 
           <TextInput
-            label="상담에 대한 의견 (선택사항)"
+            label="대화에 대한 의견 (선택사항)"
             mode="outlined"
             multiline
             numberOfLines={3}

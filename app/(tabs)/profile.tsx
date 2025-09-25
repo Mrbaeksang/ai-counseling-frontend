@@ -150,14 +150,14 @@ export default function ProfileScreen() {
         title: '이용 약관',
         icon: 'file-document',
         onPress: () =>
-          openExternalLink('https://mrbaeksang.github.io/dr-mind-legal/terms-of-service.html'),
+          openExternalLink('https://mrbaeksang.github.io/mindtalk-legal/terms-of-service.html'),
       },
       {
         id: 'privacy',
         title: '개인정보 처리방침',
         icon: 'shield-lock',
         onPress: () =>
-          openExternalLink('https://mrbaeksang.github.io/dr-mind-legal/privacy-policy.html'),
+          openExternalLink('https://mrbaeksang.github.io/mindtalk-legal/privacy-policy.html'),
       },
     ],
     [openExternalLink],
@@ -205,7 +205,7 @@ export default function ProfileScreen() {
               marginBottom: spacing.xl,
             }}
           >
-            로그인하시면 프로필 관리와{'\n'}맞춤 상담 서비스를 이용하실 수 있습니다
+            로그인하시면 프로필 관리와{'\n'}맞춤 대화 서비스를 이용하실 수 있습니다
           </Text>
           <Button
             mode="contained"

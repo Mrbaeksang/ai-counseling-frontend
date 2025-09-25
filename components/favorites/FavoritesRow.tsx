@@ -3,10 +3,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Animated, Dimensions, FlatList, StyleSheet, View } from 'react-native';
 import { type MD3Theme, useTheme } from 'react-native-paper';
-import { CounselorCardSkeleton } from '@/components/counselor/CounselorCardSkeleton';
-import { CARD_WIDTH, FavoriteCounselorCard } from '@/components/counselor/FavoriteCounselorCard';
+import { CharacterCardSkeleton } from '@/components/character/CharacterCardSkeleton';
+import { CARD_WIDTH, FavoriteCharacterCard } from '@/components/character/FavoriteCharacterCard';
 import { spacing } from '@/constants/theme';
-import type { FavoriteCounselorResponse } from '@/services/counselors/types';
+import type { FavoriteCharacterResponse } from '@/services/characters/types';
 
 const { height: screenHeight } = Dimensions.get('window');
 const availableHeight = screenHeight - 180;
@@ -16,11 +16,11 @@ const MAX_ROW_HEIGHT = Math.max(
 );
 
 interface FavoritesRowProps {
-  data: FavoriteCounselorResponse[];
+  data: FavoriteCharacterResponse[];
   isLoading: boolean;
   showScrollHint: boolean;
   scrollHintAnim: Animated.Value;
-  onFavoriteToggle: (counselorId: number) => void;
+  onFavoriteToggle: (characterId: number) => void;
   onScroll: (event?: { nativeEvent: { contentOffset: { x: number } } }) => void;
   rowKey: string;
   hintColor: string;
@@ -45,11 +45,11 @@ export const FavoritesRow = React.memo(
     const styles = useMemo(() => createStyles(theme, hintOverlay), [theme, hintOverlay]);
     const listRef = useRef<FlatList>(null);
 
-    const renderCounselor = useCallback(
-      ({ item }: { item: FavoriteCounselorResponse }) => (
+    const renderCharacter = useCallback(
+      ({ item }: { item: FavoriteCharacterResponse }) => (
         <View style={styles.cardContainer}>
-          <FavoriteCounselorCard
-            counselor={item}
+          <FavoriteCharacterCard
+            character={item}
             onFavoriteToggle={() => onFavoriteToggle(item.id)}
           />
         </View>
@@ -60,7 +60,7 @@ export const FavoritesRow = React.memo(
     const renderSkeleton = useCallback(
       ({ index }: { index: number }) => (
         <View style={styles.cardContainer}>
-          <CounselorCardSkeleton key={`skeleton-${index}`} />
+          <CharacterCardSkeleton key={`skeleton-${index}`} />
         </View>
       ),
       [styles.cardContainer],
@@ -72,7 +72,7 @@ export const FavoritesRow = React.memo(
           ref={listRef}
           horizontal
           data={data}
-          renderItem={isLoading ? renderSkeleton : renderCounselor}
+          renderItem={isLoading ? renderSkeleton : renderCharacter}
           keyExtractor={(item, index) =>
             isLoading ? `skeleton-${rowKey}-${index}` : `favorite-${rowKey}-${item.id}`
           }

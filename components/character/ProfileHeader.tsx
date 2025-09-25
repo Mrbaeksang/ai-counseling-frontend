@@ -5,16 +5,16 @@ import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
-import { getCounselorImage } from '@/constants/counselorImages';
+import { getCharacterImage } from '@/constants/characterImages';
 import { spacing } from '@/constants/theme';
-import type { CounselorDetail } from '@/services/counselors/types';
+import type { CharacterDetail } from '@/services/characters/types';
 
 interface ProfileHeaderProps {
-  counselor: CounselorDetail;
+  character: CharacterDetail;
 }
 
-export const ProfileHeader = React.memo(({ counselor }: ProfileHeaderProps) => {
-  const imageSource = getCounselorImage(counselor.avatarUrl);
+export const ProfileHeader = React.memo(({ character }: ProfileHeaderProps) => {
+  const imageSource = getCharacterImage(character.avatarUrl);
 
   return (
     <LinearGradient
@@ -39,28 +39,28 @@ export const ProfileHeader = React.memo(({ counselor }: ProfileHeaderProps) => {
           <Image source={imageSource} style={styles.avatar} resizeMode="cover" />
         ) : (
           <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>{counselor.name.substring(0, 2)}</Text>
+            <Text style={styles.avatarText}>{character.name.substring(0, 2)}</Text>
           </View>
         )}
 
-        <Text style={styles.name}>{counselor.name}</Text>
-        <Text style={styles.title}>{counselor.title}</Text>
+        <Text style={styles.name}>{character.name}</Text>
+        <Text style={styles.title}>{character.title}</Text>
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="star" size={16} color="#FCD34D" />
             <Text style={styles.statText}>
-              {counselor.averageRating > 0 ? (counselor.averageRating / 20).toFixed(1) : '0.0'}
+              {character.averageRating > 0 ? (character.averageRating / 20).toFixed(1) : '0.0'}
             </Text>
-            <Text style={styles.statSubtext}>({counselor.totalRatings || 0})</Text>
+            <Text style={styles.statSubtext}>리뷰 {character.totalRatings || 0}</Text>
           </View>
 
           <View style={styles.statDivider} />
 
           <View style={styles.statItem}>
             <MaterialCommunityIcons name="message-text" size={16} color="white" />
-            <Text style={styles.statText}>{counselor.totalSessions.toLocaleString()}</Text>
-            <Text style={styles.statSubtext}>상담</Text>
+            <Text style={styles.statText}>{character.totalSessions.toLocaleString()}</Text>
+            <Text style={styles.statSubtext}>대화 횟수</Text>
           </View>
         </View>
       </View>

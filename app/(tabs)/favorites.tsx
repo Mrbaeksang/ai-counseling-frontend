@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FavoritesList } from '@/components/favorites/FavoritesList';
-import { useFavoriteCounselors, useToggleFavorite } from '@/hooks/useCounselors';
+import { useFavoriteCharacters, useToggleFavorite } from '@/hooks/useCharacters';
 import useAuthStore from '@/store/authStore';
 
 export default function FavoritesScreen() {
@@ -12,7 +12,7 @@ export default function FavoritesScreen() {
   const theme = useTheme();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data: favoriteCounselors, isLoading, refetch } = useFavoriteCounselors();
+  const { data: favoriteCharacters, isLoading, refetch } = useFavoriteCharacters();
 
   const toggleFavoriteMutation = useToggleFavorite();
 
@@ -23,8 +23,8 @@ export default function FavoritesScreen() {
   }, [refetch]);
 
   const handleFavoriteToggle = useCallback(
-    (counselorId: number) => {
-      toggleFavoriteMutation.mutate({ counselorId, isFavorite: true });
+    (characterId: number) => {
+      toggleFavoriteMutation.mutate({ characterId, isFavorite: true });
     },
     [toggleFavoriteMutation],
   );
@@ -37,7 +37,7 @@ export default function FavoritesScreen() {
       ]}
     >
       <FavoritesList
-        favorites={favoriteCounselors || []}
+        favorites={favoriteCharacters || []}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
         isAuthenticated={isAuthenticated}
