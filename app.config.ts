@@ -22,7 +22,7 @@ const config = {
       backgroundColor: '#ffffff',
     },
     package: 'com.mindtalk.app',
-    versionCode: 2,
+    versionCode: 4,
   },
   web: {
     favicon: './assets/favicon.png',
@@ -48,7 +48,7 @@ const config = {
   extra: {
     router: {},
     eas: {
-      projectId: '5eaf2255-a092-4c80-ab46-ec234ad943b8',
+      projectId: '6dac6037-b59d-4bb0-975f-d1e97ffc4361',
     },
     apiUrl: process.env.EXPO_PUBLIC_API_BASE_URL
       ? `${process.env.EXPO_PUBLIC_API_BASE_URL}/api`

@@ -5,24 +5,28 @@ import { borderRadius, colors, shadows, spacing } from '@/constants/theme';
 
 interface LoadingOverlayProps {
   isVisible: boolean;
-  isGoogleLoading: boolean;
+  spinnerColor?: string;
+  message?: string;
 }
 
-export const LoadingOverlay = React.memo(({ isVisible, isGoogleLoading }: LoadingOverlayProps) => {
-  if (!isVisible) return null;
+export const LoadingOverlay = React.memo(
+  ({
+    isVisible,
+    spinnerColor = colors.brand.google,
+    message = '로그인 중...',
+  }: LoadingOverlayProps) => {
+    if (!isVisible) return null;
 
-  return (
-    <View style={styles.loadingOverlay}>
-      <View style={styles.loadingCard}>
-        <ActivityIndicator
-          size="large"
-          color={isGoogleLoading ? colors.brand.google : colors.brand.kakao}
-        />
-        <Text style={styles.loadingText}>로그인 중...</Text>
+    return (
+      <View style={styles.loadingOverlay}>
+        <View style={styles.loadingCard}>
+          <ActivityIndicator size="large" color={spinnerColor} />
+          <Text style={styles.loadingText}>{message}</Text>
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   loadingOverlay: {
