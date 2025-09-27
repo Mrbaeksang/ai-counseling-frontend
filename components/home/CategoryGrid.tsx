@@ -23,6 +23,7 @@ export const CategoryGrid = React.memo(
     }, [selectedCategories]);
 
     const [showAllCategories, setShowAllCategories] = useState(hasAdditionalCategorySelected);
+    const userCollapsedRef = useRef(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const rotateAnim = useRef(new Animated.Value(0)).current;
 
@@ -32,8 +33,12 @@ export const CategoryGrid = React.memo(
 
     // 선택된 카테고리가 추가 카테고리에 있을 때 자동 확장
     useEffect(() => {
-      if (hasAdditionalCategorySelected && !showAllCategories) {
-        setShowAllCategories(true);
+      if (hasAdditionalCategorySelected) {
+        if (!showAllCategories && !userCollapsedRef.current) {
+          setShowAllCategories(true);
+        }
+      } else {
+        userCollapsedRef.current = false;
       }
     }, [hasAdditionalCategorySelected, showAllCategories]);
 
@@ -87,7 +92,10 @@ export const CategoryGrid = React.memo(
                   borderColor: theme.colors.outlineVariant,
                 },
               ]}
-              onPress={() => setShowAllCategories(true)}
+              onPress={() => {
+                userCollapsedRef.current = false;
+                setShowAllCategories(true);
+              }}
               scaleTo={0.96}
               springConfig={{ damping: 12, stiffness: 160 }}
             >
@@ -135,7 +143,10 @@ export const CategoryGrid = React.memo(
               {/* 접기 버튼 */}
               <AnimatedButton
                 style={[styles.collapseButton, { borderColor: theme.colors.outlineVariant }]}
-                onPress={() => setShowAllCategories(false)}
+                onPress={() => {
+                  userCollapsedRef.current = true;
+                  setShowAllCategories(false);
+                }}
                 scaleTo={0.94}
                 springConfig={{ damping: 15, stiffness: 200 }}
               >

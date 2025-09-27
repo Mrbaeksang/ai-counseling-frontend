@@ -37,14 +37,14 @@ export const CategoryItem = React.memo(({ category, onPress }: CategoryItemProps
       damping: 15,
       stiffness: 200,
     });
-    onPress();
-  }, [onPress, scale]);
+  }, [scale]);
 
   return (
     <TouchableOpacity
       style={styles.categoryCard}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      onPress={onPress}
       activeOpacity={1}
     >
       <Reanimated.View style={animatedStyle}>
