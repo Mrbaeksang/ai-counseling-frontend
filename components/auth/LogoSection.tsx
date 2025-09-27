@@ -24,7 +24,7 @@ export const LogoSection = React.memo(({ pulseAnim }: LogoSectionProps) => {
         />
       </Animated.View>
 
-      <Text style={styles.appTitle}>Dr. Mind</Text>
+      <Text style={styles.appTitle}>마인드톡</Text>
       <Text style={styles.appSubtitle}>
         역사상 가장 위대한 대화가들과 함께{'\n'}
         지친 마음을 위한 특별한 치유의{'\n'}

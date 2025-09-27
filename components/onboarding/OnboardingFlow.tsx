@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { Button, Checkbox, Text } from 'react-native-paper';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { spacing } from '@/constants/theme';
 import type { IconName } from '@/types/icons';
@@ -79,58 +80,60 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
 
       return (
         <LinearGradient colors={item.colors} style={styles.slide}>
-          <View style={styles.content}>
-            <Animated.View
-              entering={isActive ? FadeInDown.delay(200).springify() : undefined}
-              style={styles.iconContainer}
-            >
-              <MaterialCommunityIcons name={item.icon as IconName} size={120} color="white" />
-            </Animated.View>
-
-            <Animated.Text
-              entering={isActive ? FadeInUp.delay(400).springify() : undefined}
-              style={styles.title}
-            >
-              {item.title}
-            </Animated.Text>
-
-            <Animated.Text
-              entering={isActive ? FadeInUp.delay(600).springify() : undefined}
-              style={styles.text}
-            >
-              {item.text}
-            </Animated.Text>
-
-            {item.consentDetails && (
+          <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+            <View style={styles.content}>
               <Animated.View
-                entering={isActive ? FadeInUp.delay(700).springify() : undefined}
-                style={styles.consentDetails}
+                entering={isActive ? FadeInDown.delay(200).springify() : undefined}
+                style={styles.iconContainer}
               >
-                {item.consentDetails.map((detail) => (
-                  <Text key={detail} style={styles.consentDetailText}>
-                    {`• ${detail}`}
+                <MaterialCommunityIcons name={item.icon as IconName} size={120} color="white" />
+              </Animated.View>
+
+              <Animated.Text
+                entering={isActive ? FadeInUp.delay(400).springify() : undefined}
+                style={styles.title}
+              >
+                {item.title}
+              </Animated.Text>
+
+              <Animated.Text
+                entering={isActive ? FadeInUp.delay(600).springify() : undefined}
+                style={styles.text}
+              >
+                {item.text}
+              </Animated.Text>
+
+              {item.consentDetails && (
+                <Animated.View
+                  entering={isActive ? FadeInUp.delay(700).springify() : undefined}
+                  style={styles.consentDetails}
+                >
+                  {item.consentDetails.map((detail) => (
+                    <Text key={detail} style={styles.consentDetailText}>
+                      {`• ${detail}`}
+                    </Text>
+                  ))}
+                </Animated.View>
+              )}
+
+              {item.requiresConsent && (
+                <Animated.View
+                  entering={isActive ? FadeInUp.delay(800).springify() : undefined}
+                  style={styles.consentCheckboxRow}
+                >
+                  <Checkbox
+                    status={hasConsent ? 'checked' : 'unchecked'}
+                    onPress={() => setHasConsent((prev) => !prev)}
+                    color="white"
+                    uncheckedColor="white"
+                  />
+                  <Text style={styles.consentCheckboxLabel}>
+                    위 내용을 이해했고 엔터테인먼트 목적으로 이용할게요.
                   </Text>
-                ))}
-              </Animated.View>
-            )}
-
-            {item.requiresConsent && (
-              <Animated.View
-                entering={isActive ? FadeInUp.delay(800).springify() : undefined}
-                style={styles.consentCheckboxRow}
-              >
-                <Checkbox
-                  status={hasConsent ? 'checked' : 'unchecked'}
-                  onPress={() => setHasConsent((prev) => !prev)}
-                  color="white"
-                  uncheckedColor="white"
-                />
-                <Text style={styles.consentCheckboxLabel}>
-                  위 내용을 이해했고 엔터테인먼트 목적으로 이용할게요.
-                </Text>
-              </Animated.View>
-            )}
-          </View>
+                </Animated.View>
+              )}
+            </View>
+          </SafeAreaView>
         </LinearGradient>
       );
     },
@@ -243,12 +246,16 @@ OnboardingFlow.displayName = 'OnboardingFlow';
 const styles = StyleSheet.create({
   slide: {
     flex: 1,
+  },
+  safeArea: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl, // 추가 하단 패딩
   },
   iconContainer: {
     width: 200,
