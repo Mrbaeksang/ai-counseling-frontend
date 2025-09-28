@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Dialog, Text, TextInput } from 'react-native-paper';
 import { BlurredDialog } from '@/components/common/BlurredDialog';
 import { StarRating } from '@/components/common/StarRating';
@@ -38,47 +38,78 @@ export const RatingDialog = React.memo(
 
     return (
       <BlurredDialog visible={visible} onDismiss={onDismiss} intensity={90} tint="dark">
-        <Dialog.Title>대화은 어떠셨나요?</Dialog.Title>
-        <Dialog.Content>
-          <View style={styles.starsContainer}>
-            <StarRating rating={selectedRating} onRatingChange={onRatingSelect} />
-          </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
+        >
+          <Dialog.ScrollArea style={styles.scrollArea}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <Dialog.Title>대화은 어떠셨나요?</Dialog.Title>
+              <View style={styles.dialogContent}>
+                <View style={styles.starsContainer}>
+                  <StarRating rating={selectedRating} onRatingChange={onRatingSelect} />
+                </View>
 
-          <Text style={styles.ratingText}>{getRatingText()}</Text>
+                <Text style={styles.ratingText}>{getRatingText()}</Text>
 
-          <TextInput
-            label="대화에 대한 의견 (선택사항)"
-            mode="outlined"
-            multiline
-            numberOfLines={3}
-            value={feedback}
-            onChangeText={onFeedbackChange}
-            style={styles.feedbackInput}
-            placeholder="어떤 점이 좋았는지, 개선할 점은 무엇인지 알려주세요"
-            outlineColor="#E5E7EB"
-            activeOutlineColor="#6B46C1"
-          />
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={onDismiss} textColor="#6B7280">
-            나중에
-          </Button>
-          <Button
-            onPress={onSubmit}
-            mode="contained"
-            disabled={isSubmitting}
-            loading={isSubmitting}
-            buttonColor="#6B46C1"
-          >
-            평가 완료
-          </Button>
-        </Dialog.Actions>
+                <TextInput
+                  label="대화에 대한 의견 (선택사항)"
+                  mode="outlined"
+                  multiline
+                  numberOfLines={3}
+                  value={feedback}
+                  onChangeText={onFeedbackChange}
+                  style={styles.feedbackInput}
+                  placeholder="어떤 점이 좋았는지, 개선할 점은 무엇인지 알려주세요"
+                  outlineColor="#E5E7EB"
+                  activeOutlineColor="#6B46C1"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  textAlignVertical="top"
+                />
+              </View>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions style={styles.actions}>
+            <Button onPress={onDismiss} textColor="#6B7280">
+              나중에
+            </Button>
+            <Button
+              onPress={onSubmit}
+              mode="contained"
+              disabled={isSubmitting}
+              loading={isSubmitting}
+              buttonColor="#6B46C1"
+            >
+              평가 완료
+            </Button>
+          </Dialog.Actions>
+        </KeyboardAvoidingView>
       </BlurredDialog>
     );
   },
 );
 
 const styles = StyleSheet.create({
+  keyboardAvoid: {
+    flex: 1,
+  },
+  scrollArea: {
+    paddingHorizontal: 0,
+    maxHeight: 350,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: spacing.md,
+  },
+  dialogContent: {
+    paddingHorizontal: spacing.lg,
+  },
   starsContainer: {
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
@@ -90,11 +121,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Medium',
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
-    paddingVertical: spacing.xs, // 텍스트 잘림 방지
-    minHeight: 24, // 최소 높이 보장
+    paddingVertical: spacing.xs,
+    minHeight: 24,
   },
   feedbackInput: {
     marginTop: spacing.sm,
     backgroundColor: '#FFFFFF',
+    minHeight: 80,
+  },
+  actions: {
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
 });
