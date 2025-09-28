@@ -6,6 +6,7 @@ interface User {
   email: string;
   nickname: string;
   name?: string; // nickname 별칭
+  profileImageUrl?: string; // 사용자 프로필 이미지
 }
 
 interface AuthState {
@@ -29,6 +30,7 @@ interface AuthResponse {
   userId: number;
   email: string;
   nickname: string;
+  profileImageUrl?: string;
 }
 
 const useAuthStore = create<AuthState>((set) => ({
@@ -39,18 +41,20 @@ const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
   login: async (response: AuthResponse) => {
-    const { accessToken, refreshToken, userId, email, nickname } = response;
+    const { accessToken, refreshToken, userId, email, nickname, profileImageUrl } = response;
+
+    const user = { userId, email, nickname, profileImageUrl };
 
     // AsyncStorage에 토큰 저장
     await AsyncStorage.multiSet([
       ['accessToken', accessToken],
       ['refreshToken', refreshToken],
-      ['user', JSON.stringify({ userId, email, nickname })],
+      ['user', JSON.stringify(user)],
     ]);
 
     // 스토어 업데이트
     set({
-      user: { userId, email, nickname },
+      user,
       accessToken,
       refreshToken,
       isAuthenticated: true,

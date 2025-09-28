@@ -8,7 +8,6 @@ import { spacing } from '@/constants/theme';
 
 interface ChatHeaderProps {
   title: string;
-  characterName?: string;
   characterAvatar?: string;
   onTitleEdit: () => void;
   onBookmarkToggle: () => void;
@@ -19,7 +18,6 @@ interface ChatHeaderProps {
 export const ChatHeader = React.memo(
   ({
     title,
-    characterName: _characterName, // ?�후 ?�용 ?�정
     characterAvatar,
     onTitleEdit,
     onBookmarkToggle,
@@ -129,7 +127,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   characterName: {
-    fontSize: 15, // ?�용?��? ?��?�??�겨??    fontFamily: 'Pretendard-Bold',
+    fontSize: 13,
+    fontFamily: 'Pretendard-SemiBold',
     color: '#6B46C1',
     marginBottom: 2,
   },

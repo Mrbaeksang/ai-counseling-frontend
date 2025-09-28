@@ -1,7 +1,8 @@
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Dialog, Portal, RadioButton, Text, TextInput } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '@/constants/theme';
 import type { MessageReportReason, MessageReportRequest } from '@/services/sessions/types';
 
@@ -29,6 +30,7 @@ export const MessageReportDialog: React.FC<MessageReportDialogProps> = ({
   onDismiss,
   isSubmitting = false,
 }) => {
+  const insets = useSafeAreaInsets();
   const [selectedReason, setSelectedReason] = useState<MessageReportReason>('SPAM');
   const [detail, setDetail] = useState('');
 
@@ -53,63 +55,106 @@ export const MessageReportDialog: React.FC<MessageReportDialogProps> = ({
 
   return (
     <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss}>
-        <Dialog.Title>메시지 신고</Dialog.Title>
-        <Dialog.Content>
-          {messagePreview ? (
-            <Text variant="bodyMedium" style={styles.preview}>
-              {`“${messagePreview}”`}
-            </Text>
-          ) : null}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoid}
+      >
+        <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
+          <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
+            <Dialog.ScrollArea style={styles.scrollArea}>
+              <ScrollView contentContainerStyle={styles.scrollContent}>
+                <Dialog.Title>메시지 신고</Dialog.Title>
+                <View style={styles.dialogContent}>
+                  {messagePreview ? (
+                    <Text variant="bodyMedium" style={styles.preview} numberOfLines={3}>
+                      {`"${messagePreview.slice(0, 100)}${
+                        messagePreview.length > 100 ? '...' : ''
+                      }"`}
+                    </Text>
+                  ) : null}
 
-          <RadioButton.Group
-            onValueChange={(value) => setSelectedReason(value as MessageReportReason)}
-            value={selectedReason}
-          >
-            {reasonOptions.map((option) => (
-              <RadioButton.Item
-                key={option.value}
-                label={option.label}
-                value={option.value}
-                position="leading"
-                style={styles.radioItem}
-              />
-            ))}
-          </RadioButton.Group>
+                  <RadioButton.Group
+                    onValueChange={(value) => setSelectedReason(value as MessageReportReason)}
+                    value={selectedReason}
+                  >
+                    {reasonOptions.map((option) => (
+                      <RadioButton.Item
+                        key={option.value}
+                        label={option.label}
+                        value={option.value}
+                        position="leading"
+                        style={styles.radioItem}
+                        labelStyle={styles.radioLabel}
+                      />
+                    ))}
+                  </RadioButton.Group>
 
-          <TextInput
-            label="추가 설명 (선택)"
-            mode="outlined"
-            value={detail}
-            onChangeText={setDetail}
-            multiline
-            numberOfLines={3}
-            style={styles.input}
-            placeholder="신고 사유를 구체적으로 알려주세요"
-          />
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={onDismiss}>취소</Button>
-          <Button
-            mode="contained"
-            onPress={handleSubmit}
-            disabled={!selectedReason || isSubmitting}
-            loading={isSubmitting}
-          >
-            신고하기
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
+                  <TextInput
+                    label="추가 설명 (선택)"
+                    mode="outlined"
+                    value={detail}
+                    onChangeText={setDetail}
+                    multiline
+                    numberOfLines={3}
+                    style={styles.input}
+                    placeholder="신고 사유를 구체적으로 알려주세요"
+                    autoCorrect={false}
+                    autoComplete="off"
+                  />
+                </View>
+              </ScrollView>
+            </Dialog.ScrollArea>
+            <Dialog.Actions>
+              <Button onPress={onDismiss}>취소</Button>
+              <Button
+                mode="contained"
+                onPress={handleSubmit}
+                disabled={!selectedReason || isSubmitting}
+                loading={isSubmitting}
+              >
+                신고하기
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
+        </View>
+      </KeyboardAvoidingView>
     </Portal>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoid: {
+    flex: 1,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  dialog: {
+    maxHeight: '80%',
+    marginHorizontal: 0,
+  },
+  scrollArea: {
+    paddingHorizontal: 0,
+    maxHeight: 400,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  dialogContent: {
+    paddingHorizontal: spacing.lg,
+  },
   preview: {
     marginBottom: spacing.sm,
+    fontStyle: 'italic',
   },
   radioItem: {
     paddingHorizontal: 0,
+    paddingVertical: spacing.xs,
+  },
+  radioLabel: {
+    fontSize: 14,
   },
   input: {
     marginTop: spacing.sm,

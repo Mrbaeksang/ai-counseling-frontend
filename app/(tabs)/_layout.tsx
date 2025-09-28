@@ -46,6 +46,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="characters"
+        options={{
+          title: '캐릭터',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="robot-happy" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="sessions"
         options={{
           title: '대화내역',

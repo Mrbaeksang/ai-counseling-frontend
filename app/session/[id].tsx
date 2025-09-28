@@ -15,6 +15,7 @@ import type { ChatMessage } from '@/components/chat/types';
 import { getCharacterImage } from '@/constants/characterImages';
 import { useSessionActions } from '@/hooks/useSessionActions';
 import { useSessionMessages } from '@/hooks/useSessionMessages';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { reportMessage, sendMessage } from '@/services/sessions';
 import type {
   MessageItem,
@@ -38,6 +39,7 @@ export default function SessionScreen() {
   const toast = useToast();
   const theme = useTheme();
   const queryClient = useQueryClient();
+  const { profile } = useUserProfile();
 
   const sessionId = Number(params.id);
   const initialcharacterInfo = useMemo(
@@ -137,13 +139,13 @@ export default function SessionScreen() {
         createdAt: new Date(msg.createdAt),
         user: {
           _id: isAI ? 2 : 1,
-          name: isAI ? characterInfo?.characterName || 'AI' : '나',
+          name: isAI ? characterInfo?.characterName || 'AI' : profile?.nickname || '나',
           avatar: isAI ? characterAvatar : undefined,
         },
         original: msg,
       };
     });
-  }, [messages, characterInfo]);
+  }, [messages, characterInfo, profile]);
 
   // Wrapper functions to integrate with custom hook
   const handleBookmarkToggle = useCallback(async () => {
@@ -340,7 +342,6 @@ export default function SessionScreen() {
         >
           <ChatHeader
             title={sessionTitle}
-            characterName={characterInfo?.characterName}
             characterAvatar={characterInfo?.avatarUrl}
             onTitleEdit={handleTitleEdit}
             onBookmarkToggle={handleBookmarkToggle}

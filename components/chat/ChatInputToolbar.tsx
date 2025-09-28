@@ -23,5 +23,8 @@ export const ChatInputToolbar = React.memo((props: InputToolbarProps<IMessage>) 
 const styles = StyleSheet.create({
   inputToolbar: {
     borderTopWidth: 1,
+    paddingBottom: 0,
+    marginBottom: 0,
+    minHeight: 44,
   },
 });

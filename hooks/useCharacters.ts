@@ -16,7 +16,7 @@ import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
 // AI 캐릭터 목록 조회
-export const useCharacters = (page = 1, size = 20, sort = 'popular') => {
+export const useCharacters = (page = 1, size = 40, sort = 'recent') => {
   return useQuery({
     queryKey: ['characters', page, size, sort],
     queryFn: () => getCharacters(page, size, sort),

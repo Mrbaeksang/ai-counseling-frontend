@@ -32,7 +32,12 @@ export const characterImages: { [key: string]: ReturnType<typeof require> } = {
 
 // AI 캐릭터 이미지 가져오기 헬퍼 함수
 export const getCharacterImage = (avatarUrl?: string) => {
+  // avatarUrl이 없거나 string이 아닌 경우 null 반환
+  if (!avatarUrl || typeof avatarUrl !== 'string') {
+    return null;
+  }
+
   // 로컬 경로에서 파일명 추출해서 require된 이미지 반환
-  const imageName = avatarUrl?.split('/').pop();
-  return imageName && characterImages[imageName];
+  const imageName = avatarUrl.split('/').pop();
+  return imageName ? characterImages[imageName] : null;
 };

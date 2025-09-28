@@ -1,7 +1,9 @@
+import type { IconName } from '@/types/icons';
+
 export type CategoryType = {
   id: string;
   label: string;
-  icon: string;
+  icon: IconName;
   color: string;
   gradient: [string, string];
 };
@@ -10,84 +12,84 @@ export const CATEGORIES: CategoryType[] = [
   {
     id: 'self',
     label: '자기돌봄',
-    icon: 'head-dots-horizontal',
+    icon: 'head-dots-horizontal' as IconName,
     color: '#8B5CF6',
     gradient: ['#8B5CF6', '#A78BFA'],
   },
   {
     id: 'emotion',
     label: '감정정리',
-    icon: 'emoticon-neutral',
+    icon: 'emoticon-neutral' as IconName,
     color: '#EC4899',
     gradient: ['#EC4899', '#F9A8D4'],
   },
   {
     id: 'anxiety',
     label: '마음 가라앉히기',
-    icon: 'alert-circle',
+    icon: 'alert-circle' as IconName,
     color: '#F59E0B',
     gradient: ['#F59E0B', '#FCD34D'],
   },
   {
     id: 'depression',
     label: '기분전환',
-    icon: 'weather-cloudy',
+    icon: 'weather-cloudy' as IconName,
     color: '#6B7280',
     gradient: ['#6B7280', '#9CA3AF'],
   },
   {
     id: 'stress',
     label: '숨 고르기',
-    icon: 'lightning-bolt',
+    icon: 'lightning-bolt' as IconName,
     color: '#EF4444',
     gradient: ['#EF4444', '#F87171'],
   },
   {
     id: 'trauma',
     label: '마음정리',
-    icon: 'bandage',
+    icon: 'bandage' as IconName,
     color: '#7C3AED',
     gradient: ['#7C3AED', '#A78BFA'],
   },
   {
     id: 'relationship',
     label: '사람관계',
-    icon: 'heart-multiple',
+    icon: 'heart-multiple' as IconName,
     color: '#F472B6',
     gradient: ['#F472B6', '#FBCFE8'],
   },
   {
     id: 'family',
     label: '우리집 이야기',
-    icon: 'home-heart',
+    icon: 'home-heart' as IconName,
     color: '#10B981',
     gradient: ['#10B981', '#6EE7B7'],
   },
   {
     id: 'life',
     label: '일상 아이디어',
-    icon: 'school',
+    icon: 'school' as IconName,
     color: '#3B82F6',
     gradient: ['#3B82F6', '#93C5FD'],
   },
   {
     id: 'work',
     label: '일터 토크',
-    icon: 'briefcase',
+    icon: 'briefcase' as IconName,
     color: '#6366F1',
     gradient: ['#6366F1', '#A5B4FC'],
   },
   {
     id: 'habit',
     label: '생활 루틴',
-    icon: 'sync',
+    icon: 'sync' as IconName,
     color: '#14B8A6',
     gradient: ['#14B8A6', '#5EEAD4'],
   },
   {
     id: 'philosophy',
     label: '생각 탐험',
-    icon: 'meditation',
+    icon: 'meditation' as IconName,
     color: '#A855F7',
     gradient: ['#A855F7', '#C084FC'],
   },
@@ -126,6 +128,21 @@ export const categoryTranslations: Record<string, string> = {
   HABIT: '생활 루틴',
 };
 
+export const categoryEmojis: Record<string, string> = {
+  self: '🪞',
+  emotion: '😊',
+  stress: '🧘',
+  life: '💡',
+  work: '💼',
+  anxiety: '😰',
+  depression: '🌈',
+  relationship: '💕',
+  family: '🏠',
+  trauma: '💔',
+  habit: '🔄',
+  philosophy: '💭',
+};
+
 export const translateCategory = (category: string): string => {
   const trimmed = category.trim();
 
@@ -147,4 +164,10 @@ export const translateCategory = (category: string): string => {
   }
 
   return trimmed;
+};
+
+export const getCategoryWithEmoji = (category: string): string => {
+  const emoji = categoryEmojis[category] || '📌';
+  const label = translateCategory(category);
+  return `${emoji} ${label}`;
 };
