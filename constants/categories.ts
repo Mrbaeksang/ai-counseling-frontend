@@ -126,6 +126,21 @@ export const categoryTranslations: Record<string, string> = {
   HABIT: '생활 루틴',
 };
 
+export const categoryEmojis: Record<string, string> = {
+  self: '🪞',
+  emotion: '😊',
+  stress: '🧘',
+  life: '💡',
+  work: '💼',
+  anxiety: '😰',
+  depression: '🌈',
+  relationship: '💕',
+  family: '🏠',
+  trauma: '💔',
+  habit: '🔄',
+  philosophy: '💭',
+};
+
 export const translateCategory = (category: string): string => {
   const trimmed = category.trim();
 
@@ -147,4 +162,10 @@ export const translateCategory = (category: string): string => {
   }
 
   return trimmed;
+};
+
+export const getCategoryWithEmoji = (category: string): string => {
+  const emoji = categoryEmojis[category] || '📌';
+  const label = translateCategory(category);
+  return `${emoji} ${label}`;
 };

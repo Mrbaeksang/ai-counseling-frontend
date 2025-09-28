@@ -18,7 +18,9 @@ try {
   // Google OAuth 설정
   if (GoogleSignin) {
     GoogleSignin.configure({
-      webClientId: '470745173996-2m81qutdnesqnqprc55n8cce7lrr7hm5.apps.googleusercontent.com',
+      webClientId:
+        process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+        '470745173996-ei46dtmudv9j2cph7scqnh9m5sit8ons.apps.googleusercontent.com',
     });
   }
 } catch (error: unknown) {
@@ -45,24 +47,24 @@ export const useSimpleGoogleAuth = () => {
         }
         throw new Error('Google Sign-In not available');
       }
-      // Google 로그인
       await GoogleSignin.hasPlayServices();
       const _userInfo = await GoogleSignin.signIn();
-
-      // ID Token 가져오기 - 구조 수정
       const tokens = await GoogleSignin.getTokens();
-      const idToken = tokens.idToken;
 
-      if (!idToken) {
+      if (!tokens.idToken) {
         throw new Error('ID Token을 가져올 수 없습니다');
       }
-      // authService를 통해 백엔드로 전송
-      await authService.googleLogin(idToken);
+      await authService.googleLogin(tokens.idToken);
+
       // 메인 화면으로 이동
       router.replace('/(tabs)');
     } catch (error) {
+      // 에러 타입별 상세 분석
+      if (error instanceof Error) {
+      }
+
       const message = error instanceof Error ? error.message : '다시 시도해주세요.';
-      Alert.alert('로그인 실패', message);
+      Alert.alert('Google 로그인 실패', `${message}\n\n콘솔 로그를 확인해주세요.`);
     } finally {
       setIsLoading(false);
     }

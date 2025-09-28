@@ -9,8 +9,8 @@ import type {
 // AI 캐릭터 목록 조회
 export const getCharacters = async (
   page = 1, // 백엔드 API는 1부터 시작
-  size = 20,
-  sort = 'popular',
+  size = 40, // 더 많은 캐릭터 표시
+  sort = 'recent', // 기본값을 최신순으로 변경
 ): Promise<PageResponse<CharacterListResponse>> => {
   const response = await api.get<PageResponse<CharacterListResponse>>('/characters', {
     params: { page, size, sort },
