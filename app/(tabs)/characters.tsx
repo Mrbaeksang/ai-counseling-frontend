@@ -2,12 +2,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { Button, Chip, Portal, Text, useTheme } from 'react-native-paper';
+import { Portal, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CharacterGridCard } from '@/components/character/CharacterGridCard';
 import { CharacterGridCardSkeleton } from '@/components/character/CharacterGridCardSkeleton';
 import { CategoryFilterModal } from '@/components/characters/CategoryFilterModal';
-import { getCategoryWithEmoji } from '@/constants/categories';
+import { CharactersFilterBar } from '@/components/characters/CharactersFilterBar';
+import { CharactersHeader } from '@/components/characters/CharactersHeader';
 import { spacing } from '@/constants/theme';
 import { useCharacters, useToggleFavorite } from '@/hooks/useCharacters';
 import type { Character } from '@/services/characters/types';
@@ -15,43 +16,6 @@ import type { Character } from '@/services/characters/types';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  titleSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: 'Pretendard-Bold',
-    letterSpacing: -0.3,
-  },
-  subtitle: {
-    fontSize: 13,
-    fontFamily: 'Pretendard-Regular',
-    marginTop: 2,
-  },
-  filterContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  filterChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
   },
   contentContainer: {
     flex: 1,
@@ -167,6 +131,10 @@ export default function CharactersScreen() {
     setSelectedCategories([]);
   }, []);
 
+  const handleCategoryRemove = useCallback((category: string) => {
+    setSelectedCategories((prev) => prev.filter((c) => c !== category));
+  }, []);
+
   const handleFavoriteToggle = useCallback(
     async (characterId: number) => {
       const character = filteredCharacters.find((c) => c.id === characterId);
@@ -197,22 +165,7 @@ export default function CharactersScreen() {
           { backgroundColor: theme.colors.background, paddingTop: insets.top },
         ]}
       >
-        {/* 헤더 스켈레톤 */}
-        <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-          <View style={styles.titleSection}>
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.colors.primaryContainer }]}
-            >
-              <MaterialCommunityIcons name="robot-happy" size={20} color={theme.colors.primary} />
-            </View>
-            <View>
-              <Text style={[styles.title, { color: theme.colors.onSurface }]}>캐릭터</Text>
-              <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-                AI 상담사를 선택하세요
-              </Text>
-            </View>
-          </View>
-        </View>
+        <CharactersHeader title="캐릭터" subtitle="AI 상담사를 선택하세요" />
 
         {/* 캐릭터 그리드 스켈레톤 */}
         <View style={styles.listContent}>
@@ -228,8 +181,6 @@ export default function CharactersScreen() {
     );
   }
 
-  const hasFilters = selectedCategories.length > 0;
-
   return (
     <View
       style={[
@@ -237,108 +188,16 @@ export default function CharactersScreen() {
         { paddingTop: insets.top, backgroundColor: theme.colors.background },
       ]}
     >
-      {/* 헤더 */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-        <View style={styles.titleSection}>
-          <View style={[styles.iconContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-            <MaterialCommunityIcons name="robot-happy" size={20} color={theme.colors.primary} />
-          </View>
-          <View>
-            <Text style={[styles.title, { color: theme.colors.onSurface }]}>캐릭터</Text>
-            <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-              AI 상담사를 선택하세요
-            </Text>
-          </View>
-        </View>
-      </View>
+      <CharactersHeader title="캐릭터" subtitle="AI 상담사를 선택하세요" />
 
-      {/* 정렬 및 필터 */}
-      <View style={styles.filterContainer}>
-        <View style={styles.filterChips}>
-          <Chip
-            selected={sortBy === 'recent'}
-            onPress={() => setSortBy('recent')}
-            showSelectedCheck={false}
-            style={{
-              backgroundColor:
-                sortBy === 'recent' ? theme.colors.primaryContainer : theme.colors.surface,
-            }}
-          >
-            최신순
-          </Chip>
-          <Chip
-            selected={sortBy === 'popular'}
-            onPress={() => setSortBy('popular')}
-            showSelectedCheck={false}
-            style={{
-              backgroundColor:
-                sortBy === 'popular' ? theme.colors.primaryContainer : theme.colors.surface,
-            }}
-          >
-            인기순
-          </Chip>
-          <Chip
-            selected={sortBy === 'rating'}
-            onPress={() => setSortBy('rating')}
-            showSelectedCheck={false}
-            style={{
-              backgroundColor:
-                sortBy === 'rating' ? theme.colors.primaryContainer : theme.colors.surface,
-            }}
-          >
-            평점순
-          </Chip>
-          <View
-            style={{
-              width: 1,
-              height: 24,
-              backgroundColor: theme.colors.outlineVariant,
-              marginHorizontal: spacing.xs,
-            }}
-          />
-          <Chip
-            icon={selectedCategories.length > 0 ? undefined : 'filter-variant'}
-            selected={selectedCategories.length > 0}
-            onPress={() => setShowFilterModal(true)}
-            showSelectedCheck={false}
-            style={{
-              backgroundColor:
-                selectedCategories.length > 0
-                  ? theme.colors.primaryContainer
-                  : theme.colors.surface,
-              marginRight: 0,
-            }}
-          >
-            {selectedCategories.length > 0 ? `상황별 (${selectedCategories.length})` : '상황별'}
-          </Chip>
-        </View>
-      </View>
-
-      {/* 필터 칩 */}
-      {hasFilters && (
-        <View style={[styles.filterContainer, { paddingTop: 0 }]}>
-          <View style={styles.filterChips}>
-            {selectedCategories.map((category) => (
-              <Chip
-                key={category}
-                selected
-                showSelectedCheck={false}
-                onPress={() => {
-                  setSelectedCategories((prev) => prev.filter((c) => c !== category));
-                }}
-                style={{
-                  backgroundColor: theme.colors.primaryContainer,
-                }}
-              >
-                {getCategoryWithEmoji(category)}
-              </Chip>
-            ))}
-            <Button mode="text" onPress={handleClearFilters} compact>
-              전체 초기화
-            </Button>
-          </View>
-        </View>
-      )}
+      <CharactersFilterBar
+        sortBy={sortBy}
+        selectedCategories={selectedCategories}
+        onSortChange={setSortBy}
+        onShowFilterModal={() => setShowFilterModal(true)}
+        onCategoryRemove={handleCategoryRemove}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* 캐릭터 리스트 */}
       <FlatList
@@ -369,7 +228,7 @@ export default function CharactersScreen() {
               캐릭터를 찾을 수 없습니다
             </Text>
             <Text style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
-              {hasFilters
+              {selectedCategories.length > 0
                 ? '다른 검색어나 필터를 시도해보세요'
                 : '캐릭터를 불러오는 중 오류가 발생했습니다'}
             </Text>
