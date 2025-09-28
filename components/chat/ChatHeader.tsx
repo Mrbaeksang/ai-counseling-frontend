@@ -8,7 +8,6 @@ import { spacing } from '@/constants/theme';
 
 interface ChatHeaderProps {
   title: string;
-  characterName?: string;
   characterAvatar?: string;
   onTitleEdit: () => void;
   onBookmarkToggle: () => void;
@@ -19,7 +18,6 @@ interface ChatHeaderProps {
 export const ChatHeader = React.memo(
   ({
     title,
-    characterName,
     characterAvatar,
     onTitleEdit,
     onBookmarkToggle,

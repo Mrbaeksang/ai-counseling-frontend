@@ -218,7 +218,7 @@ export default function CharactersScreen() {
         <View style={styles.listContent}>
           <View style={[styles.skeletonGrid]}>
             {Array.from({ length: 9 }).map((_, index) => (
-              <View key={`skeleton-${index}`} style={styles.skeletonItem}>
+              <View key={`character-skeleton-${Date.now()}-${index}`} style={styles.skeletonItem}>
                 <CharacterGridCardSkeleton />
               </View>
             ))}

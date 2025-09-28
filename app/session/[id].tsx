@@ -342,7 +342,6 @@ export default function SessionScreen() {
         >
           <ChatHeader
             title={sessionTitle}
-            characterName={characterInfo?.characterName}
             characterAvatar={characterInfo?.avatarUrl}
             onTitleEdit={handleTitleEdit}
             onBookmarkToggle={handleBookmarkToggle}
