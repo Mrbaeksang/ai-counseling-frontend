@@ -1,8 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
 import { DailyQuote } from '@/components/home/DailyQuote';
 import { WelcomeSection } from '@/components/home/WelcomeSection';
@@ -10,7 +9,6 @@ import { spacing } from '@/constants/theme';
 import useAuthStore from '@/store/authStore';
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const theme = useTheme();
 
@@ -26,12 +24,8 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, backgroundColor: theme.colors.background },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <WelcomeSection userName={user?.nickname} />
         <DailyQuote />

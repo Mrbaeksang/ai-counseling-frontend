@@ -1,8 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SessionListContainer from '@/components/session/SessionListContainer';
 import { SessionTabs } from '@/components/session/SessionTabs';
 import { spacing } from '@/constants/theme';
@@ -13,7 +12,6 @@ import useAuthStore from '@/store/authStore';
 import { useToast } from '@/store/toastStore';
 
 export default function SessionsScreen() {
-  const insets = useSafeAreaInsets();
   const toast = useToast();
   const theme = useTheme();
   const { user } = useAuthStore();
@@ -148,13 +146,13 @@ export default function SessionsScreen() {
         style={[
           styles.container,
           {
-            paddingTop: insets.top,
             backgroundColor: theme.colors.background,
             justifyContent: 'center',
             alignItems: 'center',
           },
         ]}
       >
+        <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
         <View style={{ alignItems: 'center', padding: spacing.xl }}>
           <Text
             style={{
@@ -191,12 +189,8 @@ export default function SessionsScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, backgroundColor: theme.colors.background },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <SessionTabs tabIndex={tabIndex} onTabChange={setTabIndex} />
 
       <View style={styles.content}>

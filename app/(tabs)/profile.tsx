@@ -1,9 +1,8 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Text, useTheme } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountDeleteDialog } from '@/components/profile/AccountDeleteDialog';
 import { NicknameEditDialog } from '@/components/profile/NicknameEditDialog';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -41,7 +40,6 @@ const styles = StyleSheet.create({
 });
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { user, logout } = useAuthStore();
   const { mode: themeMode } = useThemeStore();
@@ -182,9 +180,10 @@ export default function ProfileScreen() {
         style={[
           styles.container,
           styles.centerContent,
-          { backgroundColor: theme.colors.background, paddingTop: insets.top },
+          { backgroundColor: theme.colors.background },
         ]}
       >
+        <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
         <View style={{ alignItems: 'center', padding: spacing.xl }}>
           <Text
             style={{
@@ -235,12 +234,8 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, backgroundColor: theme.colors.background },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Profile Header with user info */}
         <ProfileHeader profile={profile} />

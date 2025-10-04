@@ -1,13 +1,11 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FavoritesList } from '@/components/favorites/FavoritesList';
 import { useFavoriteCharacters, useToggleFavorite } from '@/hooks/useCharacters';
 import useAuthStore from '@/store/authStore';
 
 export default function FavoritesScreen() {
-  const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuthStore();
   const theme = useTheme();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -30,12 +28,8 @@ export default function FavoritesScreen() {
   );
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, backgroundColor: theme.colors.background },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <FavoritesList
         favorites={favoriteCharacters || []}
         isLoading={isLoading}

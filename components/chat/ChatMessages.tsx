@@ -1,14 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useCallback } from 'react';
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { spacing } from '@/constants/theme';
 import { ChatMessageItem } from './ChatMessageItem';
@@ -28,6 +20,16 @@ export const ChatMessages = React.memo(
   ({ messages, onSend, isSessionClosed, isSending, onMessageAction }: ChatMessagesProps) => {
     const theme = useTheme();
     const [inputText, setInputText] = React.useState('');
+    const flatListRef = useRef<FlatList>(null);
+
+    // 메시지가 추가되거나 변경되면 자동으로 맨 아래로 스크롤
+    useEffect(() => {
+      if (messages.length > 0 && flatListRef.current) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    }, [messages.length]);
 
     const handleSend = useCallback(() => {
       if (inputText.trim() && !isSending) {
@@ -53,17 +55,14 @@ export const ChatMessages = React.memo(
     const keyExtractor = useCallback((item: ChatMessage) => String(item._id), []);
 
     return (
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+      <View style={styles.container}>
         {/* 메시지 리스트 */}
         <FlatList
+          ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
           keyExtractor={keyExtractor}
-          inverted
+          inverted={false}
           style={[styles.messageList, { backgroundColor: theme.colors.background }]}
           contentContainerStyle={styles.messageListContent}
           showsVerticalScrollIndicator={false}
@@ -71,6 +70,8 @@ export const ChatMessages = React.memo(
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
           windowSize={10}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
 
         {/* 입력창 */}
@@ -124,7 +125,7 @@ export const ChatMessages = React.memo(
             </TouchableOpacity>
           </View>
         )}
-      </KeyboardAvoidingView>
+      </View>
     );
   },
 );
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
   messageListContent: {
     paddingVertical: spacing.sm,
     flexGrow: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   inputContainer: {
     flexDirection: 'row',

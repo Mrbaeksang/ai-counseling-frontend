@@ -1,9 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StatusBar, StyleSheet, View } from 'react-native';
 import { Portal, Text, useTheme } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CharacterGridCard } from '@/components/character/CharacterGridCard';
 import { CharacterGridCardSkeleton } from '@/components/character/CharacterGridCardSkeleton';
 import { CategoryFilterModal } from '@/components/characters/CategoryFilterModal';
@@ -63,7 +62,6 @@ const styles = StyleSheet.create({
 });
 
 export default function CharactersScreen() {
-  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const params = useLocalSearchParams<{ selectedCategory?: string }>();
 
@@ -159,12 +157,8 @@ export default function CharactersScreen() {
 
   if (isLoading && !data) {
     return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: theme.colors.background, paddingTop: insets.top },
-        ]}
-      >
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
         <CharactersHeader title="캐릭터" subtitle="AI 상담사를 선택하세요" />
 
         {/* 캐릭터 그리드 스켈레톤 */}
@@ -182,12 +176,8 @@ export default function CharactersScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, backgroundColor: theme.colors.background },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <CharactersHeader title="캐릭터" subtitle="AI 상담사를 선택하세요" />
 
       <CharactersFilterBar

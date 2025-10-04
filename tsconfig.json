@@ -3,17 +3,16 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-native",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["components/*"],
-      "@/services/*": ["services/*"],
-      "@/hooks/*": ["hooks/*"],
-      "@/store/*": ["store/*"],
-      "@/types/*": ["types/*"],
-      "@/utils/*": ["utils/*"],
-      "@/assets/*": ["assets/*"],
-      "@/constants/*": ["constants/*"]
+      "@/components/*": ["./components/*"],
+      "@/services/*": ["./services/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/store/*": ["./store/*"],
+      "@/types/*": ["./types/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/assets/*": ["./assets/*"],
+      "@/constants/*": ["./constants/*"]
     },
     "skipLibCheck": true,
     "moduleResolution": "bundler",
