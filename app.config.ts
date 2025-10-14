@@ -22,7 +22,7 @@ const config = {
       backgroundColor: '#ffffff',
     },
     package: 'com.mindtalk.app',
-    versionCode: 9,
+    versionCode: 10,
   },
   web: {
     favicon: './assets/favicon.png',

@@ -80,7 +80,7 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
 
       return (
         <LinearGradient colors={item.colors} style={styles.slide}>
-          <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+          <View style={styles.safeArea}>
             <View style={styles.content}>
               <Animated.View
                 entering={isActive ? FadeInDown.delay(200).springify() : undefined}
@@ -133,7 +133,7 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
                 </Animated.View>
               )}
             </View>
-          </SafeAreaView>
+          </View>
         </LinearGradient>
       );
     },
@@ -226,24 +226,29 @@ export const OnboardingFlow = React.memo(({ onComplete }: OnboardingFlowProps) =
   }, []);
 
   return (
-    <AppIntroSlider
-      ref={sliderRef}
-      data={slides}
-      renderItem={renderItem}
-      renderNextButton={renderNextButton}
-      renderDoneButton={renderDoneButton}
-      renderSkipButton={renderSkipButton}
-      showSkipButton={!isConsentSlide}
-      onSlideChange={handleSlideChange}
-      dotStyle={styles.dot}
-      activeDotStyle={styles.activeDot}
-    />
+    <SafeAreaView style={styles.outerContainer} edges={['top', 'bottom']}>
+      <AppIntroSlider
+        ref={sliderRef}
+        data={slides}
+        renderItem={renderItem}
+        renderNextButton={renderNextButton}
+        renderDoneButton={renderDoneButton}
+        renderSkipButton={renderSkipButton}
+        showSkipButton={!isConsentSlide}
+        onSlideChange={handleSlideChange}
+        dotStyle={styles.dot}
+        activeDotStyle={styles.activeDot}
+      />
+    </SafeAreaView>
   );
 });
 
 OnboardingFlow.displayName = 'OnboardingFlow';
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+  },
   slide: {
     flex: 1,
   },
@@ -255,7 +260,7 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xl, // 추가 하단 패딩
+    paddingBottom: spacing.lg, // 기본 하단 패딩
   },
   iconContainer: {
     width: 200,
@@ -320,6 +325,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 24,
     marginRight: spacing.lg,
+    marginBottom: spacing.sm, // SafeAreaView가 하단 처리하므로 최소 여백만
   },
   doneButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.35)',
