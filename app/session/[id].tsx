@@ -126,6 +126,11 @@ export default function SessionScreen() {
     }
   }, [sessionInfo, setNewTitle]);
 
+  // 대화 시작 시 광고 표시 (사용자가 "광고 보고 무료로 상담 시작하기" 버튼을 눌렀으므로 정책 준수)
+  useEffect(() => {
+    showInterstitialAd();
+  }, []);
+
   const giftedChatMessages = useMemo<ChatMessage[]>(() => {
     return messages.map((msg) => {
       const isAI = msg.senderType === 'AI';
@@ -218,11 +223,6 @@ export default function SessionScreen() {
 
       const userMessage = newMessages[0];
       setIsSending(true);
-
-      // 첫 메시지인 경우 광고 표시 (AdMob 정책 준수: 사용자 액션 후 광고)
-      if (messages.length === 0) {
-        await showInterstitialAd();
-      }
 
       const tempMessageId = Date.now();
       const tempCreatedAt = new Date().toISOString();
@@ -330,7 +330,6 @@ export default function SessionScreen() {
     [
       sessionId,
       isSending,
-      messages.length,
       addMessage,
       replaceLastMessage,
       removeLastMessage,

@@ -108,7 +108,7 @@ export default function CharacterDetailScreen() {
           contentStyle={styles.startButtonContent}
           labelStyle={styles.startButtonLabel}
         >
-          대화 시작하기
+          광고 보고 대화 시작하기
         </Button>
       </View>
 

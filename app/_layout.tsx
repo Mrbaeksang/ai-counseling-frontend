@@ -3,10 +3,12 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import MobileAds from 'react-native-google-mobile-ads';
 import { configureFonts, PaperProvider } from 'react-native-paper';
 import Toast from '@/components/common/Toast';
 import { darkTheme, lightTheme } from '@/constants/theme';
 import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
+import { initializeAds } from '@/services/ads';
 import useThemeStore from '@/store/themeStore';
 
 // Prevent the splash screen from auto-hiding
@@ -111,6 +113,18 @@ export default function RootLayout() {
   useEffect(() => {
     loadStoredTheme();
   }, [loadStoredTheme]);
+
+  // AdMob SDK 초기화
+  useEffect(() => {
+    MobileAds()
+      .initialize()
+      .then(() => {
+        initializeAds();
+      })
+      .catch((_error) => {
+        // 에러 발생 시 무시 (프로덕션)
+      });
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded) {
