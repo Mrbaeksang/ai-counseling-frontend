@@ -71,7 +71,7 @@ export default function SessionScreen() {
   const [isSessionClosed, setIsSessionClosed] = useState(false); // 세션 종료 상태 추적
   const [reportDialogVisible, setReportDialogVisible] = useState(false);
   const [reportTarget, setReportTarget] = useState<MessageItem | null>(null);
-  const [messageCount, setMessageCount] = useState(0); // 메시지 카운트 (4회마다 광고)
+  const [_messageCount, setMessageCount] = useState(0); // 메시지 카운트 (4회마다 광고)
 
   const reportMessageMutation = useMutation({
     mutationFn: async ({
@@ -125,11 +125,6 @@ export default function SessionScreen() {
       setNewTitle(sessionInfo.title);
     }
   }, [sessionInfo, setNewTitle]);
-
-  // 세션 시작 시 광고 표시
-  useEffect(() => {
-    showInterstitialAd();
-  }, []);
 
   const giftedChatMessages = useMemo<ChatMessage[]>(() => {
     return messages.map((msg) => {
@@ -224,6 +219,11 @@ export default function SessionScreen() {
       const userMessage = newMessages[0];
       setIsSending(true);
 
+      // 첫 메시지인 경우 광고 표시 (AdMob 정책 준수: 사용자 액션 후 광고)
+      if (messages.length === 0) {
+        await showInterstitialAd();
+      }
+
       const tempMessageId = Date.now();
       const tempCreatedAt = new Date().toISOString();
 
@@ -290,12 +290,14 @@ export default function SessionScreen() {
           createdAt: new Date().toISOString(),
         });
 
-        // 메시지 카운트 증가 및 4회마다 광고 표시
-        const newCount = messageCount + 1;
-        setMessageCount(newCount);
-        if (newCount % 4 === 0) {
-          showInterstitialAd();
-        }
+        // 메시지 카운트 증가 및 4회마다 광고 표시 (함수형 업데이트로 클로저 버그 방지)
+        setMessageCount((prevCount) => {
+          const newCount = prevCount + 1;
+          if (newCount % 4 === 0) {
+            showInterstitialAd();
+          }
+          return newCount;
+        });
 
         // 세션이 자동 종료되었는지 확인 (AI가 CLOSING 단계에서 종료)
         if (response.isSessionEnded) {
@@ -328,6 +330,7 @@ export default function SessionScreen() {
     [
       sessionId,
       isSending,
+      messages.length,
       addMessage,
       replaceLastMessage,
       removeLastMessage,
