@@ -22,7 +22,7 @@ const config = {
       backgroundColor: '#ffffff',
     },
     package: 'com.mindtalk.app',
-    versionCode: 10,
+    versionCode: 11,
   },
   web: {
     favicon: './assets/favicon.png',
@@ -44,6 +44,13 @@ const config = {
         iosUrlScheme: `kakao${process.env.EXPO_PUBLIC_KAKAO_APP_KEY || '3f2780313ff60baebc2ca422250a417a'}`,
       },
     ],
+    [
+      'react-native-google-mobile-ads',
+      {
+        androidAppId:
+          process.env.EXPO_PUBLIC_ADMOB_APP_ID || 'ca-app-pub-8287266902600032~1399278975',
+      },
+    ],
   ],
   extra: {
     router: {},
@@ -54,6 +61,10 @@ const config = {
       ? `${process.env.EXPO_PUBLIC_API_BASE_URL}/api`
       : 'https://ai-counseling-backend-production.up.railway.app/api',
     isReviewMode: process.env.EXPO_PUBLIC_REVIEW_MODE === 'true',
+    admobAppId: process.env.EXPO_PUBLIC_ADMOB_APP_ID || 'ca-app-pub-8287266902600032~1399278975',
+    admobInterstitialAdUnitId:
+      process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_AD_UNIT_ID ||
+      'ca-app-pub-8287266902600032/7703180481',
   },
 };
 
